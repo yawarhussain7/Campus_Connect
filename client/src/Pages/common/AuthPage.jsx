@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import {user} from 'lucide-react'
 
 export default function AuthPage() {
   const [isSignIn, setIsSignIn] = useState(true);
