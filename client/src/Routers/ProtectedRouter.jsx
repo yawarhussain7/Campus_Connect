@@ -1,16 +1,15 @@
 import React from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
 
-const ProtectedRouter = ({children,userRole,allowedRole}) => {
-  
+const ProtectedRouter = ({userRole,allowedRole}) => {
   
     if(!userRole){
         return <Navigate to='/auth/SignIn'/>
     }else if(userRole !== allowedRole){
-        return <Navigate to='/unauthorized'/> || <h1>Unauthorized User</h1>
+        return <Navigate to='/unauthorized'/>
     }
     
-  return children
+  return <Outlet />
   
 }
 

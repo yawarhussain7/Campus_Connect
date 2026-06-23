@@ -1,161 +1,188 @@
-import React, { useState } from 'react';
-import {user} from 'lucide-react'
+import React, { useState } from "react";
+import {
+  User,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { SignInUser, SignUpUser } from "../../api/auth.js";
+
 
 export default function AuthPage() {
-  const [isSignIn, setIsSignIn] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isSignIn = location.pathname === "/auth/signIn";
+
+  const [showPassword, setShowPassword] = useState(false);
+
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'student',
-    rememberMe: false,
+    name: "",
+    email: "",
+    password: "",
   });
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: value,
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(isSignIn ? 'Logging in with:' : 'Signing up with:', formData);
-    // Add your authentication logic here
+
+    try {
+      if (isSignIn) {
+        const response = await SignInUser(formData);
+
+        if (response.success) {
+          console.log("Login Success");
+          toast.success("Login successful!");
+          navigate('/student/dashboard')
+        }
+      } else {
+        const response = await SignUpUser(formData);
+
+        if (response.success) {
+          console.log("Register Success");
+          toast.success("Register successful!");
+          navigate('/auth/signIn')
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error.message);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg border border-gray-100 transition-all duration-300">
-        
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+
         {/* Header */}
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            {isSignIn ? 'Welcome back' : 'Create your account'}
+          <h2 className="text-3xl font-bold text-gray-900">
+            {isSignIn ? "Welcome Back" : "Create Account"}
           </h2>
+
           <p className="mt-2 text-sm text-gray-600">
-            {isSignIn ? "Don't have an account? " : 'Already have an account? '}
+            {isSignIn
+              ? "Don't have an account?"
+              : "Already have an account?"}
+
             <button
-              onClick={() => setIsSignIn(!isSignIn)}
-              className="font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none transition-colors"
+              type="button"
+              onClick={() =>
+                navigate(
+                  isSignIn ? "/auth/signUp" : "/auth/signIn"
+                )
+              }
+              className="ml-1 font-medium text-indigo-600 hover:text-indigo-500"
             >
-              {isSignIn ? 'Sign up' : 'Sign in'}
+              {isSignIn ? "Sign Up" : "Sign In"}
             </button>
           </p>
         </div>
 
         {/* Form */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md space-y-4">
-            {/* Name Field (Only for Sign Up) */}
-            {!isSignIn && (
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
-                </label>
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+
+          {/* Full Name */}
+          {!isSignIn && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Full Name
+              </label>
+
+              <div className="relative">
+                <User
+                  size={18}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                />
+
                 <input
-                  id="name"
-                  name="name"
                   type="text"
-                  required={!isSignIn}
+                  name="name"
+                  placeholder="John Doe"
                   value={formData.name}
                   onChange={handleChange}
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="John Doe"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
-              </div>
-            )}
-
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="you@example.com"
-              />
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="••••••••"
-              />
-            </div>
-            {/* Role Field */}
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-                Role
-              </label>
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              >
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-        
-          </div>
-
-          {/* Remember Me & Forgot Password (Only for Sign In) */}
-          {isSignIn && (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="rememberMe"
-                  name="rememberMe"
-                  type="checkbox"
-                  checked={formData.rememberMe}
-                  onChange={handleChange}
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                />
-                <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-900">
-                  Remember me
-                </label>
-              </div>
-
-              <div className="text-sm">
-                <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
-                  Forgot your password?
-                </a>
               </div>
             </div>
           )}
 
-          {/* Submit Button */}
+          {/* Email */}
           <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-            >
-              {isSignIn ? 'Sign In' : 'Sign Up'}
-            </button>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email Address
+            </label>
+
+            <div className="relative">
+              <Mail
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+
+              <input
+                type="email"
+                name="email"
+                placeholder="you@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
           </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+
+            <div className="relative">
+              <Lock
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+              >
+                {showPassword ? (
+                  <EyeOff size={18} />
+                ) : (
+                  <Eye size={18} />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full py-2.5 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition"
+          >
+            {isSignIn ? "Sign In" : "Sign Up"}
+          </button>
         </form>
       </div>
     </div>
