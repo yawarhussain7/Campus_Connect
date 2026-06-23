@@ -2,17 +2,24 @@ import React from 'react'
 import { Route, Routes } from 'react-router-dom'
 import ProtectedRouter from './ProtectedRouter'
 import StudentLayout from '../layout/StudentLayout'
+import StudentDashboard from '../Pages/students/StudentDashboard'
+import Projects from '../Pages/students/Projects'
+import PastPapers from '../Pages/students/PastPapers'
+import TeacherReview from '../Pages/students/TeacherReview'
+import Assignments from '../Pages/students/Assignments'
+import Settings from '../Pages/students/Settings'
 
 const StudentRoute = ({userRole}) => {
   return (
     <Routes>
       <Route element={<ProtectedRouter userRole={userRole} allowedRole="user" />}>
         <Route element={<StudentLayout />}>
-          <Route path='dashboard' element={<h1>Student Dashboard</h1>} />
-          <Route path="teachers-review" element={<h1>Teachers Review</h1>} />
-          <Route path="past-papers" element={<h1>Past Papers</h1>} />
-          <Route path='projects' element={<h1>Student Projects</h1>} />
-          <Route path='assignments' element={<h1>Assignments</h1>} />
+          <Route path='dashboard' element={<StudentDashboard/>} />
+          <Route path="teachers-review" element={<TeacherReview/>} />
+          <Route path="past-papers" element={<PastPapers/>} />
+          <Route path='projects' element={<Projects/>} />
+          <Route path='assignments' element={<Assignments/>} />
+          <Route path='settings' element={<Settings/>} />
           <Route path="*" element={<h1>404 Not found</h1>} />
         </Route>
       </Route>
