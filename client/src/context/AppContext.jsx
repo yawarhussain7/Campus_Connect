@@ -17,12 +17,7 @@ export const AppProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    const token = document.cookie.includes('token=');
-    if (token) {
-      fetchProfile();
-    } else {
-      setLoading(false);
-    }
+    fetchProfile();
   }, []);
 
   const fetchProfile = async () => {

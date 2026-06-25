@@ -1,6 +1,7 @@
 // src/CampConnectorElite.jsx
 import React, { useState, useEffect } from 'react';
 import { getDashboardStats } from '../../api/dashboard';
+import { useAppContext } from '../../context/AppContext';
 
 // Subcomponent Imports
 import Sidebar from '../../Components/common/Sidebar';
@@ -8,7 +9,6 @@ import Header from '../../Components/common/Header';
 import AnalyticsSummary from '../../Components/dashboard/AnalyticsSummary';
 import MatrixFilters from '../../Components/dashboard/MatrixFilters';
 import ProjectCard from '../../Components/dashboard/ProjectCard';
-import MaterialCard from '../../Components/dashboard/MaterialCard';
 import Leaderboard from '../../Components/dashboard/Leaderboard';
 import ProjectReviewModal from '../../Components/dashboard/ProjectReviewModal';
 
@@ -68,18 +68,13 @@ const INITIAL_PROJECTS = [
   }
 ];
 
-const INITIAL_NOTES = [
-  { id: 1, title: 'Data Structures & Algorithms – Complete Notes', type: 'Notes', dept: 'Computer Science', teacher: 'Dr. Aris Thorne', section: 'A', sem: 'Semester 4', pages: '42 pgs', downloads: 134, comments: 56, author: 'Sara Malik', integrityStatus: 'Verified Guide' },
-  { id: 2, title: 'Operating Systems – Midterm Past Paper Solutions', type: 'Past Paper', dept: 'Computer Science', teacher: 'Dr. Alan Turing', section: 'A', sem: 'Semester 5', pages: '14 pgs', downloads: 98, comments: 41, author: 'Ali Hassan', integrityStatus: 'Reference Only' },
-  { id: 3, title: 'Database Design – ER Diagrams & SQL Cheat Sheet', type: 'Notes', dept: 'Computer Science', teacher: 'Prof. Clara Vance', section: 'B', sem: 'Semester 4', pages: '16 pgs', downloads: 207, comments: 88, author: 'Zara Ahmed', integrityStatus: 'Verified Guide' },
-  { id: 4, title: 'Software Engineering – UML Assignment Outline', type: 'Assignment', dept: 'Software Engineering', teacher: 'Sarah Jenkins', section: 'C', sem: 'Semester 6', pages: '8 pgs', downloads: 73, comments: 30, author: 'Hamza Raza', integrityStatus: 'Conceptual Tool' }
-];
-
 export default function CampConnectorElite() {
+  const { user } = useAppContext();
+  
   // Dashboard Data State
   const [dashboardData, setDashboardData] = useState({
     totalAssignments: 0,
-    notesCount: 0,
+    totalUsers: 0,
     projectCount: 0,
     pastPaperCount: 0
   });
@@ -92,7 +87,7 @@ export default function CampConnectorElite() {
         if (response.success) {
           setDashboardData({
             totalAssignments: response.data.totalAssignments,
-            notesCount: response.data.totalAssignments || 0,
+            totalUsers: response.data.totalUsers || 0,
             projectCount: response.data.projectCount || 0,
             pastPaperCount: response.data.pastPaperCount || 0
           });
@@ -115,7 +110,6 @@ export default function CampConnectorElite() {
 
   // Social Engagement State Arrays
   const [likedProjects, setLikedProjects] = useState({});
-  const [downloadedNotes, setDownloadedNotes] = useState({});
   
   // Interactive Modal Review Pipeline States
   const [activeProjectModal, setActiveProjectModal] = useState(null);
@@ -128,10 +122,6 @@ export default function CampConnectorElite() {
 
   const handleProjectLike = (id) => {
     setLikedProjects(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const handleDownloadTelemetry = (id) => {
-    setDownloadedNotes(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
   };
 
   const handleAddReview = (projId, reviewObj) => {
@@ -148,15 +138,6 @@ export default function CampConnectorElite() {
       (!filterDept || proj.dept === filterDept) &&
       (!filterTeacher || proj.teacher === filterTeacher) &&
       (!filterSection || proj.section === filterSection)
-    );
-  });
-
-  const filteredNotes = INITIAL_NOTES.filter(note => {
-    return (
-      note.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (!filterDept || note.dept === filterDept) &&
-      (!filterTeacher || note.teacher === filterTeacher) &&
-      (!filterSection || note.section === filterSection)
     );
   });
 
@@ -187,7 +168,8 @@ export default function CampConnectorElite() {
             
             {/* 3. ANALYTICS TELEMETRY CHIPS */}
             <AnalyticsSummary 
-              notesCount={dashboardData.notesCount}
+              userName={user?.name || 'User'}
+              totalUsers={dashboardData.totalUsers}
               assignmentCount={dashboardData.totalAssignments}
               projectCount={dashboardData.projectCount}
               pastPaperCount={dashboardData.pastPaperCount}
@@ -223,25 +205,6 @@ export default function CampConnectorElite() {
                     isLiked={!!likedProjects[proj.id]}
                     onLike={handleProjectLike}
                     onOpenReviews={() => setActiveProjectModal(proj)}
-                  />
-                ))}
-              </div>
-            </section>
-
-            {/* 6. CURATED ACADEMIC MATERIALS CONSOLE */}
-            <section className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-bold text-slate-900">Curated Concepts (Notes & Assignments)</h2>
-                <span className="text-xs font-semibold text-blue-600 cursor-pointer hover:underline">Explore Structural Vault</span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredNotes.map((note) => (
-                  <MaterialCard 
-                    key={note.id}
-                    note={note}
-                    downloadCount={downloadedNotes[note.id] || 0}
-                    onDownload={handleDownloadTelemetry}
                   />
                 ))}
               </div>

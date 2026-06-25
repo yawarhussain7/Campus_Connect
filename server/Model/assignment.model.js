@@ -42,6 +42,10 @@ const AssignmentSchema = new mongoose.Schema({
         type:String,
         default:null
     },
+    uploadedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
 },{
     timestamps:true
 }

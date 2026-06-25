@@ -1,46 +1,47 @@
 // src/pages/Assignments.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../Components/common/Sidebar'; 
 import Header from '../../Components/common/Header';   
 import AssignmentFileCard from '../../components/assignments/AssignmentFileCard';
 import { Plus, Search, BookOpen } from 'lucide-react';
-
-const INITIAL_SHAREDBOX = [
-  {
-    id: 1,
-    title: 'Database Systems Midterm Solved Assignment',
-    description: 'Contains complete relational schema drawings and full normalization tables matching question 3 perfectly.',
-    subject: 'Database Systems',
-    teacher: 'Sarah Jenkins',
-    semester: 'Semester 3',
-    department: 'Computer Science',
-    uploadedDate: '2026-06-20',
-    fileSize: '2.4 MB',
-    rating: 4.8
-  },
-  {
-    id: 2,
-    title: 'CNN Image Classifier Project Code & Report',
-    description: 'Python notebook source code with full markdown explanations. Verified and accepted by the TA.',
-    subject: 'Machine Learning',
-    teacher: 'Aris Thorne',
-    semester: 'Semester 5',
-    department: 'Computer Science',
-    uploadedDate: '2026-06-18',
-    fileSize: '4.1 MB',
-    rating: 4.9
-  }
-];
+import { ShowAllassignment, downloadAssignment } from '../../api/assignment';
+import { toast } from 'react-toastify';
 
 export default function Assignments() {
   const navigate = useNavigate();
-  const [sharedFiles, setSharedFiles] = useState(INITIAL_SHAREDBOX);
+  const [sharedFiles, setSharedFiles] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
   const [subjectFilter, setSubjectFilter] = useState('');
   const [semesterFilter, setSemesterFilter] = useState('');
   const [teacherFilter, setTeacherFilter] = useState('');
+
+  useEffect(() => {
+    fetchAssignments();
+  }, []);
+
+  const fetchAssignments = async () => {
+    try {
+      setLoading(true);
+      const response = await ShowAllassignment();
+      const assignments = response.assignments.map((assignment, index) => ({
+        ...assignment,
+        id: assignment._id || index + 1,
+        teacher: assignment.instructor,
+        uploadedDate: assignment.createdAt ? new Date(assignment.createdAt).toISOString().split('T')[0] : 'N/A',
+        fileSize: 'N/A',
+        rating: 0
+      }));
+      setSharedFiles(assignments);
+    } catch (error) {
+      console.error('Failed to fetch assignments:', error);
+      toast.error('Failed to load assignments. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const departmentsList = [...new Set(sharedFiles.map(f => f.department))].sort();
   const subjectsList = [...new Set(sharedFiles.map(f => f.subject))].sort();
@@ -48,10 +49,14 @@ export default function Assignments() {
   const teachersList = [...new Set(sharedFiles.map(f => f.teacher))].sort();
 
   const filteredFiles = sharedFiles.filter(file => {
+    const title = file.title?.toLowerCase() || '';
+    const description = file.description?.toLowerCase() || '';
+    const department = file.department?.toLowerCase() || '';
+    
     const matchesSearch = 
-      file.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      file.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      file.department.toLowerCase().includes(searchQuery.toLowerCase());
+      title.includes(searchQuery.toLowerCase()) || 
+      description.includes(searchQuery.toLowerCase()) ||
+      department.includes(searchQuery.toLowerCase());
       
     const matchesDept = !deptFilter || file.department === deptFilter;
     const matchesSubject = !subjectFilter || file.subject === subjectFilter;
@@ -61,8 +66,40 @@ export default function Assignments() {
     return matchesSearch && matchesDept && matchesSubject && matchesSemester && matchesTeacher;
   });
 
-  const handleDownload = (file) => {
-    alert(`Downloading archive package: ${file.title}`);
+  const handleDownload = async (file) => {
+    try {
+      if (!file.fileUrl) {
+        toast.error('File URL not found');
+        return;
+      }
+      
+      const filename = file.fileUrl.split('/').pop();
+      console.log('Downloading file:', filename);
+      console.log('Full file object:', file);
+      
+      const response = await downloadAssignment(filename);
+      const blob = response.data instanceof Blob ? response.data : new Blob([response.data], { type: 'application/octet-stream' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+      
+      console.log('File downloaded successfully');
+      toast.success('File downloaded successfully!');
+      
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast.error(`Download failed: ${error?.message || 'Unknown error'}`);
+    }
+  };
+
+  const getFileExtension = (fileUrl) => {
+    const extension = fileUrl.split('.').pop();
+    return extension ? `.${extension}` : '';
   };
 
   return (
@@ -133,7 +170,12 @@ export default function Assignments() {
           </div>
 
           {/* Cards */}
-          {filteredFiles.length === 0 ? (
+          {loading ? (
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-16 text-center shadow-sm">
+              <BookOpen className="h-10 w-10 text-slate-300 mx-auto mb-3 animate-pulse" />
+              <p className="text-sm text-slate-400 font-medium">Loading assignments...</p>
+            </div>
+          ) : filteredFiles.length === 0 ? (
             <div className="bg-white border border-slate-200/80 rounded-2xl p-16 text-center shadow-sm">
               <BookOpen className="h-10 w-10 text-slate-300 mx-auto mb-3" />
               <p className="text-sm text-slate-400 font-medium">No files match your search.</p>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../Components/common/Sidebar';
 import Header from '../../Components/common/Header';
 import { ArrowLeft, Upload, BookOpen } from 'lucide-react';
-import { Uploadassignment } from '../../api/assignmentUpload';
+import { Uploadassignment,ShowAllassignment } from '../../api/assignment';
 import { ClipLoader } from 'react-spinners';
 
 export default function AssignmentUpload() {
@@ -15,7 +15,7 @@ export default function AssignmentUpload() {
   const [newTeacher, setNewTeacher] = useState('');
   const [newSemester, setNewSemester] = useState('Semester 1');
   const [newDept, setNewDept] = useState('Computer Science');
-  const [newFileUrl, setNewFileUrl] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -28,17 +28,18 @@ export default function AssignmentUpload() {
 
     setLoading(true);
     try {
-      const assignmentData = {
-        title: newTitle,
-        description: newDesc,
-        subject: newSubject,
-        instructor: newTeacher,
-        semester: newSemester,
-        department: newDept,
-        fileUrl: newFileUrl || null,
-      };
+      const formData = new FormData();
+      formData.append('title', newTitle);
+      formData.append('description', newDesc);
+      formData.append('subject', newSubject);
+      formData.append('instructor', newTeacher);
+      formData.append('semester', newSemester);
+      formData.append('department', newDept);
+      if (selectedFile) {
+        formData.append('file', selectedFile);
+      }
 
-      await Uploadassignment(assignmentData);
+      await Uploadassignment(formData);
       alert('Assignment uploaded successfully!');
       navigate('/student/assignments');
     } catch (error) {
@@ -151,6 +152,9 @@ export default function AssignmentUpload() {
                   <option value="Semester 3">Semester 3</option>
                   <option value="Semester 4">Semester 4</option>
                   <option value="Semester 5">Semester 5</option>
+                  <option value="Semester 6">Semester 6</option>
+                  <option value="Semester 7">Semester 7</option>
+                  <option value="Semester 8">Semester 8</option>
                 </select>
               </div>
             </div>
@@ -160,6 +164,7 @@ export default function AssignmentUpload() {
               <input
                 type="file"
                 required
+                onChange={(e) => setSelectedFile(e.target.files[0])}
                 className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
               />
             </div>

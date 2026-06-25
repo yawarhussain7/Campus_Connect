@@ -1,10 +1,10 @@
 // src/components/AnalyticsSummary.jsx
 import React from 'react';
-import { BookOpen, ClipboardList, FolderKanban, ScrollText } from 'lucide-react';
+import { Users, ClipboardList, FolderKanban, ScrollText } from 'lucide-react';
 
-export default function AnalyticsSummary({ notesCount, assignmentCount, projectCount, pastPaperCount }) {
+export default function AnalyticsSummary({ userName, totalUsers, assignmentCount, projectCount, pastPaperCount }) {
   const metrics = [
-    { label: 'Indexed Notes', value: `${notesCount}`, suffix: 'Uploads', icon: BookOpen, highlight: false, gradient: 'from-blue-500 to-cyan-500' },
+    { label: 'Total Users', value: `${totalUsers}`, suffix: 'Active', icon: Users, highlight: false, gradient: 'from-blue-500 to-cyan-500' },
     { label: 'Assignments', value: `${assignmentCount}`, suffix: 'specs', icon: ClipboardList, highlight: false, gradient: 'from-emerald-500 to-teal-500' },
     { label: 'Dev Projects', value: `${projectCount}`, suffix: 'repos', icon: FolderKanban, highlight: true, gradient: 'from-indigo-500 to-purple-500' },
     { label: 'Past Papers', value: `${pastPaperCount}`, suffix: 'papers', icon: ScrollText, highlight: false, gradient: 'from-amber-500 to-orange-500' },
@@ -15,7 +15,7 @@ export default function AnalyticsSummary({ notesCount, assignmentCount, projectC
       <div className="flex items-start justify-between mb-5">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
-            Good morning, <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Hamza</span>
+            Good morning, <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{userName}</span>
           </h1>
           <p className="text-sm text-slate-500 mt-1">Track your verified asset indices and peer engagement below.</p>
         </div>

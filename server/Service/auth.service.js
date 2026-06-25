@@ -58,4 +58,13 @@ const loginService = async({email,password})=>{
     }
 }
 
-export {registerService,loginService}
+const getUser = async (userId)=>{
+    try{
+        const user = await User.findById(userId).select('-password')
+        return user
+    }catch(error){
+        throw new Error(error.message)
+    }
+}
+
+export {registerService,loginService,getUser}

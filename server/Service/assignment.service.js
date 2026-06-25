@@ -27,3 +27,11 @@ export const getTotalAssignment = async()=>{
         throw new Error(error.message)
     }
 }
+export const getAllAssignment = async()=>{
+    try{
+        const assignments = await Assignment_Model.find()
+        return assignments
+    }catch(error){
+        throw new Error(error.message)
+    }
+}
