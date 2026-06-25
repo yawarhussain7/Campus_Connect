@@ -68,3 +68,23 @@ export const loginController = async(req,res)=>{
         })
     }
 }
+
+export const logoutController = async(req,res)=>{
+    try{
+        res.clearCookie('token',{
+            httpOnly:true,
+            secure:false,
+            sameSite:'lax'
+        })
+        res.status(200).send({
+            message:"Logged out successfully",
+            success:true
+        })
+    }catch(error){
+        res.status(500).send({
+            message:'Internal Server Error',
+            success:false,
+            error:error.message
+        })
+    }
+}

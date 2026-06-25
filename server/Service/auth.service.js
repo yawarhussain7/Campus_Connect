@@ -45,7 +45,12 @@ const loginService = async({email,password})=>{
         const token = GenereateJWT(user._id,user.email)
 
         return {
-            user,token
+            user:{
+                _id:user._id,
+                name:user.name,
+                email:user.email
+            },
+            token
         };
     }catch(error){
         console.error(error)

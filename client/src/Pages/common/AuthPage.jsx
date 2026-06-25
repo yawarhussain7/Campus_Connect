@@ -9,11 +9,13 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { SignInUser, SignUpUser } from "../../api/auth.js";
+import { useAppContext } from "../../context/AppContext.jsx";
 
 
 export default function AuthPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { loginUser } = useAppContext();
 
   const isSignIn = location.pathname === "/auth/signIn";
 
@@ -44,6 +46,7 @@ export default function AuthPage() {
         if (response.success) {
           console.log("Login Success");
           toast.success("Login successful!");
+          loginUser(response.data);
           navigate('/student/dashboard')
         }
       } else {
@@ -52,6 +55,7 @@ export default function AuthPage() {
         if (response.success) {
           console.log("Register Success");
           toast.success("Register successful!");
+          loginUser(response.data);
           navigate('/auth/signIn')
         }
       }

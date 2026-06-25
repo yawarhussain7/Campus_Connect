@@ -1,28 +1,29 @@
 // src/pages/Settings.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../../Components/common/Sidebar';
 import Header from '../../Components/common/Header';
 import {
   User,
   Bell,
   Save,
-  Laptop,
   Lock,
   Camera,
   Key
 } from 'lucide-react';
+import { useAppContext } from '../../context/AppContext';
+import { updateProfile } from '../../api/profile';
+import { toast } from 'react-toastify';
 
 export default function Settings() {
+  const { user, updateUserState } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('account');
 
   // Account & Academic State
   const [accountForm, setAccountForm] = useState({
-    fullName: 'Alex Mercer',
-    studentId: 'FA23-BCS-089',
-    email: 'a.mercer@campconnector.edu',
-    department: 'Department of Computer Science',
-    academicYear: 'Third Year (Semester 5)',
+    fullName: '',
+    email: '',
+    studentId: '',
     profileImage: null
   });
 
@@ -40,6 +41,17 @@ export default function Settings() {
     confirmPassword: ''
   });
 
+  useEffect(() => {
+    if (user) {
+      setAccountForm(prev => ({
+        ...prev,
+        fullName: user.name || '',
+        email: user.email || '',
+        studentId: user._id ? user._id.slice(-8).toUpperCase() : 'N/A'
+      }));
+    }
+  }, [user]);
+
   const handleInputChange = (section, field, value) => {
     if (section === 'account') {
       setAccountForm(prev => ({ ...prev, [field]: value }));
@@ -50,9 +62,20 @@ export default function Settings() {
     }
   };
 
-  const handleSaveChanges = (e) => {
+  const handleSaveChanges = async (e) => {
     e.preventDefault();
-    alert('Changes saved successfully to your secure institutional profile.');
+    try {
+      const response = await updateProfile({
+        name: accountForm.fullName,
+        email: accountForm.email
+      });
+      if (response.success) {
+        updateUserState(response.data);
+        toast.success('Profile updated successfully!');
+      }
+    } catch (error) {
+      toast.error(error.message || 'Failed to update profile');
+    }
   };
 
   return (
@@ -128,7 +151,7 @@ export default function Settings() {
                         <input type="text" value={accountForm.fullName} onChange={(e) => handleInputChange('account', 'fullName', e.target.value)} className="w-full text-xs rounded-xl px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 transition-all font-medium" />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">University Registration ID</label>
+                        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Student ID</label>
                         <input type="text" disabled value={accountForm.studentId} className="w-full text-xs rounded-xl px-3.5 py-2.5 bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed font-mono" />
                       </div>
                       <div className="md:col-span-2">
@@ -170,6 +193,38 @@ export default function Settings() {
                     <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
                       <Bell className="h-4 w-4 text-blue-600" />
                       <h2 className="text-sm font-bold text-slate-800">Communication & Alert Systems</h2>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between py-2">
+                        <div>
+                          <p className="text-xs font-medium text-slate-700">Email Digest</p>
+                          <p className="text-[10px] text-slate-400">Receive weekly summary of activity</p>
+                        </div>
+                        <select
+                          value={preferences.emailDigest}
+                          onChange={(e) => handleInputChange('preferences', 'emailDigest', e.target.value)}
+                          className="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 outline-none focus:border-blue-500"
+                        >
+                          <option value="daily">Daily</option>
+                          <option value="weekly">Weekly</option>
+                          <option value="never">Never</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center justify-between py-2">
+                        <div>
+                          <p className="text-xs font-medium text-slate-700">System Notifications</p>
+                          <p className="text-[10px] text-slate-400">In-app alerts for updates</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={preferences.systemNotifications}
+                            onChange={(e) => handleInputChange('preferences', 'systemNotifications', e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                      </div>
                     </div>
                   </div>
                 )}

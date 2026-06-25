@@ -7,18 +7,20 @@ import Projects from '../Pages/students/Projects'
 import PastPapers from '../Pages/students/PastPapers'
 import TeacherReview from '../Pages/students/TeacherReview'
 import Assignments from '../Pages/students/Assignments'
+import AssignmentUpload from '../Pages/students/AssignmentUpload'
 import Settings from '../Pages/students/Settings'
 
-const StudentRoute = ({userRole}) => {
+const StudentRoute = () => {
   return (
     <Routes>
-      <Route element={<ProtectedRouter userRole={userRole} allowedRole="user" />}>
+      <Route element={<ProtectedRouter />}>
         <Route element={<StudentLayout />}>
           <Route path='dashboard' element={<StudentDashboard/>} />
           <Route path="teachers-review" element={<TeacherReview/>} />
           <Route path="past-papers" element={<PastPapers/>} />
           <Route path='projects' element={<Projects/>} />
           <Route path='assignments' element={<Assignments/>} />
+          <Route path='assignment/upload' element={<AssignmentUpload/>} />
           <Route path='settings' element={<Settings/>} />
           <Route path="*" element={<h1>404 Not found</h1>} />
         </Route>

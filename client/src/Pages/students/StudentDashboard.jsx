@@ -1,5 +1,6 @@
 // src/CampConnectorElite.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getDashboardStats } from '../../api/dashboard';
 
 // Subcomponent Imports
 import Sidebar from '../../Components/common/Sidebar';
@@ -75,6 +76,36 @@ const INITIAL_NOTES = [
 ];
 
 export default function CampConnectorElite() {
+  // Dashboard Data State
+  const [dashboardData, setDashboardData] = useState({
+    totalAssignments: 0,
+    notesCount: 0,
+    projectCount: 0,
+    pastPaperCount: 0
+  });
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const response = await getDashboardStats();
+        if (response.success) {
+          setDashboardData({
+            totalAssignments: response.data.totalAssignments,
+            notesCount: response.data.totalAssignments || 0,
+            projectCount: response.data.projectCount || 0,
+            pastPaperCount: response.data.pastPaperCount || 0
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+      } finally {
+        setDashboardLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
+
   // Advanced Matrix Filtering States
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDept, setFilterDept] = useState('');
@@ -156,10 +187,10 @@ export default function CampConnectorElite() {
             
             {/* 3. ANALYTICS TELEMETRY CHIPS */}
             <AnalyticsSummary 
-              notesCount={142}
-              assignmentCount={89}
-              projectCount={24}
-              pastPaperCount={61}
+              notesCount={dashboardData.notesCount}
+              assignmentCount={dashboardData.totalAssignments}
+              projectCount={dashboardData.projectCount}
+              pastPaperCount={dashboardData.pastPaperCount}
             />
 
             {/* 4. DYNAMIC CONDITIONAL DROP DOWN FILTERS PANEL */}

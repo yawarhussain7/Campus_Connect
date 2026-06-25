@@ -2,10 +2,14 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Folder, FileText, Users, Trophy, Info, Settings, LogOut, GraduationCap } from 'lucide-react';
+import { useAppContext } from '../../context/AppContext';
+import { logoutUser } from '../../api/profile';
+import { toast } from 'react-toastify';
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logoutUserState } = useAppContext();
 
   const navItems = [
     { path: '/student/dashboard', name: 'Home', icon: Home },
@@ -17,9 +21,17 @@ export default function Sidebar() {
     { path: '/student/settings', name: 'Settings', icon: Settings },
   ];
 
-  const handleLogout = () => {
-    alert('Logging out of your session...');
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      logoutUserState();
+      toast.success('Logged out successfully');
+      navigate('/auth/signIn');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      logoutUserState();
+      navigate('/auth/signIn');
+    }
   };
 
   return (
@@ -38,6 +50,14 @@ export default function Sidebar() {
             <p className="text-[9px] font-medium text-slate-400 tracking-wider uppercase -mt-0.5">Student Portal</p>
           </div>
         </div>
+
+        {/* User Info */}
+        {user && (
+          <div className="px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
+            <p className="text-xs font-semibold text-slate-800 truncate">{user.name || 'User'}</p>
+            <p className="text-[10px] text-slate-500 truncate">{user.email || ''}</p>
+          </div>
+        )}
 
         {/* Navigation Links */}
         <nav className="space-y-1">

@@ -1,5 +1,6 @@
 // src/pages/Assignments.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../Components/common/Sidebar'; 
 import Header from '../../Components/common/Header';   
 import AssignmentFileCard from '../../components/assignments/AssignmentFileCard';
@@ -33,16 +34,8 @@ const INITIAL_SHAREDBOX = [
 ];
 
 export default function Assignments() {
+  const navigate = useNavigate();
   const [sharedFiles, setSharedFiles] = useState(INITIAL_SHAREDBOX);
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
-
-  const [newTitle, setNewTitle] = useState('');
-  const [newDesc, setNewDesc] = useState('');
-  const [newSubject, setNewSubject] = useState('');
-  const [newTeacher, setNewTeacher] = useState('');
-  const [newSemester, setNewSemester] = useState('Semester 1');
-  const [newDept, setNewDept] = useState('Computer Science');
-
   const [searchQuery, setSearchQuery] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
   const [subjectFilter, setSubjectFilter] = useState('');
@@ -67,34 +60,6 @@ export default function Assignments() {
 
     return matchesSearch && matchesDept && matchesSubject && matchesSemester && matchesTeacher;
   });
-
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    if (!newTitle || !newDesc || !newSubject || !newTeacher) {
-      alert('Please fill out all identification flags.');
-      return;
-    }
-
-    const newSharedFile = {
-      id: Date.now(),
-      title: newTitle,
-      description: newDesc,
-      subject: newSubject,
-      teacher: newTeacher,
-      semester: newSemester,
-      department: newDept,
-      uploadedDate: new Date().toISOString().split('T')[0],
-      fileSize: '1.5 MB',
-      rating: 5.0
-    };
-
-    setSharedFiles(prev => [newSharedFile, ...prev]);
-    setNewTitle('');
-    setNewDesc('');
-    setNewSubject('');
-    setNewTeacher('');
-    setIsUploadOpen(false);
-  };
 
   const handleDownload = (file) => {
     alert(`Downloading archive package: ${file.title}`);
@@ -122,72 +87,13 @@ export default function Assignments() {
             </div>
             
             <button
-              onClick={() => setIsUploadOpen(!isUploadOpen)}
+              onClick={() => navigate('/student/assignment/upload')}
               className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold flex items-center gap-1.5 shrink-0 transition-all duration-200 shadow-md shadow-indigo-200 active:scale-95"
             >
               <Plus className="h-4 w-4" />
               <span>Upload Assignment</span>
             </button>
           </div>
-
-          {/* Upload Form */}
-          {isUploadOpen && (
-            <form onSubmit={handleFormSubmit} className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4 animate-fadeIn">
-              <div className="md:col-span-3">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Assignment Title</label>
-                <input type="text" required value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="e.g., Solved Lab Exercise 5: Advanced Indexing Structures" 
-                  className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 placeholder:text-slate-400" />
-              </div>
-              <div className="md:col-span-3">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Description</label>
-                <textarea required value={newDesc} onChange={(e) => setNewDesc(e.target.value)} 
-                  placeholder="Provide specific hints or warnings (e.g., Code runs fully; contains specific diagrams for Variant B queries)." 
-                  rows="2" 
-                  className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 placeholder:text-slate-400 resize-none" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Subject</label>
-                <input type="text" required value={newSubject} onChange={(e) => setNewSubject(e.target.value)} placeholder="e.g., Operating Systems" 
-                  className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 placeholder:text-slate-400" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Instructor</label>
-                <input type="text" required value={newTeacher} onChange={(e) => setNewTeacher(e.target.value)} placeholder="e.g., Dr. Faisal" 
-                  className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 placeholder:text-slate-400" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Department</label>
-                <select value={newDept} onChange={(e) => setNewDept(e.target.value)} 
-                  className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium">
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="Electrical Eng.">Electrical Eng.</option>
-                  <option value="Management Sciences">Management Sciences</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Semester</label>
-                <select value={newSemester} onChange={(e) => setNewSemester(e.target.value)} 
-                  className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium">
-                  <option value="Semester 1">Semester 1</option>
-                  <option value="Semester 2">Semester 2</option>
-                  <option value="Semester 3">Semester 3</option>
-                  <option value="Semester 4">Semester 4</option>
-                  <option value="Semester 5">Semester 5</option>
-                </select>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">File</label>
-                <input type="file" required 
-                  className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer" />
-              </div>
-              <div className="md:col-span-3 flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button type="button" onClick={() => setIsUploadOpen(false)} 
-                  className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200">Cancel</button>
-                <button type="submit" 
-                  className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition-all duration-200">Publish</button>
-              </div>
-            </form>
-          )}
 
           {/* Filters */}
           <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-4">
