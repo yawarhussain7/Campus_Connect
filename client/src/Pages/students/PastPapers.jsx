@@ -1,10 +1,10 @@
 // src/pages/PastPapers.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../Components/common/Sidebar'; 
 import Header from '../../Components/common/Header';   
 import PastPaperHeader from '../../components/paper/PastPaperHeader';
 import PastPaperCard from '../../components/paper/PastPaperCard';
-import UploadPaperModal from '../../components/paper/UploadPaperModal';
 import { Upload, Archive } from 'lucide-react';
 
 const INITIAL_PAPERS = [
@@ -13,8 +13,8 @@ const INITIAL_PAPERS = [
 ];
 
 export default function PastPapers() {
+  const navigate = useNavigate();
   const [papersList, setPapersList] = useState(INITIAL_PAPERS);
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [teacherFilter, setTeacherFilter] = useState('');
@@ -54,7 +54,7 @@ export default function PastPapers() {
               </div>
             </div>
             <button
-              onClick={() => setIsUploadOpen(true)}
+              onClick={() => navigate('/student/past-paper/upload')}
               className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold flex items-center gap-1.5 shrink-0 transition-all duration-200 shadow-md shadow-indigo-200 active:scale-95"
             >
               <Upload className="h-3.5 w-3.5" />
@@ -87,11 +87,6 @@ export default function PastPapers() {
         </div>
       </div>
 
-      <UploadPaperModal 
-        isOpen={isUploadOpen} 
-        onClose={() => setIsUploadOpen(false)} 
-        onUploadSubmit={(newPaper) => setPapersList(prev => [newPaper, ...prev])} 
-      />
     </div>
   );
 }

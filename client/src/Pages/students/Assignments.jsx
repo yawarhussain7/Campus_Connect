@@ -1,6 +1,6 @@
 // src/pages/Assignments.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../../Components/common/Sidebar'; 
 import Header from '../../Components/common/Header';   
 import AssignmentFileCard from '../../components/assignments/AssignmentFileCard';
@@ -18,15 +18,17 @@ export default function Assignments() {
   const [semesterFilter, setSemesterFilter] = useState('');
   const [teacherFilter, setTeacherFilter] = useState('');
 
+  const location = useLocation();
+
   useEffect(() => {
     fetchAssignments();
-  }, []);
+  }, [location.key]);
 
   const fetchAssignments = async () => {
     try {
       setLoading(true);
       const response = await ShowAllassignment();
-      const assignments = response.assignments.map((assignment, index) => ({
+      const assignments = response.data.map((assignment, index) => ({
         ...assignment,
         id: assignment._id || index + 1,
         teacher: assignment.instructor,
@@ -77,7 +79,7 @@ export default function Assignments() {
       console.log('Downloading file:', filename);
       console.log('Full file object:', file);
       
-      const response = await downloadAssignment(filename);
+      const response = await downloadAssignment(file.id);
       const blob = response.data instanceof Blob ? response.data : new Blob([response.data], { type: 'application/octet-stream' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');

@@ -1,37 +1,21 @@
-import Assignment_Model from '../Model/assignment.model.js'
-//**<<<<<<<<<<<<<======================== Create assignment ============================>>>>>>>>>>>>>>>>>>>>> */
-export const assignmentService = async (assignmentData) => {
-    try {
-        const { title, description, subject, instructor, department, semester, fileUrl } = assignmentData
-        const assignment = await Assignment_Model.create({
-            title,
-            description,
-            subject,
-            instructor,
-            department,
-            semester,
-            fileUrl
-        });
-        return assignment;
-    } catch (error) {
-        console.log(error)
-        throw new Error(error.message)
-    }
+import Assignment_Model from "../Model/assignment.model.js";
+
+// Create Assignment
+export const createAssignmentService = async (data) => {
+  return await Assignment_Model.create(data);
 };
-//**<<<<<<<<<<<<<======================== get total number assignment ============================>>>>>>>>>>>>>>>>>>>>> */
-export const getTotalAssignment = async()=>{
-    try{
-        const totalassignments = await Assignment_Model.countDocuments()
-        return totalassignments;
-    }catch(error){
-        throw new Error(error.message)
-    }
-}
-export const getAllAssignment = async()=>{
-    try{
-        const assignments = await Assignment_Model.find()
-        return assignments
-    }catch(error){
-        throw new Error(error.message)
-    }
-}
+
+// Get all assignments
+export const getAllAssignmentService = async () => {
+  return await Assignment_Model.find().sort({ createdAt: -1 });
+};
+
+// Get by ID
+export const getAssignmentByIdService = async (id) => {
+  return await Assignment_Model.findById(id);
+};
+
+// Get total assignments count
+export const getTotalAssignment = async () => {
+  return await Assignment_Model.countDocuments();
+};

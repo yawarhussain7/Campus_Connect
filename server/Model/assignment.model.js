@@ -1,55 +1,60 @@
 import mongoose from "mongoose";
 
-const AssignmentSchema = new mongoose.Schema({
-    title:{
-        type:String,
-        maxlength:100,
-        minlength:3,
-        required:true,
-        trim:true
+const AssignmentSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 3,
+      maxlength: 100,
     },
 
-    description:{
-        type:String,
-        required:true,
-        trim:true,
-        minlength:10
+    description: {
+      type: String,
+      required: true,
+      minlength: 10,
+      trim: true,
     },
-    subject:{
-        type:String,
-        trim:true,
-        required:true,
-        minlength:3
+
+    subject: {
+      type: String,
+      required: true,
+      trim: true,
     },
-    instructor:{
-        type:String,
-        trim:true,
-        minlength:3,
-        required:true
+
+    instructor: {
+      type: String,
+      required: true,
     },
-    department:{
-        type:String,
-        default: 'Computer Science',
-        trim:true,
-        minlength:2
+
+    department: {
+      type: String,
+      default: "Computer Science",
     },
-    semester:{
-        type:String,
-        trim:true,
-        default:null
+
+    semester: {
+      type: String,
+      default: "1",
     },
-    fileUrl:{
-        type:String,
-        default:null
+
+    fileUrl: {
+      type: String,
+      required: true,
     },
+
+    fileName: String,
+    originalName: String,
+    fileSize: Number,
+
     uploadedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-},{
-    timestamps:true
-}
+  },
+  { timestamps: true }
+);
 
-)
-const  Assignment_Model = new mongoose.model('Assignments',AssignmentSchema)
-export default Assignment_Model
+const Assignment_Model = mongoose.model("Assignment", AssignmentSchema);
+
+export default Assignment_Model;

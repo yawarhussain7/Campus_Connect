@@ -1,6 +1,6 @@
 // src/components/paper/PastPaperCard.jsx
 import React from 'react';
-import { Download, CheckCircle, HelpCircle, Calendar, User, Eye, BookOpen } from 'lucide-react';
+import { Download, CheckCircle, HelpCircle, Calendar, User, Eye, BookOpen, Tag } from 'lucide-react';
 
 export default function PastPaperCard({ paper, onDownload, onOpenPreview }) {
   return (
@@ -30,6 +30,12 @@ export default function PastPaperCard({ paper, onDownload, onOpenPreview }) {
             <BookOpen className="h-3.5 w-3.5 text-slate-400" />
             {paper.semester}
           </p>
+          {paper.batch && (
+            <p className="flex items-center gap-1 text-[11px] text-indigo-600 font-semibold mt-1.5">
+              <Tag className="h-3 w-3" />
+              {paper.batch}
+            </p>
+          )}
         </div>
 
         {/* Teacher Label */}
