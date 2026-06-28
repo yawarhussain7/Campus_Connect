@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../../Components/common/Sidebar'; 
 import Header from '../../Components/common/Header';   
+import ModernSelect from '../../Components/common/ModernSelect';
 import AssignmentFileCard from '../../components/assignments/AssignmentFileCard';
 import { Plus, Search, BookOpen } from 'lucide-react';
 import { ShowAllassignment, downloadAssignment } from '../../api/assignment';
@@ -148,26 +149,46 @@ export default function Assignments() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-              <select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)} 
-                className="bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium transition-all">
-                <option value="">All Departments</option>
-                {departmentsList.map((d, i) => <option key={i} value={d}>{d}</option>)}
-              </select>
-              <select value={subjectFilter} onChange={(e) => setSubjectFilter(e.target.value)} 
-                className="bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium transition-all">
-                <option value="">All Subjects</option>
-                {subjectsList.map((s, i) => <option key={i} value={s}>{s}</option>)}
-              </select>
-              <select value={semesterFilter} onChange={(e) => setSemesterFilter(e.target.value)} 
-                className="bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium transition-all">
-                <option value="">All Semesters</option>
-                {semestersList.map((sem, i) => <option key={i} value={sem}>{sem}</option>)}
-              </select>
-              <select value={teacherFilter} onChange={(e) => setTeacherFilter(e.target.value)} 
-                className="bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium transition-all">
-                <option value="">All Instructors</option>
-                {teachersList.map((t, i) => <option key={i} value={t}>{t}</option>)}
-              </select>
+              <ModernSelect
+                label="Department"
+                value={deptFilter}
+                onChange={setDeptFilter}
+                options={[
+                  { value: '', label: 'All Departments' },
+                  ...departmentsList.map(d => ({ value: d, label: d }))
+                ]}
+                placeholder="All Departments"
+              />
+              <ModernSelect
+                label="Subject"
+                value={subjectFilter}
+                onChange={setSubjectFilter}
+                options={[
+                  { value: '', label: 'All Subjects' },
+                  ...subjectsList.map(s => ({ value: s, label: s }))
+                ]}
+                placeholder="All Subjects"
+              />
+              <ModernSelect
+                label="Semester"
+                value={semesterFilter}
+                onChange={setSemesterFilter}
+                options={[
+                  { value: '', label: 'All Semesters' },
+                  ...semestersList.map(sem => ({ value: sem, label: sem }))
+                ]}
+                placeholder="All Semesters"
+              />
+              <ModernSelect
+                label="Instructor"
+                value={teacherFilter}
+                onChange={setTeacherFilter}
+                options={[
+                  { value: '', label: 'All Instructors' },
+                  ...teachersList.map(t => ({ value: t, label: t }))
+                ]}
+                placeholder="All Instructors"
+              />
             </div>
           </div>
 

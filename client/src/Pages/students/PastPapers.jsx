@@ -1,11 +1,12 @@
 // src/pages/PastPapers.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../Components/common/Sidebar'; 
 import Header from '../../Components/common/Header';   
 import PastPaperHeader from '../../components/paper/PastPaperHeader';
 import PastPaperCard from '../../components/paper/PastPaperCard';
 import { Upload, Archive } from 'lucide-react';
+import {ShowPapers} from '../../api/paper.js'
 
 const INITIAL_PAPERS = [
   { id: 1, subject: 'Machine Learning', teacher: 'Aris Thorne', semester: 'Semester 5', year: '2025', examType: 'Midterm', hasSolution: true },
@@ -14,26 +15,63 @@ const INITIAL_PAPERS = [
 
 export default function PastPapers() {
   const navigate = useNavigate();
-  const [papersList, setPapersList] = useState(INITIAL_PAPERS);
+  const [papersList, setPapersList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [teacherFilter, setTeacherFilter] = useState('');
   const [subjectFilter, setSubjectFilter] = useState('');
   const [semesterFilter, setSemesterFilter] = useState('');
   const [examTypeFilter, setExamTypeFilter] = useState('');
+  
+  useEffect(() => {
+    fetchPapers();
+  }, []);
+  
+  const fetchPapers = async () => {
+    try {
+      const response = await ShowPapers();
+      console.log('API Response:', response);
+      if (response && response.success) {
+        console.log('Papers data:', response.data);
+        setPapersList(response.data);
+      } else {
+        console.log('Response not successful:', response);
+      }
+    } catch (error) {
+      console.error('Error fetching papers:', error);
+      setPapersList(INITIAL_PAPERS);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const teachersList = [...new Set(papersList.map(p => p.teacher))];
+  const teachersList = [...new Set(papersList.map(p => p.instructor))];
   const subjectsList = [...new Set(papersList.map(p => p.subject))];
   const semestersList = [...new Set(papersList.map(p => p.semester))].sort();
 
   const filteredPapers = papersList.filter(paper => {
-    const matchesSearch = paper.subject.toLowerCase().includes(searchQuery.toLowerCase()) || paper.year.includes(searchQuery);
-    const matchesTeacher = !teacherFilter || paper.teacher === teacherFilter;
+    const matchesSearch = paper.subject.toLowerCase().includes(searchQuery.toLowerCase()) || paper.year.toString().includes(searchQuery);
+    const matchesTeacher = !teacherFilter || paper.instructor === teacherFilter;
     const matchesSubject = !subjectFilter || paper.subject === subjectFilter;
     const matchesSemester = !semesterFilter || paper.semester === semesterFilter;
-    const matchesExamType = !examTypeFilter || paper.examType === examTypeFilter;
+    const matchesExamType = !examTypeFilter || paper.exam === examTypeFilter;
     return matchesSearch && matchesTeacher && matchesSubject && matchesSemester && matchesExamType;
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 text-slate-800 flex font-sans antialiased">
+        <Sidebar />
+        <div className="flex-1 xl:pl-64 flex flex-col min-w-0">
+          <Header />
+          <div className="flex-1 p-6 max-w-[1600px] w-full mx-auto flex items-center justify-center">
+            <p className="text-sm text-slate-500">Loading papers...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex font-sans antialiased">
@@ -80,7 +118,16 @@ export default function PastPapers() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredPapers.map(paper => (
-                <PastPaperCard key={paper.id} paper={paper} onDownload={(id) => alert(`Downloading card ${id}`)} />
+                <PastPaperCard 
+                  key={paper._id || paper.id} 
+                  paper={{
+                    ...paper,
+                    id: paper._id || paper.id,
+                    teacher: paper.instructor,
+                    examType: paper.exam
+                  }} 
+                  onDownload={(id) => alert(`Downloading paper ${id}`)} 
+                />
               ))}
             </div>
           )}

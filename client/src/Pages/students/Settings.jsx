@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../../Components/common/Sidebar';
 import Header from '../../Components/common/Header';
+import ModernSelect from '../../Components/common/ModernSelect';
 import {
   User,
   Bell,
@@ -195,21 +196,23 @@ export default function Settings() {
                       <h2 className="text-sm font-bold text-slate-800">Communication & Alert Systems</h2>
                     </div>
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between py-2">
-                        <div>
-                          <p className="text-xs font-medium text-slate-700">Email Digest</p>
-                          <p className="text-[10px] text-slate-400">Receive weekly summary of activity</p>
+                        <div className="flex items-center justify-between py-2">
+                          <div>
+                            <p className="text-xs font-medium text-slate-700">Email Digest</p>
+                            <p className="text-[10px] text-slate-400">Receive weekly summary of activity</p>
+                          </div>
+                          <ModernSelect
+                            value={preferences.emailDigest}
+                            onChange={(value) => handleInputChange('preferences', 'emailDigest', value)}
+                            options={[
+                              { value: 'daily', label: 'Daily' },
+                              { value: 'weekly', label: 'Weekly' },
+                              { value: 'never', label: 'Never' }
+                            ]}
+                            placeholder="Select frequency"
+                            className="w-32"
+                          />
                         </div>
-                        <select
-                          value={preferences.emailDigest}
-                          onChange={(e) => handleInputChange('preferences', 'emailDigest', e.target.value)}
-                          className="bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 outline-none focus:border-blue-500"
-                        >
-                          <option value="daily">Daily</option>
-                          <option value="weekly">Weekly</option>
-                          <option value="never">Never</option>
-                        </select>
-                      </div>
                       <div className="flex items-center justify-between py-2">
                         <div>
                           <p className="text-xs font-medium text-slate-700">System Notifications</p>

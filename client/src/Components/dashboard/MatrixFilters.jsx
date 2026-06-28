@@ -1,5 +1,6 @@
 // src/components/MatrixFilters.jsx
 import React from 'react';
+import ModernSelect from '../common/ModernSelect';
 import { Filter, X } from 'lucide-react';
 
 export default function MatrixFilters({ 
@@ -43,48 +44,42 @@ export default function MatrixFilters({
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="space-y-1.5">
-          <label className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-            <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-            Department
-          </label>
-          <select 
-            value={filterDept} 
-            onChange={(e) => setFilterDept(e.target.value)} 
-            className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium transition-all"
-          >
-            <option value="">All Departments</option>
-            {departments.map((d, i) => <option key={i} value={d}>{d}</option>)}
-          </select>
+          <ModernSelect
+            label="Department"
+            value={filterDept}
+            onChange={setFilterDept}
+            options={[
+              { value: '', label: 'All Departments' },
+              ...departments.map(d => ({ value: d, label: d }))
+            ]}
+            placeholder="All Departments"
+          />
         </div>
 
         <div className="space-y-1.5">
-          <label className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-            <span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
-            Instructor
-          </label>
-          <select 
-            value={filterTeacher} 
-            onChange={(e) => setFilterTeacher(e.target.value)} 
-            className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium transition-all"
-          >
-            <option value="">All Teachers</option>
-            {teachers.map((t, i) => <option key={i} value={t}>{t}</option>)}
-          </select>
+          <ModernSelect
+            label="Instructor"
+            value={filterTeacher}
+            onChange={setFilterTeacher}
+            options={[
+              { value: '', label: 'All Teachers' },
+              ...teachers.map(t => ({ value: t, label: t }))
+            ]}
+            placeholder="All Teachers"
+          />
         </div>
 
         <div className="space-y-1.5">
-          <label className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-            <span className="h-1.5 w-1.5 rounded-full bg-cyan-500" />
-            Section
-          </label>
-          <select 
-            value={filterSection} 
-            onChange={(e) => setFilterSection(e.target.value)} 
-            className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium transition-all"
-          >
-            <option value="">All Sections</option>
-            {sections.map((s, i) => <option key={i} value={s}>Section {s}</option>)}
-          </select>
+          <ModernSelect
+            label="Section"
+            value={filterSection}
+            onChange={setFilterSection}
+            options={[
+              { value: '', label: 'All Sections' },
+              ...sections.map(s => ({ value: s, label: `Section ${s}` }))
+            ]}
+            placeholder="All Sections"
+          />
         </div>
       </div>
     </div>

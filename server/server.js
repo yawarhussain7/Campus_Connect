@@ -10,6 +10,7 @@ import assignRoute from './Routes/assignment.route.js'
 import profileRoute from './Routes/profile.route.js'
 import notificationRoute from './Routes/notification.route.js'
 import dashboartRoute from './Routes/dashboard.route.js'
+import paperRoute from './Routes/paper.route.js'
 
 import connectDB from './config/dbconfig.js'
 
@@ -30,10 +31,11 @@ app.use('/uploads', express.static('uploads'))
 connectDB()
 
 app.use('/auth',authRoute)
-app.use('/assignment',assignRoute)
-app.use('/profile',profileRoute)
-app.use('/notifications',notificationRoute)
-app.use('/dashboard',dashboartRoute)
+app.use('/student',assignRoute)
+app.use('/student',profileRoute)
+app.use('/student',notificationRoute)
+app.use('/student',dashboartRoute)
+app.use('/student',paperRoute)
 
 app.get('/',(req,res)=>{
     res.send('Hello World')

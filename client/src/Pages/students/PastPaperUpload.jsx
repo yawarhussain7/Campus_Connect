@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from '../../Components/common/Sidebar';
-import Header from '../../Components/common/Header';
+import Sidebar from '../../Components/common/Sidebar'
+import Header from '../../Components/common/Header.jsx'
+import ModernSelect from '../../Components/common/ModernSelect';
 import { ArrowLeft, Upload, FileText } from 'lucide-react';
+import { toast } from "react-toastify";
+import {PaperUpload} from '../../api/paper.js'
 
 export default function PastPaperUpload() {
   const navigate = useNavigate();
@@ -22,7 +25,7 @@ export default function PastPaperUpload() {
     e.preventDefault();
 
     if (!subject || !instructor || !batch || !file) {
-      alert('Please fill all required fields');
+      toast.error("Please fill all required fields");
       return;
     }
 
@@ -32,20 +35,21 @@ export default function PastPaperUpload() {
       formData.append('subject', subject);
       formData.append('instructor', instructor);
       formData.append('semester', semester);
-      formData.append('year', year);
+      formData.append('year', parseInt(year));
       formData.append('exam', exam);
       formData.append('hasSolution', hasSolution);
       formData.append('batch', batch);
       formData.append('department', department);
       formData.append('file', file);
 
-      // TODO: Replace with actual API call when backend is ready
-      // await UploadPastPaper(formData);
-      
-      alert('Past paper uploaded successfully!');
+      const upload = await PaperUpload(formData)
+      toast.success("Paper uploaded successfully")
       navigate('/student/past-papers');
     } catch (error) {
-      alert(error.message || 'Failed to upload past paper. Please try again.');
+      console.error('Upload error:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      const errorMessage = error?.message || error?.data?.message || 'Failed to upload past paper. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -109,43 +113,42 @@ export default function PastPaperUpload() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Semester</label>
-                <select
+                <ModernSelect
+                  label="Semester"
                   value={semester}
-                  onChange={(e) => setSemester(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium"
-                >
-                  {[...Array(8)].map((_, i) => (
-                    <option key={i} value={`Semester ${i + 1}`}>
-                      Semester {i + 1}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setSemester}
+                  options={[...Array(8)].map((_, i) => ({
+                    value: `Semester ${i + 1}`,
+                    label: `Semester ${i + 1}`
+                  }))}
+                  placeholder="Select semester"
+                />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Year</label>
-                <select
+                <ModernSelect
+                  label="Year"
                   value={year}
-                  onChange={(e) => setYear(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium"
-                >
-                  {[2026, 2025, 2024, 2023, 2022].map(y => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
+                  onChange={setYear}
+                  options={[2026, 2025, 2024, 2023, 2022].map(y => ({
+                    value: y,
+                    label: y.toString()
+                  }))}
+                  placeholder="Select year"
+                />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Exam Type</label>
-                <select
+                <ModernSelect
+                  label="Exam Type"
                   value={exam}
-                  onChange={(e) => setExam(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium"
-                >
-                  <option value="Mid">Mid</option>
-                  <option value="Final">Final</option>
-                </select>
+                  onChange={setExam}
+                  options={[
+                    { value: 'Mid', label: 'Mid' },
+                    { value: 'Final', label: 'Final' }
+                  ]}
+                  placeholder="Select exam type"
+                />
               </div>
 
               <div>
@@ -161,18 +164,19 @@ export default function PastPaperUpload() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Department</label>
-                <select
+                <ModernSelect
+                  label="Department"
                   value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium"
-                >
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="Electrical Eng.">Electrical Eng.</option>
-                  <option value="Management Sciences">Management Sciences</option>
-                  <option value="Mechanical Eng.">Mechanical Eng.</option>
-                  <option value="Business School">Business School</option>
-                </select>
+                  onChange={setDepartment}
+                  options={[
+                    { value: 'Computer Science', label: 'Computer Science' },
+                    { value: 'Electrical Eng.', label: 'Electrical Eng.' },
+                    { value: 'Management Sciences', label: 'Management Sciences' },
+                    { value: 'Mechanical Eng.', label: 'Mechanical Eng.' },
+                    { value: 'Business School', label: 'Business School' }
+                  ]}
+                  placeholder="Select department"
+                />
               </div>
             </div>
 

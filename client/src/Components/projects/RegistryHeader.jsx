@@ -1,5 +1,6 @@
 // src/components/registry/RegistryHeader.jsx
 import React from 'react';
+import ModernSelect from '../common/ModernSelect';
 import { Search, SlidersHorizontal, LayoutGrid, List } from 'lucide-react';
 
 export default function RegistryHeader({ 
@@ -34,38 +35,44 @@ export default function RegistryHeader({
 
         {/* Dynamic Department Dropdown */}
         <div>
-          <select
+          <ModernSelect
+            label="Department"
             value={deptFilter}
-            onChange={(e) => setDeptFilter(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 focus:outline-none focus:border-blue-500 text-slate-600 font-medium"
-          >
-            <option value="">All Departments</option>
-            {departments.map((dept, i) => <option key={i} value={dept}>{dept}</option>)}
-          </select>
+            onChange={setDeptFilter}
+            options={[
+              { value: '', label: 'All Departments' },
+              ...departments.map(dept => ({ value: dept, label: dept }))
+            ]}
+            placeholder="All Departments"
+          />
         </div>
 
         {/* Dynamic Subject Dropdown */}
         <div>
-          <select
+          <ModernSelect
+            label="Subject"
             value={subjectFilter}
-            onChange={(e) => setSubjectFilter(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 focus:outline-none focus:border-blue-500 text-slate-600 font-medium"
-          >
-            <option value="">All Subjects</option>
-            {subjects.map((sub, i) => <option key={i} value={sub}>{sub}</option>)}
-          </select>
+            onChange={setSubjectFilter}
+            options={[
+              { value: '', label: 'All Subjects' },
+              ...subjects.map(sub => ({ value: sub, label: sub }))
+            ]}
+            placeholder="All Subjects"
+          />
         </div>
 
         {/* Dynamic Semester Dropdown & Grid Controls */}
         <div className="flex items-center space-x-2">
-          <select
+          <ModernSelect
+            label="Semester"
             value={semesterFilter}
-            onChange={(e) => setSemesterFilter(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 focus:outline-none focus:border-blue-500 text-slate-600 font-medium"
-          >
-            <option value="">All Semesters</option>
-            {semesters.map((sem, i) => <option key={i} value={sem}>{sem}</option>)}
-          </select>
+            onChange={setSemesterFilter}
+            options={[
+              { value: '', label: 'All Semesters' },
+              ...semesters.map(sem => ({ value: sem, label: sem }))
+            ]}
+            placeholder="All Semesters"
+          />
 
           {/* View Mode Grid/List Buttons */}
           <div className="flex items-center space-x-1 border border-slate-200 rounded-xl p-0.5 bg-slate-50/50 shrink-0">

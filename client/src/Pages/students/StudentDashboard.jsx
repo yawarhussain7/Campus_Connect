@@ -89,7 +89,7 @@ export default function CampConnectorElite() {
             totalAssignments: response.data.totalAssignments,
             totalUsers: response.data.totalUsers || 0,
             projectCount: response.data.projectCount || 0,
-            pastPaperCount: response.data.pastPaperCount || 0
+            pastPaperCount: response.data.totalPaper || 0
           });
         }
       } catch (error) {

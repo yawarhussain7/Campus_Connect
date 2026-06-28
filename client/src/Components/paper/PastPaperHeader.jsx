@@ -1,5 +1,6 @@
 // src/components/pastpapers/PastPaperHeader.jsx
 import React from 'react';
+import ModernSelect from '../common/ModernSelect';
 import { Search, SlidersHorizontal, Filter } from 'lucide-react';
 
 export default function PastPaperHeader({
@@ -32,41 +33,44 @@ export default function PastPaperHeader({
 
         {/* Instructor Filter */}
         <div className="space-y-1">
-          <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider px-1">Instructor</span>
-          <select
+          <ModernSelect
+            label="Instructor"
             value={teacherFilter}
-            onChange={(e) => setTeacherFilter(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium transition-all"
-          >
-            <option value="">All Instructors</option>
-            {teachers.map((t, i) => <option key={i} value={t}>{t}</option>)}
-          </select>
+            onChange={setTeacherFilter}
+            options={[
+              { value: '', label: 'All Instructors' },
+              ...teachers.map(t => ({ value: t, label: t }))
+            ]}
+            placeholder="All Instructors"
+          />
         </div>
 
         {/* Course Filter */}
         <div className="space-y-1">
-          <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider px-1">Subject</span>
-          <select
+          <ModernSelect
+            label="Subject"
             value={subjectFilter}
-            onChange={(e) => setSubjectFilter(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium transition-all"
-          >
-            <option value="">All Subjects</option>
-            {subjects.map((s, i) => <option key={i} value={s}>{s}</option>)}
-          </select>
+            onChange={setSubjectFilter}
+            options={[
+              { value: '', label: 'All Subjects' },
+              ...subjects.map(s => ({ value: s, label: s }))
+            ]}
+            placeholder="All Subjects"
+          />
         </div>
 
         {/* Semester Step Filter */}
         <div className="space-y-1">
-          <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider px-1">Semester</span>
-          <select
+          <ModernSelect
+            label="Semester"
             value={semesterFilter}
-            onChange={(e) => setSemesterFilter(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium transition-all"
-          >
-            <option value="">All Semesters</option>
-            {semesters.map((sem, i) => <option key={i} value={sem}>{sem}</option>)}
-          </select>
+            onChange={setSemesterFilter}
+            options={[
+              { value: '', label: 'All Semesters' },
+              ...semesters.map(sem => ({ value: sem, label: sem }))
+            ]}
+            placeholder="All Semesters"
+          />
         </div>
       </div>
 

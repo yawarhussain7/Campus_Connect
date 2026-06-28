@@ -1,5 +1,6 @@
 // src/components/teachers/TeacherFilterHeader.jsx
 import React from 'react';
+import ModernSelect from '../common/ModernSelect';
 import { Search, GraduationCap, Filter } from 'lucide-react';
 
 export default function TeacherFilterHeader({
@@ -27,28 +28,30 @@ export default function TeacherFilterHeader({
 
         {/* Department Filter */}
         <div className="space-y-1">
-          <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider px-1">Department</span>
-          <select
+          <ModernSelect
+            label="Department"
             value={deptFilter}
-            onChange={(e) => setDeptFilter(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium cursor-pointer transition-all"
-          >
-            <option value="">All Departments</option>
-            {departments.map((d, i) => <option key={i} value={d}>{d}</option>)}
-          </select>
+            onChange={setDeptFilter}
+            options={[
+              { value: '', label: 'All Departments' },
+              ...departments.map(d => ({ value: d, label: d }))
+            ]}
+            placeholder="All Departments"
+          />
         </div>
 
         {/* Subject Filter */}
         <div className="space-y-1">
-          <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider px-1">Subject</span>
-          <select
+          <ModernSelect
+            label="Subject"
             value={subjectFilter}
-            onChange={(e) => setSubjectFilter(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium cursor-pointer transition-all"
-          >
-            <option value="">All Subjects</option>
-            {subjects.map((s, i) => <option key={i} value={s}>{s}</option>)}
-          </select>
+            onChange={setSubjectFilter}
+            options={[
+              { value: '', label: 'All Subjects' },
+              ...subjects.map(s => ({ value: s, label: s }))
+            ]}
+            placeholder="All Subjects"
+          />
         </div>
       </div>
     </div>

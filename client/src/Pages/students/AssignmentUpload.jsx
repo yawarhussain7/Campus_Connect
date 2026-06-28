@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../Components/common/Sidebar';
 import Header from '../../Components/common/Header';
+import ModernSelect from '../../Components/common/ModernSelect';
 import { ArrowLeft, Upload, BookOpen } from 'lucide-react';
 import { Uploadassignment,ShowAllassignment } from '../../api/assignment';
 import { ClipLoader } from 'react-spinners';
@@ -129,33 +130,35 @@ export default function AssignmentUpload() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Department</label>
-                <select
+                <ModernSelect
+                  label="Department"
                   value={newDept}
-                  onChange={(e) => setNewDept(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium"
-                >
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="Electrical Eng.">Electrical Eng.</option>
-                  <option value="Management Sciences">Management Sciences</option>
-                </select>
+                  onChange={setNewDept}
+                  options={[
+                    { value: 'Computer Science', label: 'Computer Science' },
+                    { value: 'Electrical Eng.', label: 'Electrical Eng.' },
+                    { value: 'Management Sciences', label: 'Management Sciences' }
+                  ]}
+                  placeholder="Select department"
+                />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Semester</label>
-                <select
+                <ModernSelect
+                  label="Semester"
                   value={newSemester}
-                  onChange={(e) => setNewSemester(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200/80 text-xs rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 font-medium"
-                >
-                  <option value="Semester 1">Semester 1</option>
-                  <option value="Semester 2">Semester 2</option>
-                  <option value="Semester 3">Semester 3</option>
-                  <option value="Semester 4">Semester 4</option>
-                  <option value="Semester 5">Semester 5</option>
-                  <option value="Semester 6">Semester 6</option>
-                  <option value="Semester 7">Semester 7</option>
-                  <option value="Semester 8">Semester 8</option>
-                </select>
+                  onChange={setNewSemester}
+                  options={[
+                    { value: 'Semester 1', label: 'Semester 1' },
+                    { value: 'Semester 2', label: 'Semester 2' },
+                    { value: 'Semester 3', label: 'Semester 3' },
+                    { value: 'Semester 4', label: 'Semester 4' },
+                    { value: 'Semester 5', label: 'Semester 5' },
+                    { value: 'Semester 6', label: 'Semester 6' },
+                    { value: 'Semester 7', label: 'Semester 7' },
+                    { value: 'Semester 8', label: 'Semester 8' }
+                  ]}
+                  placeholder="Select semester"
+                />
               </div>
             </div>
 

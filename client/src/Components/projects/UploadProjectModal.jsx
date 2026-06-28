@@ -1,5 +1,6 @@
 // src/components/registry/UploadProjectModal.jsx
 import React, { useState } from 'react';
+import ModernSelect from '../common/ModernSelect';
 import { X, Upload, Code, BookOpen, Layers } from 'lucide-react';
 
 export default function UploadProjectModal({ isOpen, onClose, onUploadSubmit, departments = [] }) {
@@ -103,14 +104,17 @@ export default function UploadProjectModal({ isOpen, onClose, onUploadSubmit, de
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Department *</label>
-              <select
-                value={dept} required onChange={(e) => setDept(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 focus:outline-none focus:border-blue-500 text-slate-600 font-medium"
-              >
-                <option value="">Select Dept</option>
-                {departments.map((d, i) => <option key={i} value={d}>{d}</option>)}
-              </select>
+              <ModernSelect
+                label="Department"
+                value={dept}
+                onChange={setDept}
+                options={[
+                  { value: '', label: 'Select Dept' },
+                  ...departments.map(d => ({ value: d, label: d }))
+                ]}
+                placeholder="Select Dept"
+                required
+              />
             </div>
 
             <div>
@@ -123,15 +127,16 @@ export default function UploadProjectModal({ isOpen, onClose, onUploadSubmit, de
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Semester</label>
-              <select
-                value={semester} onChange={(e) => setSemester(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 focus:outline-none focus:border-blue-500 text-slate-600 font-medium"
-              >
-                {[...Array(8)].map((_, i) => (
-                  <option key={i} value={`Semester ${i + 1}`}>Semester {i + 1}</option>
-                ))}
-              </select>
+              <ModernSelect
+                label="Semester"
+                value={semester}
+                onChange={setSemester}
+                options={[...Array(8)].map((_, i) => ({
+                  value: `Semester ${i + 1}`,
+                  label: `Semester ${i + 1}`
+                }))}
+                placeholder="Select semester"
+              />
             </div>
           </div>
 

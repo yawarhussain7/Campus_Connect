@@ -12,7 +12,11 @@ export const useAppContext = () => {
 };
 
 export const AppProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    // Initialize user from localStorage on app start
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
 
@@ -25,12 +29,19 @@ export const AppProvider = ({ children }) => {
       const response = await getProfile();
       if (response.success) {
         setUser(response.data);
+        localStorage.setItem('user', JSON.stringify(response.data));
       } else {
         setUser(null);
+        localStorage.removeItem('user');
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
-      setUser(null);
+      // Only clear user if it's an authentication error
+      if (error?.status === 401 || error?.statusCode === 401) {
+        setUser(null);
+        localStorage.removeItem('user');
+      }
+      // For other errors (network, server issues), keep the existing user state
     } finally {
       setLoading(false);
     }
@@ -38,16 +49,22 @@ export const AppProvider = ({ children }) => {
 
   const loginUser = (userData) => {
     setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const logoutUserState = () => {
     setUser(null);
     setNotifications([]);
+    localStorage.removeItem('user');
     document.cookie = 'token=; Max-Age=0; path=/';
   };
 
   const updateUserState = (updatedData) => {
-    setUser(prev => ({ ...prev, ...updatedData }));
+    setUser(prev => {
+      const updated = { ...prev, ...updatedData };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   return (

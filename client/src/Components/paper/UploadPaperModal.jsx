@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ModernSelect from "../common/ModernSelect";
 import { X, FileText } from "lucide-react";
 
 export default function UploadPaperModal({
@@ -85,25 +86,28 @@ export default function UploadPaperModal({
           />
 
           {/* Semester */}
-          <select
+          <ModernSelect
+            label="Semester"
             value={semester}
-            onChange={(e) => setSemester(e.target.value)}
-          >
-            {[...Array(8)].map((_, i) => (
-              <option key={i}>
-                Semester {i + 1}
-              </option>
-            ))}
-          </select>
+            onChange={setSemester}
+            options={[...Array(8)].map((_, i) => ({
+              value: `Semester ${i + 1}`,
+              label: `Semester ${i + 1}`
+            }))}
+            placeholder="Select semester"
+          />
 
           {/* EXAM TYPE FIXED */}
-          <select
+          <ModernSelect
+            label="Exam Type"
             value={exam}
-            onChange={(e) => setExam(e.target.value)}
-          >
-            <option value="Mid">Mid</option>
-            <option value="Final">Final</option>
-          </select>
+            onChange={setExam}
+            options={[
+              { value: 'Mid', label: 'Mid' },
+              { value: 'Final', label: 'Final' }
+            ]}
+            placeholder="Select exam type"
+          />
 
           <input
             placeholder="Batch (SP23 etc)"
@@ -112,16 +116,19 @@ export default function UploadPaperModal({
           />
 
           {/* Department */}
-          <select
+          <ModernSelect
+            label="Department"
             value={department}
-            onChange={(e) => setDepartment(e.target.value)}
-          >
-            <option value="Computer Science">Computer Science</option>
-            <option value="Electrical Eng.">Electrical Eng.</option>
-            <option value="Management Sciences">Management Sciences</option>
-            <option value="Mechanical Eng.">Mechanical Eng.</option>
-            <option value="Business School">Business School</option>
-          </select>
+            onChange={setDepartment}
+            options={[
+              { value: 'Computer Science', label: 'Computer Science' },
+              { value: 'Electrical Eng.', label: 'Electrical Eng.' },
+              { value: 'Management Sciences', label: 'Management Sciences' },
+              { value: 'Mechanical Eng.', label: 'Mechanical Eng.' },
+              { value: 'Business School', label: 'Business School' }
+            ]}
+            placeholder="Select department"
+          />
 
           {/* FILE */}
           <input
