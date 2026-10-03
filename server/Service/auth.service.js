@@ -86,59 +86,95 @@ const getUser = async (userId)=>{
     }
 }
 
-export const forgetPasswordService = async(email)=>{
-    const user = await User.findOne({email})
+// How long a reset link stays valid (15 minutes), in milliseconds.
+const RESET_TOKEN_TTL = 15 * 60 * 1000
 
-    if(!user){
-        throw new Error("User not found")
-    }
+const forgetPasswordService = async(email)=>{
+    try{
+        const user = await User.findOne({email})
 
-    const resetToken = crypto.randomBytes(32).toString('hex')
-
-    // hashed token before save into database
-    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex")
-
-    user.resetPasswordToken = hashedToken
-    user.resetPasswordTokenExpire = Date.now() + 15 *60*1000;
-
-    await user.save()
-
-    const resultURL = `http://localhost:5173/reset-password/${resetToken}`
-
-
-    const generateHTML = await resetPasswordEmail(user.name,resultURL)
-    await sendEmail(user.email,"Reset your CampusConnector Password",html)
-
-    return {
-        resultURL
-    }
-
-}
-
-const resetPassworService  = async(token,newPassword)=>{
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex")
-
-    const user = await User.findOne({
-        resetPasswordToken:hashedToken,
-        resetPasswordTokenExpire:{
-            $gt:Date.now()
+        if(!user){
+            const error = new Error("No account found with that email")
+            error.status = 404
+            throw error
         }
-    })
 
-    if(!user){
-        throw new Error("Invalid or expired reset token")
-    }
+        const resetToken = crypto.randomBytes(32).toString('hex')
 
-    const hashedPassword = await bcrypt.hash(newPassword,10)
+        // Only the hash is stored, so a leaked database cannot be used to reset
+        // anyone's password directly.
+        const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex")
 
-    user.password = hashedPassword
+        user.resetPasswordToken = hashedToken
+        user.resetPasswordTokenExpire = Date.now() + RESET_TOKEN_TTL
 
-    user.resetPasswordToken = null,
-    user.resetPasswordTokenExpire = null
+        await user.save()
 
-    return{
-        message:'Password reset successfully'
+        // The client route that renders the "choose a new password" form. It is
+        // configurable so a deployment can point the link at the right host.
+        const clientURL = process.env.CLIENT_URL 
+        const resultURL = `${clientURL}/reset-password/${resetToken}`
+
+        const html = resetPasswordEmail(user.name, resultURL)
+
+        // sendEmail expects a single options object.
+        await sendEmail({
+            email: user.email,
+            subject: "Reset your CampusConnector Password",
+            html
+        })
+
+        
+        return {
+            message: 'Password reset link sent to your email'
+        }
+    }catch(error){
+        console.error(error)
+        throw error
     }
 }
 
-export {registerService,loginService,getUser,forgetPasswordService,resetPassworService}
+const resetPasswordService = async(token,newPassword)=>{
+    try{
+        if(!token){
+            const error = new Error("Reset token is required")
+            error.status = 400
+            throw error
+        }
+
+        const hashedToken = crypto.createHash("sha256").update(token).digest("hex")
+
+        const user = await User.findOne({
+            resetPasswordToken:hashedToken,
+            resetPasswordTokenExpire:{
+                $gt:new Date()
+            }
+        })
+
+        if(!user){
+            const error = new Error("Invalid or expired reset token")
+            error.status = 400
+            throw error
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword,10)
+
+        user.password = hashedPassword
+
+        // Burn the token so the link cannot be reused, then persist the new
+        // password. The previous version forgot to save, so nothing changed.
+        user.resetPasswordToken = null
+        user.resetPasswordTokenExpire = null
+
+        await user.save()
+
+        return{
+            message:'Password reset successfully'
+        }
+    }catch(error){
+        console.error(error)
+        throw error
+    }
+}
+
+export {registerService,loginService,getUser,forgetPasswordService,resetPasswordService}

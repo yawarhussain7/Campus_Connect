@@ -1,4 +1,4 @@
-import { loginService,registerService,forgetPasswordService,resetPassworService } from "../Service/auth.service.js"
+import { loginService,registerService,forgetPasswordService,resetPasswordService } from "../Service/auth.service.js"
 
 
 export const registerController = async (req,res)=>{
@@ -103,17 +103,14 @@ export const forgotPasswordController = async(req,res)=>{
         }
 
         const result  = await forgetPasswordService(email)
-        return res.status(201).json({
+        return res.status(200).json({
             success:true,
-            message:'token generated successfully',
-            data:result
+            message:result.message
         })
-
-
     }catch(error){
-        return res.status(500).json({
+        return res.status(error.status || 500).json({
             success:false,
-            mesasge:error.message
+            message:error.message
         })
     }
 }
@@ -126,20 +123,27 @@ export const resetPasswordController = async(req,res)=>{
         if(!newpassword){
             return res.status(400).json({
                 success:false,
-                message:'new password is requried'
+                message:'New password is required'
             })
         }
 
-        const result = await resetPassworService(token,newpassword)
+        if(newpassword.length < 6){
+            return res.status(400).json({
+                success:false,
+                message:'Password must be at least 6 characters long'
+            })
+        }
+
+        const result = await resetPasswordService(token,newpassword)
 
         return res.status(200).json({
             message:result.message,
             success:true
         })
     }catch(error){
-        return res.status(500).json({
+        return res.status(error.status || 500).json({
             success:false,
-            message:error.mesasge
+            message:error.message
         })
     }
 }
