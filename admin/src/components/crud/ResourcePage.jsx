@@ -405,7 +405,7 @@ export default function ResourcePage({
             />
           ) : (
             <>
-              <div className="overflow-x-auto">
+              <div className="scroll-x">
                 <table className="w-full min-w-[900px] border-collapse text-left">
                   <thead>
                     <tr className="border-b border-slate-200 bg-slate-50/70">

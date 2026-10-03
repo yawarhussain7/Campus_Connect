@@ -14,7 +14,7 @@ import AssignmentTable from '../../Components/assignments/AssignmentTable';
 import AssignmentDetailModal from '../../Components/assignments/AssignmentDetailModal';
 import { ShowAllassignment, downloadAssignment } from '../../api/assignment';
 import {
-  courseCodesOf,
+  courseOptionsOf,
   dueMonthsOf,
   fromAssignmentRecord,
   matchesAssignment,
@@ -68,8 +68,9 @@ export default function Assignments() {
     };
   }, []);
 
-  // Dropdown options come from the assignments we actually have.
-  const courses = courseCodesOf(assignments);
+  // Dropdown options come from the assignments we actually have. The label is
+  // the course name; the value stays the course code the filter matches on.
+  const courses = courseOptionsOf(assignments);
   const dueMonths = dueMonthsOf(assignments);
 
   const filteredAssignments = assignments.filter((assignment) =>

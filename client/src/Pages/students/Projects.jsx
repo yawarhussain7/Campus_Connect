@@ -12,7 +12,7 @@ import ProjectTable from '../../Components/projects/ProjectTable';
 import ProjectDetailModal from '../../Components/projects/ProjectDetailModal';
 import { ShowProjects, downloadProject } from '../../api/project';
 import {
-  courseCodesOf,
+  courseOptionsOf,
   fromProjectRecord,
   matchesProject,
   sortByDueDate,
@@ -62,8 +62,9 @@ export default function Projects() {
     };
   }, []);
 
-  // Dropdown options come from the projects we actually have.
-  const courses = courseCodesOf(projects);
+  // Dropdown options come from the projects we actually have. The label is the
+  // course name; the value stays the course code the filter matches on.
+  const courses = courseOptionsOf(projects);
 
   const filteredProjects = sortByDueDate(projects).filter((project) =>
     matchesProject(project, { query: searchQuery, course: courseFilter })

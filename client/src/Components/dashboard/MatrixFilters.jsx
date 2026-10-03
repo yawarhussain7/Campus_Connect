@@ -3,11 +3,7 @@ import React from 'react';
 import { SlidersHorizontal, X } from 'lucide-react';
 import ModernSelect from '../common/ModernSelect';
 
-/**
- * Filter panel for the project queue. Each group is `{ key, label, placeholder,
- * options }` and the chosen value is read from `values[key]`, so the panel only
- * ever offers values the loaded projects actually carry.
- */
+
 export default function MatrixFilters({ groups = [], values = {}, onChange }) {
   const activeCount = groups.filter((group) => values[group.key]).length;
 
@@ -57,10 +53,14 @@ export default function MatrixFilters({ groups = [], values = {}, onChange }) {
             onChange={(value) => onChange(group.key, value)}
             options={[
               { value: '', label: group.placeholder },
-              ...group.options.map((option) => ({
-                value: option,
-                label: option,
-              })),
+              // Course options arrive as `{ value, label }` so the name can be
+              // shown while the stored code stays the value; the rest are
+              // plain strings.
+              ...group.options.map((option) =>
+                option && typeof option === 'object'
+                  ? option
+                  : { value: option, label: option }
+              ),
             ]}
             placeholder={group.placeholder}
           />

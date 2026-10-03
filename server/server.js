@@ -31,7 +31,7 @@ app.use(cookieParser())
 
 // Multer writes into these folders (paths are relative to the process cwd) and
 // Express serves them statically, so they have to exist on a fresh clone.
-for (const folder of ['uploads/assignments', 'uploads/papers', 'uploads/projects']) {
+for (const folder of ['uploads/assignments', 'uploads/papers', 'uploads/projects', 'uploads/avatars']) {
     fs.mkdirSync(folder, { recursive: true })
 }
 

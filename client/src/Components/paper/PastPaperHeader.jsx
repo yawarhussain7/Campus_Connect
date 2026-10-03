@@ -11,9 +11,15 @@ import {
 
 import ModernSelect from '../common/ModernSelect.jsx';
 
+// Plain strings use `labelOf` for their label; ready-made `{ value, label }`
+// options are passed through untouched.
 const withAllOption = (items, allLabel, labelOf) => [
   { value: '', label: allLabel },
-  ...items.map((item) => ({ value: item, label: labelOf ? labelOf(item) : item })),
+  ...items.map((item) =>
+    item && typeof item === 'object'
+      ? item
+      : { value: item, label: labelOf ? labelOf(item) : item }
+  ),
 ];
 
 /**

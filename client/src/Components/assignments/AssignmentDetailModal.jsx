@@ -32,10 +32,10 @@ export default function AssignmentDetailModal({ assignment, onDownload, onClose 
   if (!assignment) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.10)]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm">
+      <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.10)]">
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4">
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-5 py-4">
           <div className="flex min-w-0 items-start gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border border-blue-100 bg-blue-50 text-blue-600">
               <FileText className="h-5 w-5" />
@@ -62,7 +62,7 @@ export default function AssignmentDetailModal({ assignment, onDownload, onClose 
           </button>
         </div>
 
-        <div className="space-y-4 p-5">
+        <div className="flex-1 space-y-4 overflow-y-auto p-5">
           {/* Status + deadline */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span
@@ -111,7 +111,7 @@ export default function AssignmentDetailModal({ assignment, onDownload, onClose 
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-5 py-3.5">
+        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-slate-100 px-5 py-3.5">
           <button
             type="button"
             onClick={onClose}

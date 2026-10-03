@@ -10,6 +10,7 @@ import TeacherReview from '../Pages/students/TeacherReview'
 import Assignments from '../Pages/students/Assignments'
 import AssignmentUpload from '../Pages/students/AssignmentUpload'
 import Settings from '../Pages/students/Settings'
+import About from '../Pages/students/About'
 import ComingSoon from '../Pages/students/ComingSoon'
 
 const StudentRoute = () => {
@@ -55,15 +56,7 @@ const StudentRoute = () => {
               />
             }
           />
-          <Route
-            path="about"
-            element={
-              <ComingSoon
-                title="About CampusConnect"
-                description="CampusConnect unifies projects, past papers, teacher reviews and assignments in one student portal."
-              />
-            }
-          />
+          <Route path="about" element={<About />} />
 
           <Route path="*" element={<h1>404 Not found</h1>} />
         </Route>

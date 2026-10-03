@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getProfile } from '../api/profile';
 
 const AppContext = createContext(null);
@@ -19,6 +19,18 @@ export const AppProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
+
+  // The navigation drawer is shared between the Header (which opens it) and the
+  // Sidebar (which renders it). It only matters below `xl`, where the fixed
+  // sidebar is replaced by the slide-in drawer.
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const openSidebar = useCallback(() => setIsSidebarOpen(true), []);
+  const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
+  const toggleSidebar = useCallback(
+    () => setIsSidebarOpen((open) => !open),
+    []
+  );
 
   useEffect(() => {
     fetchProfile();
@@ -78,7 +90,11 @@ export const AppProvider = ({ children }) => {
       loginUser,
       logoutUserState,
       updateUserState,
-      fetchProfile
+      fetchProfile,
+      isSidebarOpen,
+      openSidebar,
+      closeSidebar,
+      toggleSidebar
     }}>
       {children}
     </AppContext.Provider>

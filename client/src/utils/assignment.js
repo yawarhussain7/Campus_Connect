@@ -15,9 +15,8 @@ const STATUS_TONES = {
 export const assignmentStatusTone = (status) =>
   STATUS_TONES[status] || 'bg-slate-100 text-slate-600';
 
-/** Course codes present in the list, sorted so the dropdown reads naturally. */
-export const courseCodesOf = (assignments = []) =>
-  [...new Set(assignments.map((item) => item?.course).filter(Boolean))].sort();
+// The course dropdown shows the course name while matching on the stored code.
+export { courseOptionsOf } from './course.js';
 
 /** "2025-05-15" -> "2025-05", the bucket the due-date filter works in. */
 export const dueMonthOf = (assignment) => {

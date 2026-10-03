@@ -125,8 +125,8 @@ export default function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-[72px] items-center gap-3 border-b border-slate-200 bg-white px-5">
-      <div ref={searchRef} className="relative w-full max-w-xl">
+    <header className="sticky top-0 z-30 flex h-[72px] items-center gap-3 border-b border-slate-200 bg-white px-3 sm:px-5">
+      <div ref={searchRef} className="relative w-full min-w-0 max-w-xl">
         <Search
           size={16}
           className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
@@ -181,7 +181,7 @@ export default function Topbar() {
 
       <div className="ml-auto flex items-center gap-1.5">
         <Menu
-          panelClassName="w-[290px]"
+          panelClassName="w-[calc(100vw-2rem)] max-w-[290px] sm:w-[290px]"
           trigger={({ open, toggle }) => (
             <button
               type="button"

@@ -14,9 +14,8 @@ const STATUS_TONES = {
 export const statusTone = (status) =>
   STATUS_TONES[status] || 'bg-slate-100 text-slate-600';
 
-/** Course codes present in the list, sorted so the dropdown reads naturally. */
-export const courseCodesOf = (projects = []) =>
-  [...new Set(projects.map((project) => project?.course).filter(Boolean))].sort();
+// The course dropdown shows the course name while matching on the stored code.
+export { courseOptionsOf } from './course.js';
 
 const dueTime = (project) => {
   const time = new Date(project?.dueDate || '').getTime();

@@ -27,6 +27,10 @@ export const updateProfileController = async(req,res)=>{
         if(name) updateData.name = name
         if(email) updateData.email = email
 
+        // A freshly uploaded picture is stored the same way the other uploads
+        // are: a `/uploads/...` path that the static route serves back.
+        if(req.file) updateData.avatar = `/uploads/avatars/${req.file.filename}`
+
         const user = await UpdateUser(userId, updateData)
         res.status(200).send({
             message:"Profile updated successfully",

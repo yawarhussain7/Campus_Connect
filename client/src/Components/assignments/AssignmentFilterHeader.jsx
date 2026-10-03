@@ -3,9 +3,15 @@ import { BookOpen, CalendarDays, Filter, Search, X } from 'lucide-react';
 import ModernSelect from '../common/ModernSelect.jsx';
 import { ASSIGNMENT_STATUSES, dueMonthLabel } from '../../utils/assignment.js';
 
+// Plain strings use `labelOf` for their label; ready-made `{ value, label }`
+// options (the course filter) are passed through untouched.
 const withAllOption = (items, allLabel, labelOf) => [
   { value: '', label: allLabel },
-  ...items.map((item) => ({ value: item, label: labelOf ? labelOf(item) : item })),
+  ...items.map((item) =>
+    item && typeof item === 'object'
+      ? item
+      : { value: item, label: labelOf ? labelOf(item) : item }
+  ),
 ];
 
 /**

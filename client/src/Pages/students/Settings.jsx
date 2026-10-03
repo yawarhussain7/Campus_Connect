@@ -9,10 +9,11 @@ import {
   Save,
   Lock,
   Camera,
-  Key
+  Key,
+  Loader2
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
-import { updateProfile } from '../../api/profile';
+import { updateProfile, uploadProfileImage, avatarUrl } from '../../api/profile';
 import { toast } from 'react-toastify';
 
 export default function Settings() {
@@ -21,12 +22,17 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState('account');
 
   // Account & Academic State
+  // `profileImage` is what the avatar box previews (the saved avatar URL or a
+  // local blob URL); `avatarFile` is the freshly picked File that gets uploaded.
   const [accountForm, setAccountForm] = useState({
     fullName: '',
     email: '',
     studentId: '',
-    profileImage: null
+    profileImage: null,
+    avatarFile: null
   });
+
+  const [saving, setSaving] = useState(false);
 
   // Notifications State
   const [preferences, setPreferences] = useState({
@@ -63,21 +69,60 @@ export default function Settings() {
     }
   };
 
+  // A picked image is previewed immediately; the File itself is kept so the
+  // save handler can upload it as multipart/form-data.
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setAccountForm((prev) => {
+      if (prev.profileImage?.startsWith('blob:')) {
+        URL.revokeObjectURL(prev.profileImage);
+      }
+
+      return {
+        ...prev,
+        profileImage: URL.createObjectURL(file),
+        avatarFile: file
+      };
+    });
+  };
+
   const handleSaveChanges = async (e) => {
     e.preventDefault();
+    setSaving(true);
+
     try {
-      const response = await updateProfile({
-        name: accountForm.fullName,
-        email: accountForm.email
-      });
+      const { fullName, email, avatarFile } = accountForm;
+
+      let response;
+
+      if (avatarFile) {
+        // Multipart, so the picture itself reaches the server.
+        const formData = new FormData();
+        formData.append('name', fullName);
+        formData.append('email', email);
+        formData.append('avatar', avatarFile);
+
+        response = await uploadProfileImage(formData);
+      } else {
+        response = await updateProfile({ name: fullName, email });
+      }
+
       if (response.success) {
         updateUserState(response.data);
+        setAccountForm((prev) => ({ ...prev, avatarFile: null }));
         toast.success('Profile updated successfully!');
       }
     } catch (error) {
       toast.error(error.message || 'Failed to update profile');
+    } finally {
+      setSaving(false);
     }
   };
+
+  // Prefer the freshly picked picture, otherwise show the saved avatar.
+  const avatarPreview = accountForm.profileImage || avatarUrl(user?.avatar);
 
   return (
     <div className="min-h-screen flex bg-slate-50 text-slate-800 font-sans antialiased">
@@ -86,7 +131,7 @@ export default function Settings() {
       <div className="flex-1 xl:pl-64 flex flex-col min-w-0">
         <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
-        <main className="flex-1 p-6 md:p-8 max-w-[1200px] w-full mx-auto space-y-4">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-[1200px] w-full mx-auto space-y-4">
           <div className="border-b border-slate-200 pb-5">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Account Settings</h1>
             <p className="text-sm text-slate-500 mt-1">
@@ -126,18 +171,20 @@ export default function Settings() {
                     <div className="flex items-center gap-6 pb-6 border-b border-slate-100">
                       <div className="relative">
                         <div className="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300 overflow-hidden">
-                          {accountForm.profileImage ? (
-                            <img src={accountForm.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                          {avatarPreview ? (
+                            <img src={avatarPreview} alt="Profile" className="w-full h-full object-cover" />
                           ) : (
                             <User className="h-8 w-8 text-slate-400" />
                           )}
                         </div>
                         <label className="absolute bottom-0 right-0 p-1.5 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
                           <Camera className="h-3 w-3 text-white" />
-                          <input type="file" className="hidden" onChange={(e) => {
-                            const file = e.target.files[0];
-                            if (file) setAccountForm(prev => ({ ...prev, profileImage: URL.createObjectURL(file) }));
-                          }} />
+                          <input
+                            type="file"
+                            accept="image/png, image/jpeg, image/jpg, image/gif, image/webp"
+                            className="hidden"
+                            onChange={handleImageChange}
+                          />
                         </label>
                       </div>
                       <div>
@@ -233,9 +280,13 @@ export default function Settings() {
                 )}
 
                 <div className="flex justify-end pt-2">
-                  <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-md">
-                    <Save className="h-4 w-4" />
-                    <span>Commit Settings Payload</span>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    <span>{saving ? 'Saving…' : 'Commit Settings Payload'}</span>
                   </button>
                 </div>
               </form>

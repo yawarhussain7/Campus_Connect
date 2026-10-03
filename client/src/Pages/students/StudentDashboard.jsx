@@ -17,7 +17,7 @@ import { markAsRead } from '../../api/notifications';
 import { useAppContext } from '../../context/AppContext';
 import { currentTermLabel, daysUntil } from '../../utils/date';
 import { fromAssignmentRecord, sortByDueDate as sortByDueDateAsc } from '../../utils/assignment.js';
-import { fromProjectRecord } from '../../utils/project.js';
+import { courseOptionsOf, fromProjectRecord } from '../../utils/project.js';
 import { averageRating, fromReviewRecord } from '../../utils/review.js';
 
 import Sidebar from '../../Components/common/Sidebar';
@@ -130,7 +130,8 @@ export default function StudentDashboard() {
         key: 'course',
         label: 'Course',
         placeholder: 'All Courses',
-        options: valuesOf('course'),
+        // The dropdown shows the course name; the stored code is the value.
+        options: courseOptionsOf(projects),
       },
       {
         key: 'status',

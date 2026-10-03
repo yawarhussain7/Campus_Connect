@@ -65,8 +65,8 @@ export default function PastPaperUpload() {
         <div className="flex-1 p-4 sm:p-6 max-w-[1500px] w-full mx-auto space-y-4">
 
           {/* Header */}
-          <div className="flex justify-between items-center gap-4">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-blue-600 text-white">
                 <FileText className="h-5 w-5 text-white" />
               </div>

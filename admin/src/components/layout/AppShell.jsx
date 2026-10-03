@@ -31,7 +31,7 @@ export default function AppShell() {
       <div className="flex min-h-screen flex-col lg:pl-64">
         <Topbar />
 
-        <nav className="flex gap-1 overflow-x-auto border-b border-slate-200 bg-white px-3 py-2 lg:hidden">
+        <nav className="scroll-x flex gap-1 border-b border-slate-200 bg-white px-3 py-2 lg:hidden">
           {MOBILE_LINKS.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}

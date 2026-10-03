@@ -78,10 +78,10 @@ function ComposerForm({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.10)]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm">
+      <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.10)]">
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4">
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-5 py-4">
           <div>
             <h2 className="text-[14px] font-semibold text-slate-900">
               Write a review
@@ -106,12 +106,12 @@ function ComposerForm({
 
         {/* What the review is posted with, so the wording matches the Student
             column and the Student filter. */}
-        <div className="flex items-center gap-2 border-b border-amber-100 bg-amber-50 px-5 py-2.5 text-[11.5px] text-amber-800">
+        <div className="flex shrink-0 items-center gap-2 border-b border-amber-100 bg-amber-50 px-5 py-2.5 text-[11.5px] text-amber-800">
           <ShieldAlert className="h-3.5 w-3.5 shrink-0 text-amber-600" />
           Posted under your name — your email is never shown.
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 p-5">
+        <form onSubmit={handleSubmit} className="flex-1 space-y-4 overflow-y-auto p-5">
           {/* Rating */}
           <div className="rounded-[10px] border border-slate-200 bg-slate-50/70 py-3 text-center">
             <label className="mb-2 block text-[11px] font-medium text-slate-500">

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   ClipboardList,
@@ -7,7 +8,9 @@ import {
   Info,
   LayoutDashboard,
   LogOut,
+  Settings,
   Star,
+  X,
 } from 'lucide-react';
 
 import { useAppContext } from '../../context/AppContext';
@@ -35,7 +38,45 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { user, logoutUserState } = useAppContext();
+  const { user, logoutUserState, isSidebarOpen, closeSidebar } = useAppContext();
+
+  // Navigating anywhere closes the drawer (below `xl` it would otherwise stay
+  // open over the new page).
+  useEffect(() => {
+    closeSidebar();
+  }, [location.pathname, closeSidebar]);
+
+  // While the drawer covers the page on mobile: Escape closes it and the page
+  // underneath stops scrolling.
+  useEffect(() => {
+    if (!isSidebarOpen) return undefined;
+
+    const handleKey = (event) => {
+      if (event.key === 'Escape') closeSidebar();
+    };
+
+    document.addEventListener('keydown', handleKey);
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isSidebarOpen, closeSidebar]);
+
+  // If the window grows past the drawer breakpoint the fixed sidebar takes over,
+  // so drop the drawer (and its scroll lock) instead of leaving it open behind it.
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1280) closeSidebar();
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, [closeSidebar]);
 
   const handleLogout = async () => {
     try {
@@ -49,6 +90,11 @@ export default function Sidebar() {
     }
   };
 
+  const goTo = (path) => {
+    closeSidebar();
+    navigate(path);
+  };
+
   const initials = (user?.name || 'Student')
     .split(/\s+/)
     .slice(0, 2)
@@ -57,13 +103,27 @@ export default function Sidebar() {
     .toUpperCase();
 
   return (
-    <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col border-r border-slate-200/80 bg-white xl:flex">
+    <>
+      {/* Mobile backdrop: tapping it dismisses the drawer. Desktop never shows it. */}
+      {isSidebarOpen && (
+        <div
+          aria-hidden="true"
+          onClick={closeSidebar}
+          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-[2px] xl:hidden"
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col border-r border-slate-200/80 bg-white transition-transform duration-300 ease-out xl:w-64 xl:max-w-none xl:translate-x-0 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
 
       {/* Brand */}
       <div className="flex h-16 shrink-0 items-center border-b border-slate-100 px-5">
         <button
           type="button"
-          onClick={() => navigate('/student/dashboard')}
+          onClick={() => goTo('/student/dashboard')}
           className="flex items-center gap-2.5"
         >
           <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-blue-600 text-white">
@@ -79,6 +139,15 @@ export default function Sidebar() {
               Student portal
             </span>
           </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={closeSidebar}
+          aria-label="Close navigation menu"
+          className="ml-auto flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 xl:hidden"
+        >
+          <X className="h-4 w-4" />
         </button>
       </div>
 
@@ -101,8 +170,8 @@ export default function Sidebar() {
                   <button
                     key={item.path}
                     type="button"
-                    onClick={() => navigate(item.path)}
-                    className={`relative flex w-full items-center gap-2.5 rounded-[10px] px-3 py-2 text-[12.5px] transition-colors ${
+                    onClick={() => goTo(item.path)}
+                    className={`relative flex w-full items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-[13px] transition-colors xl:py-2 xl:text-[12.5px] ${
                       isActive
                         ? 'bg-blue-50 font-semibold text-blue-700'
                         : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -129,8 +198,27 @@ export default function Sidebar() {
         <div className="mt-5 border-t border-slate-100 pt-3">
           <button
             type="button"
-            onClick={() => navigate('/student/about')}
-            className={`flex w-full items-center gap-2.5 rounded-[10px] px-3 py-2 text-[12.5px] font-medium transition-colors ${
+            onClick={() => goTo('/student/settings')}
+            className={`flex w-full items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-[13px] font-medium transition-colors xl:py-2 xl:text-[12.5px] ${
+              location.pathname === '/student/settings'
+                ? 'bg-blue-50 font-semibold text-blue-700'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Settings
+              className={`h-[17px] w-[17px] shrink-0 ${
+                location.pathname === '/student/settings'
+                  ? 'text-blue-600'
+                  : 'text-slate-400'
+              }`}
+            />
+            Settings
+          </button>
+
+          <button
+            type="button"
+            onClick={() => goTo('/student/about')}
+            className={`flex w-full items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-[13px] font-medium transition-colors xl:py-2 xl:text-[12.5px] ${
               location.pathname === '/student/about'
                 ? 'bg-blue-50 font-semibold text-blue-700'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -169,12 +257,13 @@ export default function Sidebar() {
         <button
           type="button"
           onClick={handleLogout}
-          className="mt-0.5 flex w-full items-center gap-2.5 rounded-[10px] px-3 py-2 text-[12.5px] font-medium text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600"
+          className="mt-0.5 flex w-full items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-[13px] font-medium text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600 xl:py-2 xl:text-[12.5px]"
         >
           <LogOut className="h-[17px] w-[17px] text-slate-400" />
           Sign out
         </button>
       </div>
     </aside>
+    </>
   );
 }

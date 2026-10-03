@@ -2,9 +2,16 @@ import { BookOpen, Search, X } from 'lucide-react';
 
 import ModernSelect from '../common/ModernSelect.jsx';
 
+// Accepts plain strings or ready-made `{ value, label }` options, which the
+// course filter uses so it can show the course name while keeping the stored
+// course code as the value.
 const withAllOption = (items, allLabel) => [
   { value: '', label: allLabel },
-  ...items.map((item) => ({ value: String(item), label: String(item) })),
+  ...items.map((item) =>
+    item && typeof item === 'object'
+      ? item
+      : { value: String(item), label: String(item) }
+  ),
 ];
 
 /**

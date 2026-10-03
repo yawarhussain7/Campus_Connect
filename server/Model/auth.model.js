@@ -21,7 +21,13 @@ const UserSchema = new mongoose.Schema({
         minlength:[6,'Password must be at least 6 characters long'],
         select:false
     },
-    
+    // Profile picture. Stores the `/uploads/avatars/<file>` path the static
+    // route serves, and stays null until the student uploads one.
+    avatar:{
+        type:String,
+        default:null
+    },
+
 },{
     timestamps:true
 })

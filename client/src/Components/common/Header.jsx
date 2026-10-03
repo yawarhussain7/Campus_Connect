@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  Menu as MenuIcon,
   Search,
   SlidersHorizontal,
   Bell,
@@ -17,6 +18,7 @@ import {
   markAsRead,
   markAllAsRead,
 } from '../../api/notifications';
+import { avatarUrl } from '../../api/profile';
 
 const PROFILE_IMAGE =
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&q=80';
@@ -28,7 +30,7 @@ export default function Header({
   setShowFilters,
   hideSearch = false,
 }) {
-  const { user, notifications, setNotifications } = useAppContext();
+  const { user, notifications, setNotifications, openSidebar } = useAppContext();
   const navigate = useNavigate();
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -149,14 +151,24 @@ export default function Header({
 
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
-      <div className="flex h-full items-center justify-between gap-4 px-4 sm:px-6">
+      <div className="flex h-full items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6">
+
+        {/* Menu: only reachable below `xl`, where the sidebar becomes a drawer. */}
+        <button
+          type="button"
+          onClick={openSidebar}
+          aria-label="Open navigation menu"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 xl:hidden"
+        >
+          <MenuIcon className="h-[18px] w-[18px]" />
+        </button>
 
         {/* ==================================================
             SEARCH
         ================================================== */}
 
         {!hideSearch && (
-          <div className="max-w-[520px] flex-1">
+          <div className="min-w-0 max-w-[520px] flex-1">
           <div className="group relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-blue-500" />
 
@@ -180,7 +192,7 @@ export default function Header({
             RIGHT ACTIONS
         ================================================== */}
 
-        <div className={`flex items-center gap-1.5 ${hideSearch ? 'ml-auto' : ''}`}>
+        <div className={`flex shrink-0 items-center gap-1.5 ${hideSearch ? 'ml-auto' : ''}`}>
 
           {/* Filters */}
           {setShowFilters && (
@@ -226,7 +238,7 @@ export default function Header({
 
             {/* Notification dropdown */}
             {showNotifications && (
-              <div className="absolute right-0 top-11 w-[344px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.10)]">
+              <div className="absolute right-0 top-11 w-[calc(100vw-2rem)] max-w-[344px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.10)] sm:w-[344px]">
 
                 <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5">
                   <div>
@@ -329,8 +341,15 @@ export default function Header({
               className="flex h-10 items-center gap-2 rounded-[10px] pl-1 pr-2 transition hover:bg-slate-50"
             >
               <img
-                src={user?.avatar || PROFILE_IMAGE}
+                src={user?.avatar ? avatarUrl(user.avatar) : PROFILE_IMAGE}
                 alt={user?.name || 'Profile'}
+                onError={(event) => {
+                  // A missing/blocked upload falls back to the default portrait
+                  // instead of showing a broken image.
+                  if (event.currentTarget.src !== PROFILE_IMAGE) {
+                    event.currentTarget.src = PROFILE_IMAGE;
+                  }
+                }}
                 className="h-9 w-9 rounded-full object-cover ring-1 ring-slate-200"
               />
 
