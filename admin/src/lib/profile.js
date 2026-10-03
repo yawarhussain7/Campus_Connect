@@ -4,7 +4,7 @@ const STORAGE_KEY = "campus-connect-admin:settings:v1";
 
 export const DEFAULT_PROFILE = {
   name: "Yawar Hussain",
-  email: "admin@campusconnect.app",
+  email: "yawarhussain793@gmail.com",
   role: "Administrator",
 };
 

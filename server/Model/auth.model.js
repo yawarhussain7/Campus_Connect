@@ -14,12 +14,27 @@ const UserSchema = new mongoose.Schema({
         lowercase: true,
          match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
     },
+
+    resetPasswordToken:{
+        type:String,
+        default:null,
+        trim:true
+    },
+    resetPasswordTokenExpire:{
+        type:Data,
+        default:null
+    },
     password:{
         type:String,
         required:[true,'Password is required'],
         trim:true,
         minlength:[6,'Password must be at least 6 characters long'],
         select:false
+    },
+    role:{
+        type:String,
+        enum:['user','admin'],
+        default:'user'
     },
     // Profile picture. Stores the `/uploads/avatars/<file>` path the static
     // route serves, and stays null until the student uploads one.

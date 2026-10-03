@@ -1,6 +1,9 @@
 import User from '../Model/auth.model.js'
 import bcrypt from 'bcrypt'
 import GenereateJWT from '../utils/GenerateJWT.js'
+import crypto from 'crypto'
+import {sendEmail} from '../utils/sendEmail.js'
+import resetPasswordEmail from '../utils/resetPassword.js'
 
 const registerService = async({name,email,password})=>{
     try{
@@ -83,4 +86,59 @@ const getUser = async (userId)=>{
     }
 }
 
-export {registerService,loginService,getUser}
+export const forgetPasswordService = async(email)=>{
+    const user = await User.findOne({email})
+
+    if(!user){
+        throw new Error("User not found")
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex')
+
+    // hashed token before save into database
+    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex")
+
+    user.resetPasswordToken = hashedToken
+    user.resetPasswordTokenExpire = Date.now() + 15 *60*1000;
+
+    await user.save()
+
+    const resultURL = `http://localhost:5173/reset-password/${resetToken}`
+
+
+    const generateHTML = await resetPasswordEmail(user.name,resultURL)
+    await sendEmail(user.email,"Reset your CampusConnector Password",html)
+
+    return {
+        resultURL
+    }
+
+}
+
+const resetPassworService  = async(token,newPassword)=>{
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex")
+
+    const user = await User.findOne({
+        resetPasswordToken:hashedToken,
+        resetPasswordTokenExpire:{
+            $gt:Date.now()
+        }
+    })
+
+    if(!user){
+        throw new Error("Invalid or expired reset token")
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword,10)
+
+    user.password = hashedPassword
+
+    user.resetPasswordToken = null,
+    user.resetPasswordTokenExpire = null
+
+    return{
+        message:'Password reset successfully'
+    }
+}
+
+export {registerService,loginService,getUser,forgetPasswordService,resetPassworService}

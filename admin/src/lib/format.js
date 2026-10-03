@@ -36,23 +36,6 @@ export function formatDate(value) {
   return formatDay(String(value).slice(0, 10));
 }
 
-
-/** ISO timestamp -> "5 May 2025, 14:03". */
-export function formatTimestamp(value) {
-  if (!value) return "—";
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) return "—";
-
-  const day = `${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
-  const time = `${String(date.getHours()).padStart(2, "0")}:${String(
-    date.getMinutes()
-  ).padStart(2, "0")}`;
-
-  return `${day}, ${time}`;
-}
-
 /** "just now" / "3 h ago" / "2 d ago", falling back to the plain date. */
 export function relativeTime(value) {
   if (!value) return "—";

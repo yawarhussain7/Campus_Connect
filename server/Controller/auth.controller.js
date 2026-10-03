@@ -1,4 +1,4 @@
-import { loginService,registerService } from "../Service/auth.service.js"
+import { loginService,registerService,forgetPasswordService,resetPassworService } from "../Service/auth.service.js"
 
 
 export const registerController = async (req,res)=>{
@@ -88,6 +88,58 @@ export const logoutController = async(req,res)=>{
             message:'Invalid password or email',
             success:false,
             error:error.message
+        })
+    }
+}
+
+export const forgotPasswordController = async(req,res)=>{
+    try{
+        const {email}=req.body
+        if(!email){
+            return res.status(400).json({
+                success:false,
+                message:'Email is required'
+            })
+        }
+
+        const result  = await forgetPasswordService(email)
+        return res.status(201).json({
+            success:true,
+            message:'token generated successfully',
+            data:result
+        })
+
+
+    }catch(error){
+        return res.status(500).json({
+            success:false,
+            mesasge:error.message
+        })
+    }
+}
+
+export const resetPasswordController = async(req,res)=>{
+    try{
+        const {token}=req.params;
+        const {newpassword}=req.body
+
+        if(!newpassword){
+            return res.status(400).json({
+                success:false,
+                message:'new password is requried'
+            })
+        }
+
+        const result = await resetPassworService(token,newpassword)
+
+        return res.status(200).json({
+            message:result.message,
+            success:true
+        })
+    }catch(error){
+        return res.status(500).json({
+            success:false,
+            message:error.mesasge
         })
     }
 }

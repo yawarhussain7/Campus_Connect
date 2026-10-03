@@ -13,7 +13,7 @@ const ROLES = ["Administrator", "Editor", "Reviewer"];
 
 const DEFAULTS = {
   name: "Yawar Hussain",
-  email: "admin@campusconnect.app",
+  email: "yawarhussain793@gmail.com",
   department: "Computer Science",
   role: "Administrator",
   emailNotifications: true,

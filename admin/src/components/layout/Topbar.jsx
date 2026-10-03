@@ -13,6 +13,7 @@ import {
 
 import { cx } from "../../lib/format";
 import { readProfile } from "../../lib/profile";
+import { clearSession } from "../../lib/session";
 import { useData } from "../../store/dataContext";
 
 import Avatar from "../ui/Avatar";
@@ -259,7 +260,15 @@ export default function Topbar() {
             Reset demo data
           </MenuItem>
 
-          <MenuItem danger icon={LogOut} onClick={() => toast.success("Signed out (demo only)")}>
+          <MenuItem
+            danger
+            icon={LogOut}
+            onClick={() => {
+              clearSession();
+              toast.success("Signed out");
+              navigate("/login", { replace: true });
+            }}
+          >
             Sign out
           </MenuItem>
         </Menu>

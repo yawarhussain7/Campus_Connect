@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
+  ArrowLeft,
   ArrowRight,
   Check,
   Eye,
@@ -152,17 +153,21 @@ export default function AuthPage() {
       {/*
         Full-window artwork. `login_bg.png` is the finished mockup: the brand
         story (wordmark, students, tagline) owns the left half while the right
-        half is left deliberately empty for this card. Anchoring it with
-        `object-cover object-left` keeps the drawing pinned to the left edge on
-        every window shape, so the card always lands on the blank half instead
-        of drifting over the people as the viewport gets narrower.
+        half is left deliberately empty for this card.
+
+        Below `lg` it covers the window (the card sits centred over a softened
+        copy). From `lg` up it switches to `object-contain`, which scales the
+        whole drawing down to fit inside the window so nothing is cropped — a
+        plain `object-cover` zoomed in and sliced the wordmark off on widescreen
+        monitors. It stays pinned left, so the spare space lands on the mockup's
+        own pale, empty half where the card sits.
       */}
       <img
         src={loginBackground}
         alt=""
         aria-hidden="true"
         draggable="false"
-        className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-left"
+        className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-left lg:object-contain"
       />
 
       {/*
@@ -349,6 +354,15 @@ export default function AuthPage() {
           <p className="mt-2.5 text-center text-[11.5px] text-[#9aa8c2] [@media(min-height:820px)]:mt-3 [@media(min-height:820px)]:text-[12px]">
             Only authorized students can access this portal.
           </p>
+
+          {/* Back to the landing page */}
+          <Link
+            to="/"
+            className="mt-3 flex items-center justify-center gap-1.5 text-[12px] font-medium text-[#5d76a9] transition hover:text-[#1869f2] [@media(min-height:820px)]:mt-4 [@media(min-height:820px)]:text-[12.5px]"
+          >
+            <ArrowLeft className="h-[13px] w-[13px]" strokeWidth={2.2} />
+            Back to home
+          </Link>
         </div>
       </div>
     </div>
