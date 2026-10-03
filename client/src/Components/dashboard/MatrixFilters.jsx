@@ -1,87 +1,72 @@
-// src/components/MatrixFilters.jsx
-import React from 'react';
-import ModernSelect from '../common/ModernSelect';
-import { Filter, X } from 'lucide-react';
 
-export default function MatrixFilters({ 
-  departments, teachers, sections,
-  filterDept, setFilterDept,
-  filterTeacher, setFilterTeacher,
-  filterSection, setFilterSection 
-}) {
-  const hasActiveFilters = filterDept || filterTeacher || filterSection;
+import React from 'react';
+import { SlidersHorizontal, X } from 'lucide-react';
+import ModernSelect from '../common/ModernSelect';
+
+/**
+ * Filter panel for the project queue. Each group is `{ key, label, placeholder,
+ * options }` and the chosen value is read from `values[key]`, so the panel only
+ * ever offers values the loaded projects actually carry.
+ */
+export default function MatrixFilters({ groups = [], values = {}, onChange }) {
+  const activeCount = groups.filter((group) => values[group.key]).length;
+
+  const hasActiveFilters = activeCount > 0;
 
   const clearFilters = () => {
-    setFilterDept('');
-    setFilterTeacher('');
-    setFilterSection('');
+    groups.forEach((group) => onChange(group.key, ''));
   };
 
   return (
-    <div className="bg-white border border-indigo-100/80 rounded-2xl p-5 shadow-sm animate-fadeIn space-y-4">
-      <div className="flex items-center justify-between">
+    <section className="surface-card p-4">
+      {/* Header */}
+      <div className="mb-3.5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-indigo-50 rounded-lg border border-indigo-100">
-            <Filter className="h-4 w-4 text-indigo-600" />
-          </div>
-          <span className="text-sm font-semibold text-slate-800">Advanced Filters</span>
+          <SlidersHorizontal className="h-4 w-4 text-slate-400" />
+
+          <h2 className="text-[13px] font-semibold text-slate-900">
+            Refine projects
+          </h2>
+
           {hasActiveFilters && (
-            <span className="text-[10px] font-semibold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
-              Active
+            <span className="rounded-md bg-blue-50 px-2 py-[3px] text-[10.5px] font-medium text-blue-700">
+              {activeCount} active
             </span>
           )}
         </div>
+
         {hasActiveFilters && (
-          <button 
+          <button
+            type="button"
             onClick={clearFilters}
-            className="flex items-center gap-1 text-[11px] font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg transition-all"
+            className="inline-flex items-center gap-1 text-[11.5px] font-medium text-slate-500 transition hover:text-slate-800"
           >
-            <X className="h-3 w-3" />
-            Clear
+            <X className="h-3.5 w-3.5" />
+            Clear all
           </button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="space-y-1.5">
+      {/* Filters */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {groups.map((group) => (
           <ModernSelect
-            label="Department"
-            value={filterDept}
-            onChange={setFilterDept}
+            key={group.key}
+            label={group.label}
+            value={values[group.key] || ''}
+            onChange={(value) => onChange(group.key, value)}
             options={[
-              { value: '', label: 'All Departments' },
-              ...departments.map(d => ({ value: d, label: d }))
+              { value: '', label: group.placeholder },
+              ...group.options.map((option) => ({
+                value: option,
+                label: option,
+              })),
             ]}
-            placeholder="All Departments"
+            placeholder={group.placeholder}
           />
-        </div>
-
-        <div className="space-y-1.5">
-          <ModernSelect
-            label="Instructor"
-            value={filterTeacher}
-            onChange={setFilterTeacher}
-            options={[
-              { value: '', label: 'All Teachers' },
-              ...teachers.map(t => ({ value: t, label: t }))
-            ]}
-            placeholder="All Teachers"
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <ModernSelect
-            label="Section"
-            value={filterSection}
-            onChange={setFilterSection}
-            options={[
-              { value: '', label: 'All Sections' },
-              ...sections.map(s => ({ value: s, label: `Section ${s}` }))
-            ]}
-            placeholder="All Sections"
-          />
-        </div>
+        ))}
       </div>
-    </div>
+    </section>
   );
 }
+

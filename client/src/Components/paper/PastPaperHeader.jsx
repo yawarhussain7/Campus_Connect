@@ -1,108 +1,150 @@
-// src/components/pastpapers/PastPaperHeader.jsx
 import React from 'react';
-import ModernSelect from '../common/ModernSelect';
-import { Search, SlidersHorizontal, Filter } from 'lucide-react';
+import {
+  BookOpen,
+  Building2,
+  Calendar,
+  CalendarDays,
+  FileText,
+  Search,
+  X,
+} from 'lucide-react';
 
+import ModernSelect from '../common/ModernSelect.jsx';
+
+const withAllOption = (items, allLabel, labelOf) => [
+  { value: '', label: allLabel },
+  ...items.map((item) => ({ value: item, label: labelOf ? labelOf(item) : item })),
+];
+
+/**
+ * Filter bar for the past-paper table: one search field followed by the five
+ * dropdowns, all on a single row when there is room.
+ */
 export default function PastPaperHeader({
-  searchQuery, setSearchQuery,
-  teacherFilter, setTeacherFilter,
-  subjectFilter, setSubjectFilter,
-  semesterFilter, setSemesterFilter,
-  examTypeFilter, setExamTypeFilter,
-  teachers = [],
-  subjects = [],
-  semesters = []
+  searchQuery,
+  setSearchQuery,
+  departmentFilter,
+  setDepartmentFilter,
+  courseFilter,
+  setCourseFilter,
+  semesterFilter,
+  setSemesterFilter,
+  yearFilter,
+  setYearFilter,
+  examTypeFilter,
+  setExamTypeFilter,
+  departments = [],
+  courses = [],
+  semesters = [],
+  years = [],
+  examTypes = [],
+  examLabelOf,
+  onClearAll,
 }) {
-  const examTypes = ['Midterm', 'Final Exam', 'Quiz Rack', 'Sessional'];
+  const hasActiveFilters = Boolean(
+    searchQuery ||
+      departmentFilter ||
+      courseFilter ||
+      semesterFilter ||
+      yearFilter ||
+      examTypeFilter
+  );
 
   return (
-    <div className="bg-white border border-indigo-100/80 rounded-2xl p-4 shadow-sm space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
-        
-        {/* Keyword Lookup */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input 
+    <section className="surface-card p-3">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <div className="relative min-w-[220px] flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+
+          <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search papers, years..." 
-            className="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-10 pr-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all text-slate-700 placeholder:text-slate-400"
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search by course code, course name or topic..."
+            aria-label="Search papers"
+            className="h-11 w-full rounded-[10px] border border-slate-200 bg-slate-50/80 pl-9 pr-9 text-[12.5px] text-slate-700 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/15"
           />
+
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
-        {/* Instructor Filter */}
-        <div className="space-y-1">
-          <ModernSelect
-            label="Instructor"
-            value={teacherFilter}
-            onChange={setTeacherFilter}
-            options={[
-              { value: '', label: 'All Instructors' },
-              ...teachers.map(t => ({ value: t, label: t }))
-            ]}
-            placeholder="All Instructors"
-          />
-        </div>
+        <ModernSelect
+          stacked
+          icon={Building2}
+          label="Department"
+          className="w-full sm:w-[172px]"
+          value={departmentFilter}
+          onChange={setDepartmentFilter}
+          options={withAllOption(departments, 'All departments')}
+          placeholder="All departments"
+        />
 
-        {/* Course Filter */}
-        <div className="space-y-1">
-          <ModernSelect
-            label="Subject"
-            value={subjectFilter}
-            onChange={setSubjectFilter}
-            options={[
-              { value: '', label: 'All Subjects' },
-              ...subjects.map(s => ({ value: s, label: s }))
-            ]}
-            placeholder="All Subjects"
-          />
-        </div>
+        <ModernSelect
+          stacked
+          icon={BookOpen}
+          label="Course"
+          className="w-full sm:w-[172px]"
+          value={courseFilter}
+          onChange={setCourseFilter}
+          options={withAllOption(courses, 'All courses')}
+          placeholder="All courses"
+        />
 
-        {/* Semester Step Filter */}
-        <div className="space-y-1">
-          <ModernSelect
-            label="Semester"
-            value={semesterFilter}
-            onChange={setSemesterFilter}
-            options={[
-              { value: '', label: 'All Semesters' },
-              ...semesters.map(sem => ({ value: sem, label: sem }))
-            ]}
-            placeholder="All Semesters"
-          />
-        </div>
+        <ModernSelect
+          stacked
+          icon={CalendarDays}
+          label="Semester"
+          className="w-full sm:w-[164px]"
+          value={semesterFilter}
+          onChange={setSemesterFilter}
+          options={withAllOption(semesters, 'All semesters')}
+          placeholder="All semesters"
+        />
+
+        <ModernSelect
+          stacked
+          icon={Calendar}
+          label="Year"
+          className="w-full sm:w-[132px]"
+          value={yearFilter}
+          onChange={setYearFilter}
+          options={withAllOption(years, 'All years')}
+          placeholder="All years"
+        />
+
+        <ModernSelect
+          stacked
+          icon={FileText}
+          label="Exam type"
+          className="w-full sm:w-[150px]"
+          value={examTypeFilter}
+          onChange={setExamTypeFilter}
+          options={withAllOption(examTypes, 'All types', examLabelOf)}
+          placeholder="All types"
+        />
       </div>
 
-      {/* Quick Filter Badges */}
-      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
-        <span className="flex items-center gap-1 text-[10px] font-semibold text-slate-400 uppercase mr-1">
-          <Filter className="h-3 w-3" /> Exam Type:
-        </span>
-        <button 
-          onClick={() => setExamTypeFilter('')}
-          className={`px-3 py-1 rounded-full border text-[11px] font-semibold transition-all duration-200 ${
-            !examTypeFilter 
-              ? 'bg-slate-900 border-slate-900 text-white shadow-sm' 
-              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
-          }`}
-        >
-          All
-        </button>
-        {examTypes.map((type) => (
-          <button 
-            key={type}
-            onClick={() => setExamTypeFilter(type)}
-            className={`px-3 py-1 rounded-full border text-[11px] font-semibold transition-all duration-200 ${
-              examTypeFilter === type 
-                ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' 
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
-            }`}
+      {hasActiveFilters && (
+        <div className="mt-2.5 flex justify-end border-t border-slate-100 pt-2.5">
+          <button
+            type="button"
+            onClick={onClearAll}
+            className="inline-flex items-center gap-1 text-[11.5px] font-medium text-slate-500 transition hover:text-slate-900"
           >
-            {type}
+            <X className="h-3.5 w-3.5" />
+            Clear filters
           </button>
-        ))}
-      </div>
-    </div>
+        </div>
+      )}
+    </section>
   );
 }

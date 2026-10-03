@@ -4,6 +4,7 @@ import {
   createAssignmentService,
   getAllAssignmentService,
   getAssignmentByIdService,
+  getTotalAssignment
 } from '../Service/assignment.service.js'
 
 import { assignmentSchemaZod } from "../validation/assign.validation.js";
@@ -90,3 +91,20 @@ export const downloadAssignment = async (req, res) => {
     });
   }
 };
+
+
+export const getTotalAssignmentController = async(req,res)=>{
+  try{
+      const counter = await getTotalAssignment()
+      return res.status(200).json({
+        message:'assignment fetch successfully',
+        success:true,
+        data:counter
+      })
+  }catch(error){
+     res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}

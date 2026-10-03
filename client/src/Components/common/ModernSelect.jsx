@@ -1,136 +1,286 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Check, ChevronDown, Search } from 'lucide-react';
 
-export default function ModernSelect({ 
-  label, 
-  value, 
-  onChange, 
-  options = [], 
-  placeholder = "Select an option",
+
+export default function ModernSelect({
+  label,
+  value,
+  onChange,
+  options = [],
+  placeholder = 'Select an option',
   icon,
+  hideLabel = false,
+  // Keeps the label inside the trigger, next to the icon. Used by the filter
+  // bars, where a compact control that still names itself reads better.
+  stacked = false,
   required = false,
-  className = ""
+  // Adds a search box to the open panel. The teacher directory runs to a few
+  // thousand names, which is only usable when the list can be filtered as you
+  // type. Off by default, so the short dropdowns are unchanged.
+  searchable = false,
+  className = '',
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const selectRef = useRef(null);
-  const dropdownRef = useRef(null);
+  const [query, setQuery] = useState('');
+  const containerRef = useRef(null);
+  const searchRef = useRef(null);
+
+  /**
+   * Closing always clears the search, so the panel reopens with the full list
+   * instead of the filter left behind last time.
+   */
+  const closePanel = () => {
+    setIsOpen(false);
+    setQuery('');
+    setHighlightedIndex(-1);
+  };
+
+  const selectOption = (option) => {
+    onChange(option.value);
+    closePanel();
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (selectRef.current && !selectRef.current.contains(event.target)) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
         setIsOpen(false);
+        setQuery('');
+        setHighlightedIndex(-1);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
+
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setIsOpen(!isOpen);
-    } else if (e.key === 'Escape') {
-      setIsOpen(false);
-    } else if (isOpen) {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setHighlightedIndex(prev => 
-          prev < options.length - 1 ? prev + 1 : 0
-        );
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setHighlightedIndex(prev => 
-          prev > 0 ? prev - 1 : options.length - 1
-        );
-      } else if (e.key === 'Enter' && highlightedIndex >= 0) {
-        e.preventDefault();
-        onChange(options[highlightedIndex].value);
-        setIsOpen(false);
-      }
+  // The search box is the first thing the reader needs when the panel opens.
+  useEffect(() => {
+    if (isOpen && searchable) searchRef.current?.focus();
+  }, [isOpen, searchable]);
+
+  const searchTerm = query.trim().toLowerCase();
+  // Keyboard navigation and the list itself both work off the filtered options.
+  const visibleOptions =
+    searchable && searchTerm
+      ? options.filter((option) =>
+          String(option.label).toLowerCase().includes(searchTerm)
+        )
+      : options;
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+
+      if (isOpen) closePanel();
+      else setIsOpen(true);
+
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      closePanel();
+      return;
+    }
+
+    if (!isOpen) return;
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setHighlightedIndex((previous) =>
+        previous < visibleOptions.length - 1 ? previous + 1 : 0
+      );
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setHighlightedIndex((previous) =>
+        previous > 0 ? previous - 1 : visibleOptions.length - 1
+      );
+      return;
+    }
+
+    if (event.key === 'Enter' && highlightedIndex >= 0) {
+      event.preventDefault();
+      selectOption(visibleOptions[highlightedIndex]);
     }
   };
 
-  const selectedOption = options.find(opt => opt.value === value);
+  /**
+   * The search field owns the typing, so only the navigation keys are caught
+   * here: Space would otherwise close the panel and Enter jump to an option.
+   */
+  const handleSearchKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      closePanel();
+      return;
+    }
+
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+
+      setHighlightedIndex((previous) => {
+        if (event.key === 'ArrowUp') {
+          return previous > 0 ? previous - 1 : visibleOptions.length - 1;
+        }
+
+        return previous < visibleOptions.length - 1 ? previous + 1 : 0;
+      });
+      return;
+    }
+
+    if (
+      event.key === 'Enter' &&
+      highlightedIndex >= 0 &&
+      visibleOptions[highlightedIndex]
+    ) {
+      event.preventDefault();
+      selectOption(visibleOptions[highlightedIndex]);
+    }
+  };
+
+  const selectedOption = options.find((option) => option.value === value);
+  // Icons arrive as forwardRef objects (lucide) rather than plain functions, so
+  // both shapes are accepted as a renderable component.
+  const TriggerIcon =
+    icon && (typeof icon === 'function' || typeof icon === 'object') ? icon : null;
+  // Non-stacked selects are used as bare inputs with no visible label, so the
+  // icon gives them the anchor the stacked variant gets from its label line.
+  const showInlineIcon = Boolean(TriggerIcon) && (hideLabel || !label);
 
   return (
-    <div className={`relative ${className}`} ref={selectRef}>
-      {label && (
-        <label className="flex items-center gap-2 text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-2">
-          {icon && <span className="h-2 w-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500" />}
+    <div className={`relative ${className}`} ref={containerRef}>
+      {label && hideLabel && <span className="sr-only">{label}</span>}
+
+      {label && !hideLabel && !stacked && (
+        <label className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.07em] text-slate-500">
+          {icon && <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />}
+
           {label}
-          {required && <span className="text-rose-500 ml-0.5">*</span>}
+
+          {required && <span className="text-rose-500">*</span>}
         </label>
       )}
-      
+
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => (isOpen ? closePanel() : setIsOpen(true))}
         onKeyDown={handleKeyDown}
-        className={`
-          w-full bg-white border-2 border-slate-200 text-sm rounded-2xl 
-          px-4 py-3 text-left font-medium transition-all duration-300
-          focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500
-          hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/5
-          flex items-center justify-between group relative overflow-hidden
-          ${!value ? 'text-slate-400' : 'text-slate-800'}
-        `}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-label={stacked || hideLabel ? label : undefined}
+        className={`flex w-full items-center justify-between rounded-[10px] border border-slate-200 bg-white px-3 text-left transition hover:border-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/15 ${
+          stacked ? 'h-11 gap-2.5' : 'h-10 gap-2'
+        }`}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 to-purple-500/0 opacity-0 group-hover:opacity-5 transition-opacity duration-300" />
-        <span className="truncate relative z-10">
-          {selectedOption ? selectedOption.label : placeholder}
-        </span>
-        <div className="relative z-10 flex items-center gap-2">
-          {value && (
-            <div className="h-2 w-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 animate-pulse" />
-          )}
-          <ChevronDown 
-            className={`h-5 w-5 text-slate-400 transition-all duration-300 ${
-              isOpen ? 'rotate-180 text-indigo-500' : 'group-hover:text-indigo-500'
-            }`} 
-          />
-        </div>
+        {stacked ? (
+          <>
+            {TriggerIcon && (
+              <TriggerIcon className="h-4 w-4 shrink-0 text-slate-400" />
+            )}
+
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[10.5px] leading-4 text-slate-400">
+                {label}
+              </span>
+
+              <span
+                className={`block truncate text-[12.5px] leading-4 ${
+                  selectedOption
+                    ? 'font-medium text-slate-800'
+                    : 'text-slate-400'
+                }`}
+              >
+                {selectedOption ? selectedOption.label : placeholder}
+              </span>
+            </span>
+          </>
+        ) : (
+          <>
+            {showInlineIcon && (
+              <TriggerIcon className="h-4 w-4 shrink-0 text-slate-400" />
+            )}
+
+            <span
+              className={`min-w-0 flex-1 truncate ${
+                selectedOption ? 'font-medium text-slate-800' : 'text-slate-400'
+              }`}
+            >
+              {selectedOption ? selectedOption.label : placeholder}
+            </span>
+          </>
+        )}
+
+        <ChevronDown
+          className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${
+            isOpen ? 'rotate-180' : ''
+          }`}
+        />
       </button>
 
       {isOpen && (
         <div
-          ref={dropdownRef}
-          className="absolute z-50 w-full mt-2 bg-white border-2 border-indigo-100 rounded-2xl shadow-2xl shadow-indigo-500/20 overflow-hidden"
-          style={{ 
-            animation: 'fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-            maxHeight: '300px',
-            overflowY: 'auto'
-          }}
+          role="listbox"
+          className="absolute z-50 mt-1.5 max-h-[280px] w-full overflow-y-auto rounded-[10px] border border-slate-200 bg-white p-1 shadow-[0_12px_32px_rgba(15,23,42,0.10)]"
         >
-          <div className="p-1.5 bg-gradient-to-br from-indigo-50/30 to-purple-50/20">
-            {options.map((option, index) => (
+          {/* Sticky so the search box stays reachable while the list scrolls. */}
+          {searchable && (
+            <div className="sticky top-0 z-10 bg-white pb-1">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+
+                <input
+                  ref={searchRef}
+                  type="text"
+                  value={query}
+                  onChange={(event) => {
+                    setQuery(event.target.value);
+                    setHighlightedIndex(0);
+                  }}
+                  onKeyDown={handleSearchKeyDown}
+                  placeholder={`Search ${label ? label.toLowerCase() : 'options'}...`}
+                  aria-label={`Search ${label || 'options'}`}
+                  className="h-9 w-full rounded-[8px] border border-slate-200 bg-slate-50/80 pl-8 pr-2.5 text-[12.5px] text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white"
+                />
+              </div>
+            </div>
+          )}
+
+          {visibleOptions.length === 0 && (
+            <p className="px-2.5 py-2 text-[12px] text-slate-400">
+              No options available
+            </p>
+          )}
+
+          {visibleOptions.map((option, index) => {
+            const isSelected = value === option.value;
+
+            return (
               <button
                 key={option.value}
                 type="button"
-                onClick={() => {
-                  onChange(option.value);
-                  setIsOpen(false);
-                }}
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => selectOption(option)}
                 onMouseEnter={() => setHighlightedIndex(index)}
-                className={`
-                  w-full px-4 py-2.5 text-left text-sm font-semibold transition-all duration-150
-                  flex items-center justify-between rounded-xl
-                  ${value === option.value 
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/40 scale-[1.02]' 
+                className={`flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-[12.5px] transition ${
+                  isSelected
+                    ? 'bg-blue-50 font-medium text-blue-700'
                     : highlightedIndex === index
-                    ? 'bg-indigo-50 text-indigo-900 scale-[1.01]'
-                    : 'text-slate-700 hover:bg-indigo-50/50 hover:text-indigo-900'
-                  }
-                `}
+                    ? 'bg-slate-50 text-slate-900'
+                    : 'text-slate-600'
+                }`}
               >
                 <span className="truncate">{option.label}</span>
-                {value === option.value && (
-                  <Check className="h-4 w-4 text-white flex-shrink-0" />
+
+                {isSelected && (
+                  <Check className="h-3.5 w-3.5 shrink-0 text-blue-600" />
                 )}
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
       )}
     </div>

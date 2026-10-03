@@ -19,3 +19,4 @@ export const getAssignmentByIdService = async (id) => {
 export const getTotalAssignment = async () => {
   return await Assignment_Model.countDocuments();
 };
+

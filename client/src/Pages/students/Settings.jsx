@@ -86,9 +86,9 @@ export default function Settings() {
       <div className="flex-1 xl:pl-64 flex flex-col min-w-0">
         <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
-        <main className="flex-1 p-6 md:p-8 max-w-[1200px] w-full mx-auto space-y-6">
+        <main className="flex-1 p-6 md:p-8 max-w-[1200px] w-full mx-auto space-y-4">
           <div className="border-b border-slate-200 pb-5">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Account Settings</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Account Settings</h1>
             <p className="text-sm text-slate-500 mt-1">
               Configure your institutional identity matrix, security credentials, and data delivery metrics.
             </p>
@@ -118,11 +118,11 @@ export default function Settings() {
             </div>
 
             <div className="lg:col-span-3">
-              <form onSubmit={handleSaveChanges} className="space-y-6">
+              <form onSubmit={handleSaveChanges} className="space-y-4">
                 
                 {/* Section: Academic Profile */}
                 {activeTab === 'account' && (
-                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+                  <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
                     <div className="flex items-center gap-6 pb-6 border-b border-slate-100">
                       <div className="relative">
                         <div className="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300 overflow-hidden">
@@ -141,22 +141,22 @@ export default function Settings() {
                         </label>
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-slate-800">Profile Image</h3>
+                        <h3 className="text-[13px] font-semibold text-slate-800">Profile Image</h3>
                         <p className="text-[11px] text-slate-400">JPG, PNG or GIF (Max 2MB).</p>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Full Legal Name</label>
+                        <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-[0.07em] mb-1.5">Full Legal Name</label>
                         <input type="text" value={accountForm.fullName} onChange={(e) => handleInputChange('account', 'fullName', e.target.value)} className="w-full text-xs rounded-xl px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 transition-all font-medium" />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Student ID</label>
+                        <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-[0.07em] mb-1.5">Student ID</label>
                         <input type="text" disabled value={accountForm.studentId} className="w-full text-xs rounded-xl px-3.5 py-2.5 bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed font-mono" />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Primary Academic Email</label>
+                        <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-[0.07em] mb-1.5">Primary Academic Email</label>
                         <input type="email" value={accountForm.email} onChange={(e) => handleInputChange('account', 'email', e.target.value)} className="w-full text-xs rounded-xl px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 transition-all font-medium" />
                       </div>
                     </div>
@@ -165,15 +165,15 @@ export default function Settings() {
 
                 {/* Section: Security */}
                 {activeTab === 'security' && (
-                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+                  <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
                     <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
                       <Lock className="h-4 w-4 text-blue-600" />
-                      <h2 className="text-sm font-bold text-slate-800">Authentication Security</h2>
+                      <h2 className="text-[13px] font-semibold text-slate-800">Authentication Security</h2>
                     </div>
                     <div className="space-y-4">
                       {['currentPassword', 'newPassword', 'confirmPassword'].map((field) => (
                         <div key={field}>
-                          <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                          <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-[0.07em] mb-1.5">
                             {field.replace(/([A-Z])/g, ' $1').toUpperCase()}
                           </label>
                           <input 
@@ -190,10 +190,10 @@ export default function Settings() {
 
                 {/* Section: Notifications */}
                 {activeTab === 'notifications' && (
-                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+                  <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
                     <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
                       <Bell className="h-4 w-4 text-blue-600" />
-                      <h2 className="text-sm font-bold text-slate-800">Communication & Alert Systems</h2>
+                      <h2 className="text-[13px] font-semibold text-slate-800">Communication & Alert Systems</h2>
                     </div>
                     <div className="space-y-4">
                         <div className="flex items-center justify-between py-2">
@@ -233,7 +233,7 @@ export default function Settings() {
                 )}
 
                 <div className="flex justify-end pt-2">
-                  <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-md active:scale-95">
+                  <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-md">
                     <Save className="h-4 w-4" />
                     <span>Commit Settings Payload</span>
                   </button>

@@ -1,111 +1,202 @@
 // src/pages/Projects.jsx
-import React, { useState } from 'react';
-import Sidebar from '../../Components/common/Sidebar'; 
-import Header from '../../Components/common/Header';   
-import ProjectsRegistryView from '../../components/projects/ProjectsRegistryView';
-import UploadProjectModal from '../../components/projects/UploadProjectModal';
-import ProjectReportModal from '../../Components/projects/ProjectReportModal'; // Preserved your exact case pathing
+import { useEffect, useState } from 'react';
+import { Inbox, Loader2 } from 'lucide-react';
+import { toast } from 'react-toastify';
 
-const DEPARTMENTS = ['Computer Science', 'Electrical Eng.', 'Mechanical Eng.', 'Business School'];
+import Sidebar from '../../Components/common/Sidebar';
+import Header from '../../Components/common/Header';
+import TablePagination from '../../Components/common/TablePagination';
+import ProjectHero from '../../Components/projects/ProjectHero';
+import ProjectFilterHeader from '../../Components/projects/ProjectFilterHeader';
+import ProjectTable from '../../Components/projects/ProjectTable';
+import ProjectDetailModal from '../../Components/projects/ProjectDetailModal';
+import { ShowProjects, downloadProject } from '../../api/project';
+import {
+  courseCodesOf,
+  fromProjectRecord,
+  matchesProject,
+  sortByDueDate,
+} from '../../utils/project.js';
 
-const INITIAL_PROJECTS = [
-  {
-    id: 1,
-    title: 'AI-Powered Attendance System',
-    desc: 'Face recognition attendance tracker using Python and OpenCV. Auto-marks roster grids seamlessly.',
-    tags: ['Python', 'AI', 'OpenCV'],
-    dept: 'Computer Science',
-    subject: 'Machine Learning',
-    teacher: 'Dr. Aris Thorne',
-    section: 'A',
-    author: 'Hamza Raza',
-    uni: 'FAST NUCES',
-    semester: 'Semester 5',
-    likes: 48,
-    comments: 12,
-    rating: 4.5,
-    img: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&q=80'
-  }
-];
+const PAGE_SIZE = 6;
 
 export default function Projects() {
+  // Everything the table shows comes from GET /student/projects.
+  const [projects, setProjects] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [page, setPage] = useState(1);
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  
-  // State pipeline handlers
-  const [projectList, setProjectList] = useState(INITIAL_PROJECTS);
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [likedProjects, setLikedProjects] = useState({});
-  const [projectReviews, setProjectReviews] = useState({});
-  
-  // Track which project performance analytics scorecard is currently active
-  const [activeReportTarget, setActiveReportTarget] = useState(null);
+  const [courseFilter, setCourseFilter] = useState('');
 
-  const handleProjectLike = (id) => {
-    setLikedProjects(prev => ({ ...prev, [id]: !prev[id] }));
+  const [detailProject, setDetailProject] = useState(null);
+
+  // Load every project once; the table shows exactly what the API returns.
+  useEffect(() => {
+    let isActive = true;
+
+    ShowProjects()
+      .then((response) => {
+        if (!isActive) return;
+
+        // The client unwraps the JSON envelope, but a bare array is accepted too.
+        const payload = response?.data ?? response;
+        const records = Array.isArray(payload) ? payload : [];
+
+        setProjects(records.map(fromProjectRecord));
+      })
+      .catch((error) => {
+        console.error('Failed to load projects:', error);
+
+        if (isActive) {
+          setLoadError(error?.message || 'Could not load projects');
+        }
+      })
+      .finally(() => {
+        if (isActive) setIsLoading(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  // Dropdown options come from the projects we actually have.
+  const courses = courseCodesOf(projects);
+
+  const filteredProjects = sortByDueDate(projects).filter((project) =>
+    matchesProject(project, { query: searchQuery, course: courseFilter })
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const visibleProjects = filteredProjects.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  // Any filter change sends the reader back to the first page.
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+    setPage(1);
   };
 
-  const handleAddReview = (projId, reviewObj) => {
-    setProjectReviews(prev => ({
-      ...prev,
-      [projId]: [...(prev[projId] || []), reviewObj]
-    }));
+  const handleCourseChange = (value) => {
+    setCourseFilter(value);
+    setPage(1);
   };
 
-  const handleUploadProject = (newProjectObj) => {
-    setProjectList(prev => [newProjectObj, ...prev]);
+  const clearFilters = () => {
+    setSearchQuery('');
+    setCourseFilter('');
+    setPage(1);
   };
+
+  const handleDownload = async (project) => {
+    if (!project.fileUrl) {
+      toast.info('This project has no file attached.');
+      return;
+    }
+
+    try {
+      const response = await downloadProject(project.id);
+      const payload = response?.data instanceof Blob ? response.data : response;
+      const blob =
+        payload instanceof Blob
+          ? payload
+          : new Blob([payload], { type: 'application/octet-stream' });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', project.fileName || 'project');
+      document.body.appendChild(link);
+      link.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+
+      toast.success('File downloaded successfully!');
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast.error(`Download failed: ${error?.message || 'Unknown error'}`);
+    }
+  };
+
+  const hasProjects = projects.length > 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex font-sans antialiased">
-      
-      {/* Sidebar triggers upload context view */}
-      <Sidebar currentView="projects" onUploadClick={() => setIsUploadOpen(true)} />
+    <div className="min-h-screen bg-[#f7f9fc] text-slate-800 flex font-sans antialiased">
+      <Sidebar />
 
       <div className="flex-1 xl:pl-64 flex flex-col min-w-0">
-        <Header 
-          searchQuery={searchQuery} setSearchQuery={setSearchQuery}
-          showFilters={showFilters} setShowFilters={setShowFilters}
-        />
+        <Header />
 
-        <div className="flex-1 p-6 max-w-[1600px] w-full mx-auto">
-          {/* Action trigger shortcut panel */}
-          <div className="mb-4 flex justify-end">
-            <button 
-              onClick={() => setIsUploadOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-xl font-bold transition-all shadow-sm"
-            >
-              + Submit Local Build
-            </button>
-          </div>
+        <div className="flex-1 p-4 sm:p-6 max-w-[1500px] w-full mx-auto space-y-4">
+          <ProjectHero />
 
-          <ProjectsRegistryView 
-            projects={projectList}
-            likedProjects={likedProjects}
-            onLikeProject={handleProjectLike}
-            projectReviews={projectReviews}
-            onAddReview={handleAddReview}
-            onOpenReport={(projectData) => setActiveReportTarget(projectData)} // Bubbles up state to parent target portal
+          <ProjectFilterHeader
+            searchQuery={searchQuery}
+            setSearchQuery={handleSearchChange}
+            courseFilter={courseFilter}
+            setCourseFilter={handleCourseChange}
+            courses={courses}
+            onClearAll={clearFilters}
           />
+
+          {/* Results */}
+          {isLoading ? (
+            <div className="surface-card p-12 text-center">
+              <Loader2 className="mx-auto h-5 w-5 animate-spin text-slate-300" />
+
+              <p className="mt-3 text-[12.5px] font-medium text-slate-600">
+                Loading projects…
+              </p>
+            </div>
+          ) : filteredProjects.length === 0 ? (
+            <div className="surface-card p-12 text-center">
+              <Inbox className="mx-auto h-5 w-5 text-slate-300" />
+
+              <p className="mt-3 text-[12.5px] font-medium text-slate-600">
+                {hasProjects
+                  ? 'No projects match your filters'
+                  : loadError || 'No projects have been shared yet'}
+              </p>
+
+              <p className="mt-1 text-[11.5px] text-slate-400">
+                {hasProjects
+                  ? 'Try another course or search term.'
+                  : 'Projects assigned by your teachers will appear here.'}
+              </p>
+            </div>
+          ) : (
+            <div className="surface-card overflow-hidden">
+              <ProjectTable
+                projects={visibleProjects}
+                startIndex={(currentPage - 1) * PAGE_SIZE}
+                onView={setDetailProject}
+                onDownload={handleDownload}
+              />
+
+              <TablePagination
+                page={currentPage}
+                totalPages={totalPages}
+                pageSize={PAGE_SIZE}
+                totalItems={filteredProjects.length}
+                onPageChange={setPage}
+                noun="project"
+                ariaLabel="Projects pagination"
+              />
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Upload Dialog Injection Portal */}
-      <UploadProjectModal 
-        isOpen={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)}
-        onUploadSubmit={handleUploadProject}
-        departments={DEPARTMENTS}
+      <ProjectDetailModal
+        key={detailProject?.id || 'empty'}
+        project={detailProject}
+        onClose={() => setDetailProject(null)}
       />
-
-      {/* Performance Report Analytical Dashboard Modal */}
-      <ProjectReportModal 
-        isOpen={Boolean(activeReportTarget)}
-        proj={activeReportTarget}
-        reviews={projectReviews[activeReportTarget?.id] || []}
-        onClose={() => setActiveReportTarget(null)}
-      />
-
     </div>
   );
 }

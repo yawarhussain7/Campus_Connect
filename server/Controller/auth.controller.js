@@ -27,10 +27,11 @@ try{
     })
 }catch(error){
     console.error(error.message)
-    res.status(500).send({
-        message:'Internal Server Error',
-        success:false,
-        error:error.message
+    // The service marks client-side failures (duplicate email, ...) with a
+    // `status`; only a genuinely unexpected error stays a 500.
+    res.status(error.status || 500).send({
+        message:error.message || 'Could not register the user',
+        success:false
     })
 }
 }
@@ -61,10 +62,12 @@ export const loginController = async(req,res)=>{
         token:result.token
     })
     }catch(error){
-        res.status(500).send({
-            message:'Internal Server Error',
-            success:false,
-            error:error.message
+        // Bad credentials are a 401 from the service, not a 500. The client
+        // surfaces `message`, which is why the previous "Internal Server Error"
+        // toast showed up on every wrong password.
+        res.status(error.status || 500).send({
+            message:error.message || 'Internal Server Error',
+            success:false
         })
     }
 }
@@ -82,7 +85,7 @@ export const logoutController = async(req,res)=>{
         })
     }catch(error){
         res.status(500).send({
-            message:'Internal Server Error',
+            message:'Invalid password or email',
             success:false,
             error:error.message
         })

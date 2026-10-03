@@ -1,233 +1,392 @@
-// src/CampConnectorElite.jsx
-import React, { useState, useEffect } from 'react';
-import { getDashboardStats } from '../../api/dashboard';
-import { useAppContext } from '../../context/AppContext';
+// src/Pages/students/StudentDashboard.jsx
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  ClipboardList,
+  FolderKanban,
+  Loader2,
+  ScrollText,
+  Star,
+} from 'lucide-react';
 
-// Subcomponent Imports
+import { getDashboardStats } from '../../api/dashboard';
+import { ShowAllassignment } from '../../api/assignment';
+import { ShowProjects } from '../../api/project';
+import { ShowReviews } from '../../api/review';
+import { markAsRead } from '../../api/notifications';
+import { useAppContext } from '../../context/AppContext';
+import { currentTermLabel, daysUntil } from '../../utils/date';
+import { fromAssignmentRecord, sortByDueDate as sortByDueDateAsc } from '../../utils/assignment.js';
+import { fromProjectRecord } from '../../utils/project.js';
+import { averageRating, fromReviewRecord } from '../../utils/review.js';
+
 import Sidebar from '../../Components/common/Sidebar';
 import Header from '../../Components/common/Header';
-import AnalyticsSummary from '../../Components/dashboard/AnalyticsSummary';
+import PageHeading from '../../Components/dashboard/PageHeading';
+import StatTiles from '../../Components/dashboard/StatTiles';
+import DeadlineTable from '../../Components/dashboard/DeadlineTable';
+import ProjectList from '../../Components/dashboard/ProjectList';
+import ProgressBars from '../../Components/dashboard/ProgressBars';
+import ActivityFeed from '../../Components/dashboard/ActivityFeed';
+import CalendarCard from '../../Components/dashboard/CalendarCard';
 import MatrixFilters from '../../Components/dashboard/MatrixFilters';
-import ProjectCard from '../../Components/dashboard/ProjectCard';
-import Leaderboard from '../../Components/dashboard/Leaderboard';
-import ProjectReviewModal from '../../Components/dashboard/ProjectReviewModal';
 
-// Unified Static Dataset Matrices
-const DEPARTMENTS = ['Computer Science', 'Electrical Eng.', 'Mechanical Eng.', 'Business School'];
-const SECTIONS = ['A', 'B', 'C', 'D'];
-const TEACHERS = ['Dr. Aris Thorne', 'Prof. Clara Vance', 'Dr. Alan Turing', 'Sarah Jenkins'];
+export default function StudentDashboard() {
+  const navigate = useNavigate();
 
-const INITIAL_PROJECTS = [
-  {
-    id: 1,
-    title: 'AI-Powered Attendance System',
-    desc: 'Face recognition attendance tracker using Python and OpenCV. Auto-marks roster grids seamlessly.',
-    tags: ['Python', 'AI', 'OpenCV'],
-    dept: 'Computer Science',
-    teacher: 'Dr. Aris Thorne',
-    section: 'A',
-    author: 'Hamza Raza',
-    uni: 'FAST NUCES',
-    semester: 'Semester 5',
-    likes: 48,
-    comments: 12,
-    rating: 4.5,
-    img: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&q=80'
-  },
-  {
-    id: 2,
-    title: 'E-Commerce App – React + Firebase',
-    desc: 'Full-stack online store with cart modules, secure checkout, and real-time inventory hooks.',
-    tags: ['React', 'Firebase', 'Node.js'],
-    dept: 'Computer Science',
-    teacher: 'Prof. Clara Vance',
-    section: 'B',
-    author: 'Sara Malik',
-    uni: 'LUMS',
-    semester: 'Semester 5',
-    likes: 61,
-    comments: 19,
-    rating: 4.8,
-    img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80'
-  },
-  {
-    id: 3,
-    title: 'Hospital Management System',
-    desc: 'Desktop application for managing patient routing, appointments, and database billing engines.',
-    tags: ['Java', 'MySQL', 'Desktop'],
-    dept: 'Software Engineering',
-    teacher: 'Sarah Jenkins',
-    section: 'C',
-    author: 'Usman Tariq',
-    uni: 'COMSATS',
-    semester: 'Semester 6',
-    likes: 34,
-    comments: 8,
-    rating: 4.2,
-    img: 'https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=400&q=80'
-  }
-];
+  const { user, notifications } = useAppContext();
 
-export default function CampConnectorElite() {
-  const { user } = useAppContext();
-  
-  // Dashboard Data State
-  const [dashboardData, setDashboardData] = useState({
+  const [stats, setStats] = useState({
     totalAssignments: 0,
-    totalUsers: 0,
-    projectCount: 0,
-    pastPaperCount: 0
+    pastPaperCount: 0,
   });
-  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [assignments, setAssignments] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // The page is read from the API in one pass. A surface whose request fails
+  // simply stays empty instead of falling back to sample rows.
   useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const response = await getDashboardStats();
-        if (response.success) {
-          setDashboardData({
-            totalAssignments: response.data.totalAssignments,
-            totalUsers: response.data.totalUsers || 0,
-            projectCount: response.data.projectCount || 0,
-            pastPaperCount: response.data.totalPaper || 0
-          });
+    let isMounted = true;
+
+    const load = async () => {
+      const [statsResult, assignmentResult, projectResult, reviewResult] =
+        await Promise.allSettled([
+          getDashboardStats(),
+          ShowAllassignment(),
+          ShowProjects(),
+          ShowReviews(),
+        ]);
+
+      if (!isMounted) return;
+
+      // The client unwraps the JSON envelope, but a bare array is accepted too.
+      const recordsOf = (result) => {
+        if (result.status !== 'fulfilled') {
+          console.error('Dashboard request failed:', result.reason);
+          return [];
         }
-      } catch (error) {
-        console.error('Failed to fetch dashboard stats:', error);
-      } finally {
-        setDashboardLoading(false);
+
+        const payload = result.value?.data ?? result.value;
+
+        return Array.isArray(payload) ? payload : [];
+      };
+
+      if (statsResult.status === 'fulfilled') {
+        const data = statsResult.value?.data || {};
+
+        setStats({
+          totalAssignments: data.totalAssignments || 0,
+          pastPaperCount: data.totalPaper || 0,
+        });
+      } else {
+        console.error('Dashboard request failed:', statsResult.reason);
       }
+
+      setAssignments(recordsOf(assignmentResult).map(fromAssignmentRecord));
+      setProjects(recordsOf(projectResult).map(fromProjectRecord));
+      setReviews(recordsOf(reviewResult).map(fromReviewRecord));
+      setIsLoading(false);
     };
-    fetchDashboard();
+
+    load();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Advanced Matrix Filtering States
+  // Search + filter state (driven from the header controls)
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterDept, setFilterDept] = useState('');
-  const [filterTeacher, setFilterTeacher] = useState('');
-  const [filterSection, setFilterSection] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-
-  // Social Engagement State Arrays
-  const [likedProjects, setLikedProjects] = useState({});
-  
-  // Interactive Modal Review Pipeline States
-  const [activeProjectModal, setActiveProjectModal] = useState(null);
-  const [projectReviews, setProjectReviews] = useState({
-    1: [
-      { id: 101, author: 'Sara Malik', rating: 5, text: 'Awesome OpenCV logic! Works flawlessly on my local camera rigs.', date: '2 hours ago' },
-      { id: 102, author: 'Ali Hassan', rating: 4, text: 'Clean structural setup, drops some frames during rendering blocks.', date: 'Yesterday' }
-    ]
+  const [filters, setFilters] = useState({
+    department: '',
+    course: '',
+    status: '',
   });
 
-  const handleProjectLike = (id) => {
-    setLikedProjects(prev => ({ ...prev, [id]: !prev[id] }));
+  const clearFilters = () => {
+    setFilters({ department: '', course: '', status: '' });
   };
 
-  const handleAddReview = (projId, reviewObj) => {
-    setProjectReviews(prev => ({
-      ...prev,
-      [projId]: [...(prev[projId] || []), reviewObj]
-    }));
+  const handleFilterChange = (key, value) => {
+    setFilters((previous) => ({ ...previous, [key]: value }));
   };
 
-  // Filter Computation Logic
-  const filteredProjects = INITIAL_PROJECTS.filter(proj => {
+  // Each filter offers the values the loaded projects actually carry.
+  const filterGroups = useMemo(() => {
+    const valuesOf = (key) =>
+      [...new Set(projects.map((project) => project[key]).filter(Boolean))].sort();
+
+    return [
+      {
+        key: 'department',
+        label: 'Department',
+        placeholder: 'All Departments',
+        options: valuesOf('department'),
+      },
+      {
+        key: 'course',
+        label: 'Course',
+        placeholder: 'All Courses',
+        options: valuesOf('course'),
+      },
+      {
+        key: 'status',
+        label: 'Status',
+        placeholder: 'All Statuses',
+        options: valuesOf('status'),
+      },
+    ];
+  }, [projects]);
+
+  const query = searchQuery.trim().toLowerCase();
+
+  const filteredProjects = projects.filter((project) => {
+    const matchesQuery =
+      !query ||
+      [project.title, project.subject, project.course, project.department]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(query));
+
     return (
-      proj.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (!filterDept || proj.dept === filterDept) &&
-      (!filterTeacher || proj.teacher === filterTeacher) &&
-      (!filterSection || proj.section === filterSection)
+      matchesQuery &&
+      (!filters.department || project.department === filters.department) &&
+      (!filters.course || project.course === filters.course) &&
+      (!filters.status || project.status === filters.status)
     );
   });
 
+  const activeFilters = filterGroups
+    .filter((group) => filters[group.key])
+    .map((group) => `${group.label}: ${filters[group.key]}`);
+
+  // Live counters: the totals endpoint for the shelf counts, the loaded rows for
+  // everything that has to be counted by status.
+  const assignmentTotal = stats.totalAssignments;
+  const projectTotal = projects.length;
+  const paperTotal = stats.pastPaperCount;
+  const reviewTotal = reviews.length;
+  const averageScore = averageRating(reviews);
+
+  const percentOf = (value, total) =>
+    total > 0 ? Math.round((value / total) * 100) : 0;
+
+  const assignmentsDone = assignments.filter(
+    (assignment) => assignment.status === 'Submitted'
+  ).length;
+  const projectsDone = projects.filter(
+    (project) => project.status === 'Submitted'
+  ).length;
+  const assignmentsPending = Math.max(0, assignmentTotal - assignmentsDone);
+  const projectsPending = Math.max(0, projectTotal - projectsDone);
+
+  const assignmentPercent = percentOf(assignmentsDone, assignmentTotal);
+  const projectPercent = percentOf(projectsDone, projectTotal);
+
+  const trackedPercents = [
+    assignmentTotal > 0 ? assignmentPercent : null,
+    projectTotal > 0 ? projectPercent : null,
+  ].filter((value) => value !== null);
+
+  const overallPercent = trackedPercents.length
+    ? Math.round(
+        trackedPercents.reduce((sum, value) => sum + value, 0) /
+          trackedPercents.length
+      )
+    : 0;
+
+  // Priority is derived from the stored due date, so the queue needs no priority
+  // column of its own.
+  const priorityOf = (dueDate) => {
+    const days = daysUntil(dueDate) ?? 99;
+
+    if (days <= 2) return 'High';
+    if (days <= 7) return 'Medium';
+
+    return 'Low';
+  };
+
+  // Deadlines are the real due dates the assignments and projects carry.
+  const allDeadlines = sortByDueDateAsc([
+    ...assignments
+      .filter((assignment) => assignment.dueDate)
+      .map((assignment) => ({
+        id: `assignment-${assignment.id}`,
+        title: assignment.title,
+        code: assignment.course,
+        course: assignment.subject,
+        type: 'Assignment',
+        priority: priorityOf(assignment.dueDate),
+        due: assignment.dueDate,
+      })),
+    ...projects
+      .filter((project) => project.dueDate)
+      .map((project) => ({
+        id: `project-${project.id}`,
+        title: project.title,
+        code: project.course,
+        course: project.subject,
+        type: 'Project',
+        priority: priorityOf(project.dueDate),
+        due: project.dueDate,
+      })),
+  ]);
+
+  const dueThisWeek = allDeadlines.filter(
+    (deadline) => (daysUntil(deadline.due) ?? 99) <= 7
+  ).length;
+
+  const deadlines = allDeadlines.slice(0, 6);
+
+  const statTiles = [
+    {
+      key: 'assignments',
+      label: 'Assignments',
+      value: assignmentTotal,
+      icon: ClipboardList,
+      to: '/student/assignments',
+      hint: assignmentsPending
+        ? `${assignmentsPending} awaiting submission`
+        : 'Nothing pending',
+      tone: assignmentsPending ? 'accent' : 'positive',
+    },
+    {
+      key: 'projects',
+      label: 'Projects',
+      value: projectTotal,
+      icon: FolderKanban,
+      to: '/student/projects',
+      hint: projectsPending
+        ? `${projectsPending} still pending`
+        : 'Nothing pending',
+    },
+    {
+      key: 'papers',
+      label: 'Past papers',
+      value: paperTotal,
+      icon: ScrollText,
+      to: '/student/past-papers',
+      hint: paperTotal ? 'From the shared library' : 'Nothing shared yet',
+      tone: 'positive',
+    },
+    {
+      key: 'reviews',
+      label: 'Teacher reviews',
+      value: reviewTotal,
+      icon: Star,
+      to: '/student/teachers-review',
+      hint: reviewTotal ? `Average ${averageScore} rating` : 'No reviews yet',
+    },
+  ];
+
+  const progressItems = [
+    {
+      label: 'Assignments',
+      value: assignmentPercent,
+      caption: `${assignmentsDone}/${assignmentTotal}`,
+    },
+    {
+      label: 'Projects',
+      value: projectPercent,
+      caption: `${projectsDone}/${projectTotal}`,
+    },
+  ];
+
+  const calendarEvents = allDeadlines.map((deadline) => ({
+    date: deadline.due,
+    title: `${deadline.course || deadline.code} · ${deadline.title}`,
+  }));
+
+  const handleActivitySelect = async (notification) => {
+    const id = notification._id || notification.id;
+
+    if (!notification.isRead && id) {
+      try {
+        await markAsRead(id);
+      } catch (error) {
+        console.error('Failed to mark notification as read:', error);
+      }
+    }
+
+    if (notification.link) {
+      navigate(notification.link);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex font-sans antialiased">
-      
-      {/* 1. SIDEBAR */}
+    <div className="min-h-screen bg-[#f7f9fc] font-sans text-slate-800 antialiased">
       <Sidebar />
 
-      {/* MAIN VIEW STREAM CONTROLLER */}
-      <div className="flex-1 xl:pl-64 flex flex-col min-w-0">
-        
-        {/* 2. HEADER */}
-        <header>
-          <Header 
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            showFilters={showFilters}
-            setShowFilters={setShowFilters}
+      <div className="flex min-h-screen min-w-0 flex-col xl:pl-64">
+        <Header
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          showFilters={showFilters}
+          setShowFilters={setShowFilters}
+        />
+
+        <div className="mx-auto w-full max-w-[1500px] flex-1 space-y-4 p-4 sm:p-6">
+          <PageHeading
+            userName={user?.name || 'Student'}
+            department={user?.department || 'Computer Science'}
+            semester={user?.semester || currentTermLabel()}
+            dueCount={dueThisWeek}
           />
-        </header>
 
-        {/* COMPONENT GRID WORKSPACE */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 p-6 gap-6 max-w-[1600px] w-full mx-auto">
-          
-          {/* PRIMARY VIEW PANEL CONTENT LINK */}
-          <main className="lg:col-span-2 space-y-6">
-            
-            {/* 3. ANALYTICS TELEMETRY CHIPS */}
-            <AnalyticsSummary 
-              userName={user?.name || 'User'}
-              totalUsers={dashboardData.totalUsers}
-              assignmentCount={dashboardData.totalAssignments}
-              projectCount={dashboardData.projectCount}
-              pastPaperCount={dashboardData.pastPaperCount}
+          <StatTiles items={statTiles} />
+
+          {showFilters && (
+            <MatrixFilters
+              groups={filterGroups}
+              values={filters}
+              onChange={handleFilterChange}
             />
+          )}
 
-            {/* 4. DYNAMIC CONDITIONAL DROP DOWN FILTERS PANEL */}
-            {showFilters && (
-              <MatrixFilters 
-                departments={DEPARTMENTS}
-                teachers={TEACHERS}
-                sections={SECTIONS}
-                filterDept={filterDept}
-                setFilterDept={setFilterDept}
-                filterTeacher={filterTeacher}
-                setFilterTeacher={setFilterTeacher}
-                filterSection={filterSection}
-                setFilterSection={setFilterSection}
-              />
-            )}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+            <main className="space-y-4 lg:col-span-8 xl:col-span-9">
+              {isLoading ? (
+                <div className="surface-card p-12 text-center">
+                  <Loader2 className="mx-auto h-5 w-5 animate-spin text-slate-300" />
 
-            {/* 5. TRENDING PROJECTS SECTION */}
-            <section className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-bold text-slate-900">Trending Cross-Department Projects</h2>
-                <span className="text-xs font-semibold text-blue-600 cursor-pointer hover:underline">View All Repositories</span>
-              </div>
+                  <p className="mt-3 text-[12.5px] font-medium text-slate-600">
+                    Loading your dashboard…
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <DeadlineTable items={deadlines} />
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {filteredProjects.map((proj) => (
-                  <ProjectCard 
-                    key={proj.id}
-                    proj={proj}
-                    isLiked={!!likedProjects[proj.id]}
-                    onLike={handleProjectLike}
-                    onOpenReviews={() => setActiveProjectModal(proj)}
+                  <ProjectList
+                    projects={filteredProjects}
+                    totalCount={projectTotal}
+                    activeFilters={activeFilters}
+                    onClearFilters={clearFilters}
+                    onOpenProject={() => navigate('/student/projects')}
                   />
-                ))}
-              </div>
-            </section>
+                </>
+              )}
+            </main>
 
-          </main>
+            <aside className="space-y-4 lg:col-span-4 xl:col-span-3">
+              <CalendarCard events={calendarEvents} />
 
-          {/* 7. RIGHT SIDEBAR METRICS PANEL */}
-          <Leaderboard />
+              <ProgressBars
+                items={progressItems}
+                overall={overallPercent}
+                term={currentTermLabel()}
+              />
 
+              <ActivityFeed
+                items={notifications}
+                onSelect={handleActivitySelect}
+              />
+            </aside>
+          </div>
         </div>
       </div>
-
-      {/* 8. GLOBAL REVIEW DIALOG PORTAL */}
-      {activeProjectModal && (
-        <ProjectReviewModal 
-          proj={activeProjectModal}
-          reviews={projectReviews[activeProjectModal.id] || []}
-          onClose={() => setActiveProjectModal(null)}
-          onAddReview={handleAddReview}
-        />
-      )}
-
     </div>
   );
 }

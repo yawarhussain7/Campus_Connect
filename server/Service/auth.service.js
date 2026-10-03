@@ -5,7 +5,11 @@ import GenereateJWT from '../utils/GenerateJWT.js'
 const registerService = async({name,email,password})=>{
     try{
         const existUser = await User.findOne({email})
-        if(existUser) throw new Error('User already exists');
+        if(existUser){
+            const error = new Error('User already exists')
+            error.status = 409
+            throw error
+        }
 
         const hashedPassword = await bcrypt.hash(password,10)
         const newUser = await User.create({
@@ -27,20 +31,32 @@ const registerService = async({name,email,password})=>{
     }catch(error){
         console.error(error)
 
-        throw new Error(error.message)
+        // Rethrown untouched so the `status` set above survives: wrapping it in
+        // a fresh Error() dropped the status and every failure became a 500.
+        throw error
     }
 }
 
 const loginService = async({email,password})=>{
     try{
-        if(email ==='' || password === ''){
-            throw new Error('email and password requried for login') 
+        if(!email || !password){
+            const error = new Error('email and password requried for login')
+            error.status = 400
+            throw error
         }
         const user = await User.findOne({email}).select('+password')
-        if(!user) throw new Error('Invalid Credentials');
+        if(!user){
+            const error = new Error('Invalid Credentials')
+            error.status = 401
+            throw error
+        }
 
         const isMatch = await bcrypt.compare(password,user.password)
-        if(!isMatch) throw new Error('Invalid Credentials');
+        if(!isMatch){
+            const error = new Error('Invalid Credentials')
+            error.status = 401
+            throw error
+        }
 
         const token = GenereateJWT(user._id,user.email)
 
@@ -54,7 +70,7 @@ const loginService = async({email,password})=>{
         };
     }catch(error){
         console.error(error)
-        throw new Error(error.message)
+        throw error
     }
 }
 

@@ -1,13 +1,46 @@
-// src/components/Header.jsx
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, Filter, Bell } from 'lucide-react';
-import { useAppContext } from '../../context/AppContext';
-import { getNotifications, markAsRead, markAllAsRead } from '../../api/notifications';
 
-export default function Header({ searchQuery, setSearchQuery, showFilters, setShowFilters }) {
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Search,
+  SlidersHorizontal,
+  Bell,
+  Check,
+  ChevronDown,
+  User,
+  Settings,
+} from 'lucide-react';
+
+import { useAppContext } from '../../context/AppContext';
+import {
+  getNotifications,
+  markAsRead,
+  markAllAsRead,
+} from '../../api/notifications';
+
+const PROFILE_IMAGE =
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&q=80';
+
+export default function Header({
+  searchQuery,
+  setSearchQuery,
+  showFilters,
+  setShowFilters,
+  hideSearch = false,
+}) {
   const { user, notifications, setNotifications } = useAppContext();
+  const navigate = useNavigate();
+
   const [showNotifications, setShowNotifications] = useState(false);
-  const notifRef = useRef(null);
+  const [showProfile, setShowProfile] = useState(false);
+
+  const notificationRef = useRef(null);
+  const profileRef = useRef(null);
+  const searchRef = useRef(null);
+
+  // --------------------------------------------------
+  // Fetch notifications
+  // --------------------------------------------------
 
   useEffect(() => {
     if (user) {
@@ -15,19 +48,10 @@ export default function Header({ searchQuery, setSearchQuery, showFilters, setSh
     }
   }, [user]);
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (notifRef.current && !notifRef.current.contains(e.target)) {
-        setShowNotifications(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const fetchNotifications = async () => {
     try {
       const response = await getNotifications();
+
       if (response.success) {
         setNotifications(response.data);
       }
@@ -36,123 +60,323 @@ export default function Header({ searchQuery, setSearchQuery, showFilters, setSh
     }
   };
 
+  // --------------------------------------------------
+  // Ctrl + K focuses the search field
+  // --------------------------------------------------
+
+  useEffect(() => {
+    const handleShortcut = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleShortcut);
+
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, []);
+
+  // --------------------------------------------------
+  // Close dropdowns when clicking outside
+  // --------------------------------------------------
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
+        setShowNotifications(false);
+      }
+
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target)
+      ) {
+        setShowProfile(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // --------------------------------------------------
+  // Notification actions
+  // --------------------------------------------------
+
   const handleMarkAsRead = async (id) => {
     try {
       await markAsRead(id);
-      setNotifications(prev =>
-        prev.map(n => n._id === id ? { ...n, isRead: true } : n)
+
+      setNotifications((prev) =>
+        prev.map((notification) =>
+          notification._id === id
+            ? { ...notification, isRead: true }
+            : notification
+        )
       );
     } catch (error) {
-      console.error('Failed to mark as read:', error);
+      console.error('Failed to mark notification as read:', error);
     }
   };
 
   const handleMarkAllAsRead = async () => {
     try {
       await markAllAsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+
+      setNotifications((prev) =>
+        prev.map((notification) => ({
+          ...notification,
+          isRead: true,
+        }))
+      );
     } catch (error) {
-      console.error('Failed to mark all as read:', error);
+      console.error(
+        'Failed to mark all notifications as read:',
+        error
+      );
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter(
+    (notification) => !notification.isRead
+  ).length;
 
   return (
-    <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-6 flex items-center justify-between sticky top-0 z-20 shadow-sm">
-      <div className="relative w-full max-w-xl">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-        <input 
-          type="text" 
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by department, course title, or instructor tags..." 
-          className="w-full bg-slate-100/80 border border-slate-200/80 rounded-full pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all text-slate-700 placeholder:text-slate-400"
-        />
-      </div>
+    <header className="sticky top-0 z-30 h-16 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
+      <div className="flex h-full items-center justify-between gap-4 px-4 sm:px-6">
 
-      <div className="flex items-center space-x-3">
-        <button 
-          onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center space-x-1.5 text-xs border rounded-xl px-3.5 py-2.5 shadow-sm transition-all duration-200 ${
-            showFilters 
-              ? 'bg-indigo-50 border-indigo-200 text-indigo-700 font-semibold' 
-              : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-800 hover:shadow'
-          }`}
-        >
-          <Filter className="h-3.5 w-3.5" />
-          <span>Filters</span>
-        </button>
-        
-        <div className="relative" ref={notifRef}>
-          <button
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-2.5 text-slate-500 hover:text-slate-800 rounded-xl hover:bg-slate-100 transition-all duration-200"
-          >
-            <Bell className="h-5 w-5" />
-            {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 h-4.5 w-4.5 bg-gradient-to-br from-indigo-500 to-purple-600 text-[9px] font-bold text-white rounded-full flex items-center justify-center shadow-sm shadow-indigo-200">
-                {unreadCount}
-              </span>
-            )}
-          </button>
+        {/* ==================================================
+            SEARCH
+        ================================================== */}
 
-          {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden z-30">
-              <div className="p-3 border-b border-slate-100 flex justify-between items-center">
-                <h3 className="text-xs font-bold text-slate-700">Notifications</h3>
-                {unreadCount > 0 && (
-                  <button
-                    onClick={handleMarkAllAsRead}
-                    className="text-[10px] text-indigo-600 font-semibold hover:text-indigo-800"
-                  >
-                    Mark all read
-                  </button>
-                )}
-              </div>
-              <div className="max-h-72 overflow-y-auto">
-                {notifications.length === 0 ? (
-                  <div className="p-6 text-center">
-                    <Bell className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-                    <p className="text-xs text-slate-400">No notifications yet</p>
+        {!hideSearch && (
+          <div className="max-w-[520px] flex-1">
+          <div className="group relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-blue-500" />
+
+            <input
+              ref={searchRef}
+              type="text"
+              value={searchQuery ?? ''}
+              onChange={(e) => setSearchQuery?.(e.target.value)}
+              placeholder="Search courses, departments, instructors..."
+              className="h-10 w-full rounded-[10px] border border-slate-200 bg-slate-50/80 pl-9 pr-3 text-[12.5px] text-slate-700 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/15 sm:pr-20"
+            />
+
+            <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-slate-400 sm:block">
+              Ctrl K
+            </kbd>
+          </div>
+        </div>
+        )}
+
+        {/* ==================================================
+            RIGHT ACTIONS
+        ================================================== */}
+
+        <div className={`flex items-center gap-1.5 ${hideSearch ? 'ml-auto' : ''}`}>
+
+          {/* Filters */}
+          {setShowFilters && (
+            <button
+              type="button"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex h-9 items-center gap-2 rounded-[10px] border px-3 text-[12.5px] font-medium transition ${
+                showFilters
+                  ? 'border-blue-200 bg-blue-50 text-blue-700'
+                  : 'border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              }`}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+
+              <span className="hidden md:block">Filters</span>
+            </button>
+          )}
+
+          <div className="mx-1 hidden h-6 w-px bg-slate-200 sm:block" />
+
+          {/* ==================================================
+              NOTIFICATIONS
+          ================================================== */}
+
+          <div className="relative" ref={notificationRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowNotifications(!showNotifications);
+                setShowProfile(false);
+              }}
+              className="relative flex h-9 w-9 items-center justify-center rounded-[10px] text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
+              aria-label="Notifications"
+            >
+              <Bell className="h-4 w-4" />
+
+              {unreadCount > 0 && (
+                <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[9.5px] font-semibold text-white ring-2 ring-white">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Notification dropdown */}
+            {showNotifications && (
+              <div className="absolute right-0 top-11 w-[344px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.10)]">
+
+                <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-800">
+                      Notifications
+                    </h3>
+
+                    {unreadCount > 0 && (
+                      <p className="mt-0.5 text-xs text-slate-400">
+                        {unreadCount} unread
+                      </p>
+                    )}
                   </div>
-                ) : (
-                  notifications.slice(0, 10).map((notif) => (
-                    <div
-                      key={notif._id}
-                      onClick={() => !notif.isRead && handleMarkAsRead(notif._id)}
-                      className={`p-3 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors ${
-                        !notif.isRead ? 'bg-indigo-50/40' : ''
-                      }`}
+
+                  {unreadCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleMarkAllAsRead}
+                      className="flex items-center gap-1 text-xs font-medium text-blue-600 transition hover:text-blue-700"
                     >
-                      <div className="flex items-start gap-2">
-                        <div className={`mt-0.5 h-2 w-2 rounded-full shrink-0 ${
-                          !notif.isRead ? 'bg-indigo-500' : 'bg-transparent'
-                        }`} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-slate-800">{notif.title}</p>
-                          <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2">{notif.message}</p>
-                          <p className="text-[10px] text-slate-400 mt-1">
-                            {new Date(notif.createdAt).toLocaleDateString()}
+                      <Check className="h-3.5 w-3.5" />
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-[360px] overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="px-6 py-12 text-center">
+                      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-50">
+                        <Bell className="h-4 w-4 text-slate-400" />
+                      </div>
+
+                      <p className="mt-3 text-sm font-medium text-slate-600">
+                        You&rsquo;re all caught up
+                      </p>
+
+                      <p className="mt-1 text-xs text-slate-400">
+                        No new notifications.
+                      </p>
+                    </div>
+                  ) : (
+                    notifications.slice(0, 10).map((notification) => (
+                      <div
+                        key={notification._id}
+                        onClick={() =>
+                          !notification.isRead &&
+                          handleMarkAsRead(notification._id)
+                        }
+                        className={`flex cursor-pointer gap-3 border-b border-slate-100 px-4 py-3.5 transition-colors ${
+                          notification.isRead
+                            ? 'bg-white hover:bg-slate-50'
+                            : 'bg-blue-50/40 hover:bg-blue-50/70'
+                        }`}
+                      >
+                        <div className="pt-1.5">
+                          <span
+                            className={`block h-2 w-2 rounded-full ${
+                              notification.isRead
+                                ? 'bg-slate-200'
+                                : 'bg-blue-500'
+                            }`}
+                          />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-slate-800">
+                            {notification.title}
+                          </p>
+
+                          <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">
+                            {notification.message}
+                          </p>
+
+                          <p className="mt-1.5 text-[11px] text-slate-400">
+                            {new Date(
+                              notification.createdAt
+                            ).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
-                    </div>
-                  ))
-                )}
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-        
-        <div className="h-9 w-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 p-[2px] shadow-md">
-          <img 
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80" 
-            alt="Profile" 
-            className="h-full w-full rounded-full border-2 border-white object-cover" 
-          />
+            )}
+          </div>
+
+          {/* ==================================================
+              PROFILE
+          ================================================== */}
+
+          <div className="relative" ref={profileRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowProfile(!showProfile);
+                setShowNotifications(false);
+              }}
+              className="flex h-10 items-center gap-2 rounded-[10px] pl-1 pr-2 transition hover:bg-slate-50"
+            >
+              <img
+                src={user?.avatar || PROFILE_IMAGE}
+                alt={user?.name || 'Profile'}
+                className="h-9 w-9 rounded-full object-cover ring-1 ring-slate-200"
+              />
+
+              <div className="hidden text-left lg:block">
+                <p className="max-w-[120px] truncate text-[13px] font-semibold text-slate-800">
+                  {user?.name || 'User'}
+                </p>
+
+                <p className="text-[11px] text-slate-400">Student</p>
+              </div>
+
+              <ChevronDown className="hidden h-3.5 w-3.5 text-slate-400 lg:block" />
+            </button>
+
+            {/* Profile dropdown */}
+            {showProfile && (
+              <div className="absolute right-0 top-11 w-52 rounded-xl border border-slate-200 bg-white p-1.5 shadow-[0_12px_32px_rgba(15,23,42,0.10)]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowProfile(false);
+                    navigate('/student/settings');
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] text-slate-600 transition hover:bg-slate-50"
+                >
+                  <User className="h-4 w-4 text-slate-400" />
+                  My Profile
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowProfile(false);
+                    navigate('/student/settings');
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] text-slate-600 transition hover:bg-slate-50"
+                >
+                  <Settings className="h-4 w-4 text-slate-400" />
+                  Settings
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>
   );
 }
+

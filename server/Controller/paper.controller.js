@@ -1,5 +1,4 @@
-import { success } from 'zod'
-import { CreatePaperService, GetPastPaperService, GetPaperByIdService } from '../Service/paper.service.js'
+import { CreatePaperService, GetPastPaperService, GetPaperByIdService,GetTotalPapaperService } from '../Service/paper.service.js'
 import { PastPaperSchemaZod } from '../validation/paper.validatoin.js'
 import fs from 'fs'
 import path from 'path'
@@ -72,9 +71,17 @@ export const downloadPaper = async(req,res)=>{
         const paper = await GetPaperByIdService(req.params.id);
 
         if(!paper){
-            return status(404).json({
+            return res.status(404).json({
                 success:false,
                 message:"Paper not found"
+            });
+        }
+
+       
+        if(!paper.fileUrl){
+            return res.status(404).json({
+                success:false,
+                message:"This paper has no file attached"
             });
         }
 
@@ -91,6 +98,22 @@ export const downloadPaper = async(req,res)=>{
 
         return res.download(filePath,paper.originalName)
 
+    }catch(error){
+        res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+    }
+}
+
+export const getTotalPaperController = async(req,res)=>{
+    try{
+        const totalPaper = await GetTotalPapaperService()
+        res.status(200).json({
+            message:'total paper fetch successfully',
+            success:true,
+            data:totalPaper
+        })
     }catch(error){
         res.status(500).json({
       success: false,

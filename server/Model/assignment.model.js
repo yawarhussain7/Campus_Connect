@@ -38,6 +38,28 @@ const AssignmentSchema = new mongoose.Schema(
       default: "1",
     },
 
+    // Course code as it appears in the assignments table, e.g. "CS305".
+    course: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      default: "",
+    },
+
+    // Deadline as a plain calendar day ("2025-05-05"). Storing a Date would shift
+    // the day for anyone west of Greenwich when the client formats it.
+    dueDate: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    status: {
+      type: String,
+      enum: ["Pending", "Submitted", "Overdue"],
+      default: "Pending",
+    },
+
     fileUrl: {
       type: String,
       required: true,

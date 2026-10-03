@@ -1,0 +1,111 @@
+import { day, stamp } from "./helpers";
+
+/**
+ * Mirrors the Assignment schema in server/Model/assignment.model.js, including
+ * its quirks (semester is a bare number string here, unlike the paper and
+ * project models which use "Semester 1").
+ */
+export const assignmentSeed = [
+  {
+    title: "Process Scheduling Simulation",
+    description:
+      "Implement FCFS, SJF and Round Robin scheduling and compare their average waiting times.",
+    subject: "Operating Systems",
+    instructor: "Dr. Ayesha Khan",
+    department: "Computer Science",
+    semester: "5",
+    course: "CS305",
+    dueDate: day(6),
+    status: "Pending",
+    fileName: "os-assignment-02.pdf",
+    originalName: "Assignment 02.pdf",
+    fileSize: 248320,
+    createdAt: stamp(2, 3),
+    updatedAt: null,
+  },
+  {
+    title: "Relational Schema Normalisation",
+    description:
+      "Normalise the given library schema to 3NF and document every step of the decomposition.",
+    subject: "Database Systems",
+    instructor: "Dr. Bilal Ahmed",
+    department: "Computer Science",
+    semester: "4",
+    course: "CS302",
+    dueDate: day(-3),
+    status: "Overdue",
+    fileName: "db-normalisation.docx",
+    originalName: "DB Assignment.docx",
+    fileSize: 96256,
+    createdAt: stamp(9, 5),
+    updatedAt: null,
+  },
+  {
+    title: "TCP Congestion Control Report",
+    description:
+      "Analyse slow start and congestion avoidance behaviour using a Wireshark capture.",
+    subject: "Computer Networks",
+    instructor: "Ms. Hira Sadiq",
+    department: "Computer Science",
+    semester: "6",
+    course: "CS401",
+    dueDate: day(-12),
+    status: "Submitted",
+    fileName: "tcp-report.pdf",
+    originalName: "Network Report final.pdf",
+    fileSize: 512000,
+    createdAt: stamp(21, 2),
+    updatedAt: null,
+  },
+  {
+    title: "Binary Search Tree Toolkit",
+    description:
+      "Build a reusable BST library with insertion, deletion and in-order traversal.",
+    subject: "Data Structures",
+    instructor: "Dr. Umar Farooq",
+    department: "Computer Science",
+    semester: "3",
+    course: "CS201",
+    dueDate: day(11),
+    status: "Pending",
+    fileName: "bst-toolkit.zip",
+    originalName: "BST Toolkit.zip",
+    fileSize: 1048576,
+    createdAt: stamp(1, 6),
+    updatedAt: null,
+  },
+  {
+    title: "Software Requirements Specification",
+    description:
+      "Write an IEEE-830 specification for the campus resource-sharing system.",
+    subject: "Software Engineering",
+    instructor: "Dr. Sana Malik",
+    department: "Computer Science",
+    semester: "6",
+    course: "CS405",
+    dueDate: day(19),
+    status: "Pending",
+    fileName: "srs-campus.pdf",
+    originalName: "SRS Campus Connect.pdf",
+    fileSize: 384512,
+    createdAt: stamp(4, 1),
+    updatedAt: null,
+  },
+  {
+    title: "Linear Regression Notebook",
+    description:
+      "Fit and evaluate a regression model on the provided housing dataset.",
+    subject: "Data Analysis",
+    instructor: "Dr. Nida Iqbal",
+    department: "Computer Science",
+    semester: "7",
+    course: "CS501",
+    dueDate: day(-30),
+    status: "Submitted",
+    fileName: "regression.ipynb",
+    originalName: "Regression.ipynb",
+    fileSize: 184320,
+    createdAt: stamp(38, 4),
+    updatedAt: null,
+  },
+];

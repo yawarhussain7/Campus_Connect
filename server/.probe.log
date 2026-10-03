@@ -1,0 +1,4 @@
+◇ injected env (3) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+Server is running on port: http://localhost:8080
+MongoDB Connected

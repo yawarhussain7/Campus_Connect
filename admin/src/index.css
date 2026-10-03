@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+/* Tailwind v4 theme tokens: one neutral UI font, no decorative extras. */
+@theme {
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+
+  /* This is a data tool: keep digit columns from shifting as values change. */
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+}

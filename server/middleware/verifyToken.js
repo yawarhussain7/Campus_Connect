@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 export const ProtectedRoute =(req,res,next)=>{
     try{
-        const token = req.cookies.token;
+        const token = req.cookies?.token;
 
         if(!token){
             return res.status(401).send({
@@ -15,8 +15,12 @@ export const ProtectedRoute =(req,res,next)=>{
          next()
 
     }catch(error){
-        res.status(500).send({
-            message:error.message,
+        // An expired or tampered token is an auth failure (401), not a server
+        // fault. Returning 500 here kept the client logged in on a dead session.
+        const expired = error.name === 'TokenExpiredError'
+
+        res.status(401).send({
+            message: expired ? 'Session expired, please sign in again' : 'Invalid token, please sign in again',
             success:false
         })
     }

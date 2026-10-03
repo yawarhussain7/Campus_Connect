@@ -56,29 +56,29 @@ export default function PastPaperUpload() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex font-sans antialiased">
+    <div className="min-h-screen bg-[#f7f9fc] text-slate-800 flex font-sans antialiased">
       <Sidebar />
 
       <div className="flex-1 xl:pl-64 flex flex-col min-w-0">
         <Header />
 
-        <div className="flex-1 p-6 max-w-[1600px] w-full mx-auto space-y-6">
+        <div className="flex-1 p-4 sm:p-6 max-w-[1500px] w-full mx-auto space-y-4">
 
           {/* Header */}
           <div className="flex justify-between items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-sm">
+              <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-blue-600 text-white">
                 <FileText className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-slate-900">Upload Past Paper</h1>
+                <h1 className="text-[20px] font-semibold tracking-tight text-slate-900">Upload Past Paper</h1>
                 <p className="text-xs text-slate-500 mt-0.5">Share past examination papers with the community.</p>
               </div>
             </div>
 
             <button
               onClick={() => navigate('/student/past-papers')}
-              className="bg-white border border-slate-200/80 hover:bg-slate-50 text-slate-600 text-xs px-4 py-2.5 rounded-xl font-bold flex items-center gap-1.5 shrink-0 transition-all duration-200 active:scale-95"
+              className="bg-white border border-slate-200/80 hover:bg-slate-50 text-slate-600 text-xs px-4 py-2.5 rounded-xl font-semibold flex items-center gap-1.5 shrink-0 transition-all duration-200"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Back to Past Papers</span>
@@ -86,28 +86,28 @@ export default function PastPaperUpload() {
           </div>
 
           {/* Upload Form */}
-          <form onSubmit={handleSubmit} className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-5 max-w-3xl">
+          <form onSubmit={handleSubmit} className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-sm space-y-5 max-w-3xl">
             <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Subject *</label>
+              <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-[0.07em] mb-1.5">Subject *</label>
               <input
                 type="text"
                 required
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="e.g., Machine Learning"
-                className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 placeholder:text-slate-400"
+                className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 placeholder:text-slate-400"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Instructor *</label>
+              <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-[0.07em] mb-1.5">Instructor *</label>
               <input
                 type="text"
                 required
                 value={instructor}
                 onChange={(e) => setInstructor(e.target.value)}
                 placeholder="e.g., Dr. Smith"
-                className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 placeholder:text-slate-400"
+                className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 placeholder:text-slate-400"
               />
             </div>
 
@@ -152,14 +152,14 @@ export default function PastPaperUpload() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Batch *</label>
+                <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-[0.07em] mb-1.5">Batch *</label>
                 <input
                   type="text"
                   required
                   value={batch}
                   onChange={(e) => setBatch(e.target.value)}
                   placeholder="e.g., SP23"
-                  className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-700 placeholder:text-slate-400"
+                  className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 placeholder:text-slate-400"
                 />
               </div>
 
@@ -181,13 +181,13 @@ export default function PastPaperUpload() {
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">PDF File *</label>
+              <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-[0.07em] mb-1.5">PDF File *</label>
               <input
                 type="file"
                 accept="application/pdf"
                 required
                 onChange={(e) => setFile(e.target.files[0])}
-                className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+                className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
               />
               {file && (
                 <p className="text-xs text-slate-500 mt-1.5">
@@ -202,7 +202,7 @@ export default function PastPaperUpload() {
                 id="hasSolution"
                 checked={hasSolution}
                 onChange={(e) => setHasSolution(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               />
               <label htmlFor="hasSolution" className="text-xs text-slate-600 cursor-pointer">
                 Includes Solutions
@@ -220,7 +220,7 @@ export default function PastPaperUpload() {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-indigo-200 transition-all duration-200 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-md transition-all duration-200 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Upload className="h-3.5 w-3.5" />
                 {loading ? 'Uploading...' : 'Upload Paper'}
