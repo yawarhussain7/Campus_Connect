@@ -1,20 +1,21 @@
 
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { GraduationCap, Menu, Search, X } from 'lucide-react';
 
 /**
- * Marketing navigation for the public landing page. The links are same-page
- * anchors, so the active item is tracked from the URL hash instead of the
- * router. "Search" simply focuses the hero field, which keeps the header free
- * of a second, competing search input.
+ * Marketing navigation, shared by the public landing page and the resource
+ * library. Most items are anchors into the landing page (written as `/#id` so
+ * they resolve from any route) while "Resources" is a route of its own.
+ * "Search" focuses whichever hero search field is currently on screen.
  */
 
 const NAV_LINKS = [
-  { id: 'home', label: 'Home', href: '#home' },
-  { id: 'resources', label: 'Resources', href: '#resources' },
-  { id: 'community', label: 'Community', href: '#community' },
-  { id: 'about', label: 'About', href: '#about' },
+  { id: 'home', label: 'Home', to: '/#home' },
+  { id: 'features', label: 'Features', to: '/#features' },
+  { id: 'resources', label: 'Resources', to: '/resources' },
+  { id: 'community', label: 'Community', to: '/#community' },
+  { id: 'about', label: 'About', to: '/#about' },
 ];
 
 const linkClass = (isActive) =>
@@ -26,28 +27,45 @@ const linkClass = (isActive) =>
   ].join(' ');
 
 const Navbar = () => {
-  const [activeId, setActiveId] = useState('home');
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Keep the underline in sync when the visitor jumps between anchors.
+  const onResourcesPage = location.pathname.startsWith('/resources');
+  const currentHash = location.hash.replace('#', '');
+
+  // Land on `/#features` from another route and the browser will not scroll for
+  // us, so do it once the landing page has had a chance to render.
   useEffect(() => {
-    const syncFromHash = () => {
-      const hash = window.location.hash.replace('#', '');
-      const match = NAV_LINKS.find((link) => link.id === hash);
-      setActiveId(match ? match.id : 'home');
-    };
+    if (location.pathname !== '/' || !location.hash) return undefined;
 
-    syncFromHash();
-    window.addEventListener('hashchange', syncFromHash);
+    const id = location.hash.slice(1);
+    const timer = window.setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
 
-    return () => window.removeEventListener('hashchange', syncFromHash);
-  }, []);
+    return () => window.clearTimeout(timer);
+  }, [location.pathname, location.hash, location.key]);
 
-  const focusHeroSearch = () => {
+  const isActive = (link) => {
+    if (link.id === 'resources') return onResourcesPage;
+    if (onResourcesPage) return false;
+
+    return currentHash ? currentHash === link.id : link.id === 'home';
+  };
+
+  const focusSearchField = () => {
     setMenuOpen(false);
 
-    const field = document.getElementById('landing-search');
-    if (!field) return;
+    const field =
+      document.getElementById('landing-search') ||
+      document.getElementById('resources-search');
+
+    if (!field) {
+      navigate('/resources');
+      return;
+    }
 
     field.scrollIntoView({ behavior: 'smooth', block: 'center' });
     field.focus();
@@ -59,10 +77,7 @@ const Navbar = () => {
         {/* Logo */}
         <Link
           to="/"
-          onClick={() => {
-            setActiveId('home');
-            setMenuOpen(false);
-          }}
+          onClick={() => setMenuOpen(false)}
           className="flex shrink-0 items-center gap-2.5"
         >
           <span className="flex h-10 w-10 items-center justify-center rounded-[13px] bg-blue-600 text-white shadow-sm">
@@ -74,17 +89,12 @@ const Navbar = () => {
           </span>
         </Link>
 
-        {/* Anchors */}
+        {/* Anchors + the resource library route */}
         <div className="hidden items-center gap-8 md:flex">
           {NAV_LINKS.map((link) => (
-            <a
-              key={link.id}
-              href={link.href}
-              onClick={() => setActiveId(link.id)}
-              className={linkClass(activeId === link.id)}
-            >
+            <Link key={link.id} to={link.to} className={linkClass(isActive(link))}>
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
 
@@ -92,7 +102,7 @@ const Navbar = () => {
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <button
             type="button"
-            onClick={focusHeroSearch}
+            onClick={focusSearchField}
             aria-label="Search resources"
             className="hidden rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 sm:inline-flex"
           >
@@ -130,28 +140,25 @@ const Navbar = () => {
         <div className="border-t border-slate-100 bg-white px-5 pb-5 pt-3 md:hidden">
           <div className="flex flex-col">
             {NAV_LINKS.map((link) => (
-              <a
+              <Link
                 key={link.id}
-                href={link.href}
-                onClick={() => {
-                  setActiveId(link.id);
-                  setMenuOpen(false);
-                }}
+                to={link.to}
+                onClick={() => setMenuOpen(false)}
                 className={`rounded-lg px-3 py-2.5 text-[14px] font-medium transition ${
-                  activeId === link.id
+                  isActive(link)
                     ? 'bg-blue-50 text-blue-700'
                     : 'text-slate-600 hover:bg-slate-50'
                 }`}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </div>
 
           <div className="mt-3 flex items-center gap-2">
             <button
               type="button"
-              onClick={focusHeroSearch}
+              onClick={focusSearchField}
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-[13.5px] font-semibold text-slate-700 transition hover:bg-slate-50"
             >
               <Search className="h-4 w-4" />

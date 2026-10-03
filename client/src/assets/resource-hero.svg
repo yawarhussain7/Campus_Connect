@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 320" width="420" height="320" role="img" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="rh-blob" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#eaf2ff" />
+      <stop offset="1" stop-color="#d3e4ff" />
+    </linearGradient>
+    <linearGradient id="rh-green" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6ee7b7" />
+      <stop offset="1" stop-color="#10b981" />
+    </linearGradient>
+    <linearGradient id="rh-blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#93c5fd" />
+      <stop offset="1" stop-color="#3b82f6" />
+    </linearGradient>
+    <linearGradient id="rh-pink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f9a8d4" />
+      <stop offset="1" stop-color="#ec4899" />
+    </linearGradient>
+    <linearGradient id="rh-navy" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#334155" />
+      <stop offset="1" stop-color="#0f172a" />
+    </linearGradient>
+  </defs>
+
+  <!-- soft background blob -->
+  <path d="M84 158c0-66 46-118 122-124 64-5 122 24 148 70 24 42 8 100-40 128-44 26-118 32-166 8C104 218 84 196 84 158Z" fill="url(#rh-blob)" />
+
+  <!-- ground shadow -->
+  <ellipse cx="214" cy="272" rx="142" ry="12" fill="#c7d2fe" opacity="0.4" />
+
+  <!-- dotted accents -->
+  <circle cx="352" cy="86" r="4" fill="#93c5fd" />
+  <circle cx="368" cy="118" r="3" fill="#bfdbfe" />
+  <circle cx="72" cy="86" r="3.5" fill="#a5b4fc" />
+
+  <!-- potted plant -->
+  <rect x="44" y="238" width="46" height="11" rx="5.5" fill="#f1f5f9" />
+  <rect x="49" y="249" width="36" height="19" rx="8" fill="#e2e8f0" />
+  <rect x="65" y="212" width="4" height="30" rx="2" fill="#059669" />
+  <ellipse cx="67" cy="210" rx="15" ry="10" fill="#34d399" />
+  <ellipse cx="50" cy="220" rx="11" ry="7.5" fill="#10b981" />
+  <ellipse cx="85" cy="218" rx="11" ry="7.5" fill="#6ee7b7" />
+
+  <!-- book stack -->
+  <rect x="118" y="234" width="176" height="27" rx="9" fill="url(#rh-green)" />
+  <rect x="266" y="239" width="11" height="17" rx="3" fill="#ecfdf5" />
+  <rect x="130" y="206" width="152" height="27" rx="9" fill="url(#rh-blue)" />
+  <rect x="264" y="211" width="11" height="17" rx="3" fill="#eff6ff" />
+  <rect x="144" y="180" width="126" height="25" rx="9" fill="url(#rh-pink)" />
+  <rect x="252" y="185" width="11" height="15" rx="3" fill="#fdf2f8" />
+
+  <!-- graduation cap -->
+  <rect x="164" y="154" width="86" height="26" rx="13" fill="url(#rh-navy)" />
+  <path d="M120 148 207 116l87 32-87 32z" fill="url(#rh-navy)" />
+  <path d="M207 116 120 148l87 32z" fill="#64748b" opacity="0.35" />
+  <path d="M288 150q13 8 9 32" stroke="#f59e0b" stroke-width="3.5" fill="none" stroke-linecap="round" />
+  <circle cx="299" cy="187" r="6.5" fill="#fbbf24" />
+</svg>

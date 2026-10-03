@@ -1,9 +1,16 @@
-import { ClipboardList, CodeXml, FileSearch, FileText, GraduationCap } from 'lucide-react';
+import { ClipboardList, CodeXml, FileSearch, FileText } from 'lucide-react';
 
 import Navbar from '../../Components/common/Navbar';
 import Hero from '../../Components/home/Hero';
+import StatsBand from '../../Components/home/StatsBand';
+import FeatureGrid from '../../Components/home/FeatureGrid';
 import FeatureCard from '../../Components/home/FeatureCard';
+import Reveal from '../../Components/home/Reveal';
+import HowItWorks from '../../Components/home/HowItWorks';
 import PopularResources from '../../Components/home/PopularResources';
+import Testimonials from '../../Components/home/Testimonials';
+import CTASection from '../../Components/home/CTASection';
+import SiteFooter from '../../Components/home/SiteFooter';
 
 /** Browse-by-type grid. Each card deep-links into the matching student section. */
 const CATEGORIES = [
@@ -81,46 +88,59 @@ const POPULAR_RESOURCES = [
   },
 ];
 
+/**
+ * Public landing page. A single vertical flow of marketing sections — hero,
+ * trust figures, benefits, the browse-by-type grid, the how-it-works steps,
+ * popular resources, testimonials, a closing CTA and the footer. Every anchor
+ * id here is referenced by the Navbar and the footer.
+ */
 const LandingPage = () => (
   <div className="min-h-screen bg-white">
     <Navbar />
 
     <main>
       <Hero />
+      <StatsBand />
+      <FeatureGrid />
 
-      <section id="resources" className="mx-auto max-w-7xl scroll-mt-20 px-5 py-14 sm:px-8">
-        <div className="grid items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {CATEGORIES.map(({ id, ...card }) => (
-            <FeatureCard key={id} {...card} />
-          ))}
+      {/* Browse by resource type */}
+      <section id="resources" className="scroll-mt-20 bg-white">
+        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20">
+          <Reveal className="mx-auto mb-12 max-w-2xl text-center">
+            <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3.5 py-1.5 text-[12px] font-semibold text-blue-700">
+              Browse the library
+            </span>
+
+            <h2 className="mt-5 text-[28px] font-extrabold leading-tight tracking-tight text-slate-900 sm:text-[36px]">
+              Everything, sorted by <span className="gradient-text">what you need</span>
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-xl text-[14.5px] leading-relaxed text-slate-500">
+              Four focused modules, one login. Jump straight to the material that helps you
+              most.
+            </p>
+          </Reveal>
+
+          <div className="grid items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {CATEGORIES.map(({ id, ...card }, index) => (
+              <Reveal key={id} delay={index * 70}>
+                <FeatureCard {...card} />
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
+      <HowItWorks />
+
       <PopularResources resources={POPULAR_RESOURCES} />
+
+      <Testimonials />
+
+      <CTASection />
     </main>
 
-    <footer id="about" className="scroll-mt-20 bg-white py-12">
-      <div className="mx-auto max-w-7xl px-5 text-center sm:px-8">
-        <div className="flex items-center justify-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-blue-600 text-white">
-            <GraduationCap className="h-[18px] w-[18px]" />
-          </span>
-
-          <span className="text-[18px] font-bold tracking-tight text-slate-900">
-            CUI<span className="text-blue-600">Hub</span>
-          </span>
-        </div>
-
-        <p className="mx-auto mt-4 max-w-2xl text-[13.5px] leading-relaxed text-slate-500">
-          CampusConnect brings notes, projects, past papers and assignments together so students
-          can share, learn and grow together.
-        </p>
-
-        <p className="mt-2 text-[12px] text-slate-400">
-          © 2026 CUI Student Hub. Not an official COMSATS website.
-        </p>
-      </div>
-    </footer>
+    <SiteFooter />
   </div>
 );
 
