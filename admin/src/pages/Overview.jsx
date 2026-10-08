@@ -20,6 +20,10 @@ import ConfirmDialog from "../components/ui/ConfirmDialog";
 import Cover from "../components/ui/Cover";
 import PageHeader from "../components/ui/PageHeader";
 import StatCard from "../components/ui/StatCard";
+import CatalogueDonut from "../components/charts/CatalogueDonut";
+import ContentActivityChart from "../components/charts/ContentActivityChart";
+import RatingsDonut from "../components/charts/RatingsDonut";
+import TopSubjectsChart from "../components/charts/TopSubjectsChart";
 import UsersSignupChart from "../components/UsersSignupChart";
 import { useToast } from "../components/ui/toastContext";
 
@@ -194,8 +198,26 @@ export default function Overview() {
           />
         </div>
 
+        {/* Line/area chart of monthly additions next to the rating donut. */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <ContentActivityChart />
+          </div>
+
+          <RatingsDonut />
+        </div>
+
         {/* How many users have joined, per month — the signup graph. */}
-        <UsersSignupChart />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <UsersSignupChart />
+          </div>
+
+          <CatalogueDonut />
+        </div>
+
+        {/* Ranked subjects across every collection, full width. */}
+        <TopSubjectsChart />
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2">
