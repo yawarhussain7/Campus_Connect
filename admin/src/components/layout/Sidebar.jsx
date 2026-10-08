@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Settings,
   Star,
+  Users,
 } from "lucide-react";
 
 import { cx } from "../../lib/format";
@@ -17,6 +18,7 @@ const NAV = [
   { to: "/assignments", label: "Assignments", icon: ClipboardList },
   { to: "/past-papers", label: "Past Papers", icon: FileText },
   { to: "/teacher-reviews", label: "Teacher Reviews", icon: Star },
+  { to: "/users", label: "Users", icon: Users },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 

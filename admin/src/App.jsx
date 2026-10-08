@@ -10,6 +10,7 @@ import Overview from "./pages/Overview";
 import PastPapers from "./pages/PastPapers";
 import Projects from "./pages/Projects";
 import TeacherReviews from "./pages/TeacherReviews";
+import Users from "./pages/Users";
 import Settings from "./pages/Settings";
 
 const App = () => {
@@ -25,6 +26,7 @@ const App = () => {
           <Route path="/past-papers" element={<PastPapers />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/teacher-reviews" element={<TeacherReviews />} />
+          <Route path="/users" element={<Users />} />
           <Route path="/settings" element={<Settings/>} />
         </Route>
       </Route>

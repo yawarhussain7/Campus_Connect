@@ -92,6 +92,15 @@ function detailValue(field, record) {
 
   if (field.type === "checkbox") return value ? "Yes" : "No";
 
+  // Optional display hook, e.g. mapping a role code to its label.
+  if (field.format) {
+    const formatted = field.format(value);
+
+    return formatted === null || formatted === undefined || formatted === ""
+      ? "—"
+      : String(formatted);
+  }
+
   return value === null || value === undefined || value === "" ? "—" : String(value);
 }
 
@@ -109,6 +118,15 @@ export default function ResourcePage({
   stats,
   emptyTitle,
   emptyMessage,
+  // Read-only tables (e.g. pre-integration) hide every create/edit/delete
+  // affordance and keep just the detail view.
+  readOnly = false,
+  // Optional node — or (rows) => node — rendered between the stat cards and
+  // the table, e.g. the signup graph.
+  insights = null,
+  // Rows for the detail drawer; defaults to the form config. Lets a page add
+  // read-only facts (like a join date) that must never appear as inputs.
+  detailFields = fields,
 }) {
   const { records, create, update, remove, loading, error, reload } = useData();
   const toast = useToast();
@@ -209,6 +227,7 @@ export default function ResourcePage({
 
   /** A page passes either a ready-made list or a function of its own rows. */
   const statCards = typeof stats === "function" ? stats(rows) : stats ?? [];
+  const insightsNode = typeof insights === "function" ? insights(rows) : insights;
 
   const openCreate = () => setForm({ record: null });
 
@@ -283,31 +302,38 @@ export default function ResourcePage({
     }
   };
 
-  /** Shared by every row: view, edit and delete for one record. */
-  const rowMenu = (record) => (
-    <Menu
-      panelClassName="w-[168px]"
-      trigger={({ toggle }) => (
-        <IconButton
-          icon={Ellipsis}
-          onClick={toggle}
-          label={`Actions for ${record[columns[0].key] ?? singular}`}
-        />
-      )}
-    >
-      <MenuItem icon={Eye} onClick={() => setDetails(record)}>
-        View details
-      </MenuItem>
+  /** Shared by every row: view (and, unless read-only, edit + delete). */
+  const rowMenu = (record) =>
+    readOnly ? (
+      <IconButton
+        icon={Eye}
+        onClick={() => setDetails(record)}
+        label={`View ${record[columns[0].key] ?? singular}`}
+      />
+    ) : (
+      <Menu
+        panelClassName="w-[168px]"
+        trigger={({ toggle }) => (
+          <IconButton
+            icon={Ellipsis}
+            onClick={toggle}
+            label={`Actions for ${record[columns[0].key] ?? singular}`}
+          />
+        )}
+      >
+        <MenuItem icon={Eye} onClick={() => setDetails(record)}>
+          View details
+        </MenuItem>
 
-      <MenuItem icon={Pencil} onClick={() => setForm({ record })}>
-        Edit
-      </MenuItem>
+        <MenuItem icon={Pencil} onClick={() => setForm({ record })}>
+          Edit
+        </MenuItem>
 
-      <MenuItem danger icon={Trash} onClick={() => setPendingDelete(record)}>
-        Delete
-      </MenuItem>
-    </Menu>
-  );
+        <MenuItem danger icon={Trash} onClick={() => setPendingDelete(record)}>
+          Delete
+        </MenuItem>
+      </Menu>
+    );
 
   return (
     <>
@@ -318,9 +344,11 @@ export default function ResourcePage({
           title={title}
           description={description}
           action={
-            <Button icon={Plus} onClick={openCreate}>
-              Add New {singular}
-            </Button>
+            readOnly ? null : (
+              <Button icon={Plus} onClick={openCreate}>
+                Add New {singular}
+              </Button>
+            )
           }
         />
 
@@ -336,6 +364,8 @@ export default function ResourcePage({
             ))}
           </div>
         ) : null}
+
+        {insightsNode ? <div className="mt-5">{insightsNode}</div> : null}
 
         <section className="mt-5 rounded-xl border border-slate-200 bg-white">
           <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 px-4 py-3.5">
@@ -445,7 +475,7 @@ export default function ResourcePage({
                   <Button variant="secondary" onClick={resetFilters}>
                     Clear filters
                   </Button>
-                ) : (
+                ) : readOnly ? null : (
                   <Button icon={Plus} onClick={openCreate}>
                     Add New {singular}
                   </Button>
@@ -564,22 +594,24 @@ export default function ResourcePage({
                 Close
               </Button>
 
-              <Button
-                icon={Pencil}
-                onClick={() => {
-                  const record = details;
+              {readOnly ? null : (
+                <Button
+                  icon={Pencil}
+                  onClick={() => {
+                    const record = details;
 
-                  setDetails(null);
-                  setForm({ record });
-                }}
-              >
-                Edit
-              </Button>
+                    setDetails(null);
+                    setForm({ record });
+                  }}
+                >
+                  Edit
+                </Button>
+              )}
             </div>
           }
         >
           <dl className="space-y-3">
-            {fields.map((field) => (
+            {detailFields.map((field) => (
               <div
                 key={field.name}
                 className="flex gap-4 border-b border-slate-100 pb-3 last:border-0"

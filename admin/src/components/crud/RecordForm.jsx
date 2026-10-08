@@ -110,11 +110,18 @@ export default function RecordForm({
           value={values[field.name] ?? ""}
           onChange={(event) => set(event.target.value)}
         >
-          {(field.options ?? []).map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
+          {(field.options ?? []).map((option) => {
+            // Plain strings double as value and label; { value, label } pairs
+            // let a form show "Student" while storing "user".
+            const value = typeof option === "object" ? option.value : option;
+            const label = typeof option === "object" ? option.label : option;
+
+            return (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            );
+          })}
         </Select>
       );
     }
@@ -142,7 +149,13 @@ export default function RecordForm({
         placeholder={field.placeholder}
         value={values[field.name] ?? ""}
         type={
-          field.type === "number" ? "number" : field.type === "date" ? "date" : "text"
+          field.type === "number"
+            ? "number"
+            : field.type === "date"
+              ? "date"
+              : field.type === "password"
+                ? "password"
+                : "text"
         }
         onChange={(event) => set(event.target.value)}
       />

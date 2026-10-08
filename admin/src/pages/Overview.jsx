@@ -20,6 +20,7 @@ import ConfirmDialog from "../components/ui/ConfirmDialog";
 import Cover from "../components/ui/Cover";
 import PageHeader from "../components/ui/PageHeader";
 import StatCard from "../components/ui/StatCard";
+import UsersSignupChart from "../components/UsersSignupChart";
 import { useToast } from "../components/ui/toastContext";
 
 const FEEDS = [
@@ -192,6 +193,9 @@ export default function Overview() {
             meta={`Average rating ${average} / 5`}
           />
         </div>
+
+        {/* How many users have joined, per month — the signup graph. */}
+        <UsersSignupChart />
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2">

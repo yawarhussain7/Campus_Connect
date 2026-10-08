@@ -9,13 +9,23 @@ import {
 } from "../lib/api";
 
 /** The collections every admin screen reads from. */
-const COLLECTIONS = ["assignments", "papers", "projects", "reviews"];
+const COLLECTIONS = ["assignments", "papers", "projects", "reviews", "users"];
+
+/** Which collections may be written; accounts have their own guarded routes. */
+const WRITABLE = new Set(["assignments", "papers", "projects", "reviews", "users"]);
 
 const EMPTY_RECORDS = {
   assignments: [],
   papers: [],
   projects: [],
   reviews: [],
+  users: [],
+};
+
+const assertWritable = (collection) => {
+  if (!WRITABLE.has(collection)) {
+    throw new Error("This collection cannot be edited");
+  }
 };
 
 /**
@@ -52,11 +62,12 @@ export function DataProvider({ children }) {
   const loadAll = useCallback(
     () =>
       Promise.all(COLLECTIONS.map((collection) => listRequest(collection))).then(
-        ([assignments, papers, projects, reviews]) => ({
+        ([assignments, papers, projects, reviews, users]) => ({
           assignments: assignments.map(normalise),
           papers: papers.map(normalise),
           projects: projects.map(normalise),
           reviews: reviews.map(normalise),
+          users: users.map(normalise),
         })
       ),
     []
@@ -101,6 +112,8 @@ export function DataProvider({ children }) {
   }, [loadAll]);
 
   const create = useCallback(async (collection, values) => {
+    assertWritable(collection);
+
     const payload = await createRequest(collection, values);
     const created = normalise(payload.data);
 
@@ -113,6 +126,8 @@ export function DataProvider({ children }) {
   }, []);
 
   const update = useCallback(async (collection, id, values) => {
+    assertWritable(collection);
+
     const payload = await updateRequest(collection, id, values);
     const updated = normalise(payload.data);
 
@@ -127,6 +142,8 @@ export function DataProvider({ children }) {
   }, []);
 
   const remove = useCallback(async (collection, id) => {
+    assertWritable(collection);
+
     await deleteRequest(collection, id);
 
     setRecords((current) => ({

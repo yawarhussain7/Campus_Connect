@@ -4,7 +4,7 @@ import { getTotalAssignmentController,ShowAssignments } from '../Controller/assi
 import {getTotalPaperController,GetPaper} from '../Controller/paper.controller.js'
 import {projectCountController,ShowProjects} from '../Controller/project.controller.js'
 import {ShowTotalReviewsController,ShowReviews} from '../Controller/review.controller.js'
-import { createRecord, updateRecord, deleteRecord } from '../Controller/admin.controller.js'
+import { createRecord, updateRecord, deleteRecord, listUsers, countUsers, createUser, updateUser, deleteUser } from '../Controller/admin.controller.js'
 import { AdminRoute } from '../middleware/verifyAdmin.js'
 
 const Adminrouter = express.Router()
@@ -24,6 +24,15 @@ Adminrouter.get('/projects/all',ShowProjects)
 
 Adminrouter.get('/reviews',ShowTotalReviewsController)
 Adminrouter.get('/reviews/all',ShowReviews)
+
+// Registered accounts: list + counter plus full CRUD — passwords are hashed by
+// the service, responses never carry secret fields, and deleting your own
+// account is refused.
+Adminrouter.get('/users', countUsers)
+Adminrouter.get('/users/all', listUsers)
+Adminrouter.post('/users', createUser)
+Adminrouter.put('/users/:id', updateUser)
+Adminrouter.delete('/users/:id', deleteUser)
 
 // Full CRUD for the four collections the console manages. The `:id` routes are
 // declared last so they can never shadow the `/…/all` list endpoints above.

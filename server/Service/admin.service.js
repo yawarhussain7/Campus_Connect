@@ -1,7 +1,10 @@
+import bcrypt from "bcrypt";
+
 import Assignment from "../Model/assignment.model.js";
 import PastPaper from "../Model/pastpaper.model.js";
 import Project from "../Model/project.model.js";
 import Review from "../Model/review.model.js";
+import User from "../Model/auth.model.js";
 
 import { assignmentSchemaZod } from "../validation/assign.validation.js";
 import { PastPaperSchemaZod } from "../validation/paper.validatoin.js";
@@ -138,4 +141,93 @@ export const deleteRecordService = async (collection, id) => {
   }
 
   return removed;
+};
+
+/* -------------------------------------------------------------------------
+ * Accounts. Written here rather than through CONFIG because passwords have to
+ * be hashed and the secret fields stripped from every response.
+ * ---------------------------------------------------------------------- */
+
+/** A user document minus password / reset-token material. */
+const toSafeUser = (doc) => {
+  const safe = doc.toObject();
+
+  delete safe.password;
+  delete safe.resetPasswordToken;
+  delete safe.resetPasswordTokenExpire;
+
+  return safe;
+};
+
+const duplicateEmail = () => {
+  const error = new Error("An account with that email already exists");
+  error.status = 409;
+  return error;
+};
+
+export const createUserService = async ({ name, email, password, role, avatar }) => {
+  const normalised = String(email).toLowerCase();
+
+  if (await User.findOne({ email: normalised })) throw duplicateEmail();
+
+  // Same 10-round hash the register flow uses, never the plain password.
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const user = await User.create({
+    name,
+    email: normalised,
+    password: hashedPassword,
+    role,
+    avatar: avatar || null,
+  });
+
+  return toSafeUser(user);
+};
+
+export const updateUserService = async (id, { name, email, role, password, avatar }) => {
+  // `+password` loads the field explicitly: it is select:false, and save()
+  // validates the required password path even when nothing changed.
+  const user = await User.findById(id).select("+password");
+
+  if (!user) {
+    const error = new Error("User not found");
+    error.status = 404;
+    throw error;
+  }
+
+  const normalised = String(email).toLowerCase();
+  const clash = await User.findOne({ email: normalised });
+
+  if (clash && String(clash._id) !== String(id)) throw duplicateEmail();
+
+  user.name = name;
+  user.email = normalised;
+  user.role = role;
+  user.avatar = avatar || null;
+
+  // Blank keeps the current password; anything else is a new hash.
+  if (password) user.password = await bcrypt.hash(password, 10);
+
+  await user.save();
+
+  return toSafeUser(user);
+};
+
+export const deleteUserService = async (id, adminId) => {
+  // An admin must never be able to lock the console out by deleting themself.
+  if (String(id) === String(adminId)) {
+    const error = new Error("You cannot delete your own account");
+    error.status = 400;
+    throw error;
+  }
+
+  const removed = await User.findByIdAndDelete(id);
+
+  if (!removed) {
+    const error = new Error("User not found");
+    error.status = 404;
+    throw error;
+  }
+
+  return toSafeUser(removed);
 };
