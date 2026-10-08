@@ -6,6 +6,7 @@ import ModernSelect from '../../Components/common/ModernSelect';
 import { ArrowLeft, Upload, FileText } from 'lucide-react';
 import { toast } from "react-toastify";
 import {PaperUpload} from '../../api/paper.js'
+import { departmentOptions } from '../../utils/departments.js';
 
 export default function PastPaperUpload() {
   const navigate = useNavigate();
@@ -168,13 +169,7 @@ export default function PastPaperUpload() {
                   label="Department"
                   value={department}
                   onChange={setDepartment}
-                  options={[
-                    { value: 'Computer Science', label: 'Computer Science' },
-                    { value: 'Electrical Eng.', label: 'Electrical Eng.' },
-                    { value: 'Management Sciences', label: 'Management Sciences' },
-                    { value: 'Mechanical Eng.', label: 'Mechanical Eng.' },
-                    { value: 'Business School', label: 'Business School' }
-                  ]}
+                  options={departmentOptions}
                   placeholder="Select department"
                 />
               </div>

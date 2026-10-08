@@ -86,7 +86,7 @@ const FIELDS = [
   { name: "teacherRole", label: "Designation", placeholder: "Assistant Professor" },
   { name: "student", label: "Student", required: true, placeholder: "Yawar Hussain" },
   { name: "campus", label: "Campus", placeholder: "Islamabad" },
-  { name: "courseName", label: "Course name", placeholder: "Operating Systems" },
+  { name: "courseName", label: "Course name", required: true, placeholder: "Operating Systems" },
   { name: "courseCode", label: "Course code", placeholder: "CS305" },
   {
     name: "rating",
@@ -111,10 +111,17 @@ const FIELDS = [
   {
     name: "comment",
     label: "Comment",
+    required: true,
     wide: true,
     type: "textarea",
     rows: 4,
     placeholder: "What did the student say?",
+    check: (value) =>
+      value.length < 3
+        ? "Comment must be at least 3 characters"
+        : value.length > 1000
+          ? "Comment cannot exceed 1000 characters"
+          : null,
   },
 ];
 

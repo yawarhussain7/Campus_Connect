@@ -16,10 +16,7 @@ import {
 import { cx } from "../lib/format";
 import { useToast } from "../components/ui/toastContext";
 import { saveSession } from "../lib/session";
-import {
-  isAdminEmail,
-  verifyAdminCredentials,
-} from "../lib/adminAuth";
+import { apiErrorMessage, loginRequest, logoutRequest } from "../lib/api";
 import {
   AUTH_PRIMARY_BUTTON_CLASS,
   EMAIL_PATTERN,
@@ -44,8 +41,10 @@ import {
 
 /**
  * The admin portal sign-in page at `/login`, rendered outside the app shell so
- * it owns the whole window. Credentials are checked against the admin allowlist
- * in lib/adminAuth, and a successful submit records the session locally.
+ * it owns the whole window. Credentials are verified by the real backend
+ * (POST /auth/signIn), which also leaves the httpOnly token cookie every
+ * /admin request rides on; only accounts whose stored role is `admin` are let
+ * through, and a successful submit records the session locally.
  */
 export default function Login() {
   const navigate = useNavigate();
@@ -79,33 +78,48 @@ export default function Login() {
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (!validate()) return;
 
     setSubmitting(true);
 
-    // Only accounts on the admin allowlist may enter the console.
-    const admin = verifyAdminCredentials(email, password);
+    try {
+      // Real backend sign-in: on success the server sets the httpOnly `token`
+      // cookie (credentials: "include") that every /admin call sends back.
+      const response = await loginRequest(email.trim(), password);
+      const user = response.data;
 
-    if (!admin) {
-      setSubmitting(false);
+      if (user?.role !== "admin") {
+        // A student account must not keep the admin cookie lying around.
+        try {
+          await logoutRequest();
+        } catch {
+          // Clearing a cookie that was never set is not worth a toast.
+        }
 
-      if (isAdminEmail(email)) {
-        setErrors({ password: "Incorrect password" });
-        toast.error("Incorrect password");
-      } else {
-        setErrors({ email: "This email does not have admin access" });
+        setErrors({ email: "This account does not have admin access" });
         toast.error("This account cannot access the admin panel");
+        return;
       }
 
-      return;
-    }
+      saveSession({
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        rememberMe,
+      });
+      toast.success(`Welcome back, ${(user.name || "Admin").split(" ")[0]}`);
+      navigate("/overview", { replace: true });
+    } catch (error) {
+      const message = apiErrorMessage(error);
 
-    saveSession({ ...admin, rememberMe });
-    toast.success(`Welcome back, ${admin.name.split(" ")[0]}`);
-    navigate("/overview", { replace: true });
+      setErrors({ password: message });
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   /** Carries the typed address across so the reset screen can prefill it. */

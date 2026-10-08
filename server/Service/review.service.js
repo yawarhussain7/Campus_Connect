@@ -3,6 +3,16 @@ import TeacherModel from '../Model/teacher.model.js'
 
 // Create a review
 export const createReviewService = async (data) => {
+    const existingReview = await Review.findOne({
+        teacherName: data.teacherName,
+        studentName: data.studentName,
+        course: data.course,
+    })
+
+    if(existingReview){
+        throw new Error('You have already submitted a review for this teacher and course.')
+    }
+    
     return await Review.create(data)
 }
 
@@ -27,6 +37,6 @@ export const findTeacherByNameService = async (name) => {
     }).lean()
 }
 
-export const totalReviewService = async()=>{
+export const totalReviewService = async () => {
     return await TeacherModel.countDocuments()
 }

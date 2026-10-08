@@ -4,6 +4,7 @@ import ResourcePage from "../components/crud/ResourcePage";
 import Avatar from "../components/ui/Avatar";
 import { StatusBadge, Tag } from "../components/ui/Badge";
 import { formatDate, relativeTime } from "../lib/format";
+import { DEPARTMENTS } from "../lib/departments";
 
 const SEMESTERS = ["1", "2", "3", "4", "5", "6", "7", "8"];
 const STATUSES = ["Pending", "Submitted", "Overdue"];
@@ -71,8 +72,8 @@ const FIELDS = [
     wide: true,
     placeholder: "e.g. Process Scheduling Simulation",
     check: (value) =>
-      value.length < 3
-        ? "Title must be at least 3 characters"
+      value.length < 5
+        ? "Title must be at least 5 characters"
         : value.length > 100
           ? "Title cannot exceed 100 characters"
           : null,
@@ -106,12 +107,18 @@ const FIELDS = [
     options: STATUSES,
     defaultValue: "Pending",
   },
-  { name: "department", label: "Department", defaultValue: "Computer Science" },
+  {
+    name: "department",
+    label: "Department",
+    type: "select",
+    options: DEPARTMENTS,
+    defaultValue: "Computer Science",
+  },
   {
     name: "originalName",
     label: "Attached file",
     placeholder: "Assignment 02.pdf",
-    hint: "File name only — this demo does not store uploads.",
+    hint: "File name reference — students upload the actual file from the student app.",
   },
 ];
 

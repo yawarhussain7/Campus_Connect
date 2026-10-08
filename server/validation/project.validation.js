@@ -35,6 +35,14 @@ export const ProjectSchemaZod = z.object({
     .min(2, "Subject is required")
     .max(100, "Subject cannot exceed 100 characters"),
 
+  // Assignee as shown in the admin console; students do not send it.
+  student: z
+    .string()
+    .trim()
+    .max(100, "Name cannot exceed 100 characters")
+    .optional()
+    .default(""),
+
   dueDate: z
     .string()
     .trim()

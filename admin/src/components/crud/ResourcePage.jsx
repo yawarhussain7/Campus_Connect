@@ -2,9 +2,11 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   ArrowUpDown,
+  CircleAlert,
   Ellipsis,
   Eye,
   Inbox,
+  Loader2,
   Pencil,
   Plus,
   RotateCcw,
@@ -15,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { cx } from "../../lib/format";
+import { apiErrorMessage } from "../../lib/api";
 import { useData } from "../../store/dataContext";
 
 import Button, { IconButton } from "../ui/Button";
@@ -107,7 +110,7 @@ export default function ResourcePage({
   emptyTitle,
   emptyMessage,
 }) {
-  const { records, create, update, remove } = useData();
+  const { records, create, update, remove, loading, error, reload } = useData();
   const toast = useToast();
 
   const [params, setParams] = useSearchParams();
@@ -116,6 +119,9 @@ export default function ResourcePage({
   );
   const [order, setOrder] = useState("newest");
   const [page, setPage] = useState(1);
+  // True while a create / update / delete is in flight, so a second click
+  // cannot fire a duplicate request.
+  const [saving, setSaving] = useState(false);
 
   /** The term lives in the URL so the topbar search can pre-filter this table. */
   const query = params.get("q") ?? "";
@@ -231,25 +237,50 @@ export default function ResourcePage({
     setPage(1);
   };
 
-  const submit = (values) => {
-    if (form?.record) {
-      update(collection, form.record.id, values);
-      toast.success(`${singular} updated`);
-    } else {
-      create(collection, values);
-      toast.success(`${singular} created`);
-    }
+  /**
+   * Writes go to the API; the drawer only closes once the server confirms, so
+   * a validation error (400 with field messages) or a down server surfaces as a
+   * toast instead of silently losing the edit.
+   */
+  const submit = async (values) => {
+    if (saving) return;
 
-    setForm(null);
-    setPage(1);
+    setSaving(true);
+
+    try {
+      if (form?.record) {
+        await update(collection, form.record.id, values);
+        toast.success(`${singular} updated`);
+      } else {
+        await create(collection, values);
+        toast.success(`${singular} created`);
+      }
+
+      setForm(null);
+      setPage(1);
+    } catch (saveError) {
+      toast.error(apiErrorMessage(saveError));
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const confirmDelete = () => {
-    if (!pendingDelete) return;
+  const confirmDelete = async () => {
+    if (!pendingDelete || saving) return;
 
-    remove(collection, pendingDelete.id);
+    const target = pendingDelete;
+
+    setSaving(true);
     setPendingDelete(null);
-    toast.success(`${singular} deleted`);
+
+    try {
+      await remove(collection, target.id);
+      toast.success(`${singular} deleted`);
+    } catch (deleteError) {
+      toast.error(apiErrorMessage(deleteError));
+    } finally {
+      setSaving(false);
+    }
   };
 
   /** Shared by every row: view, edit and delete for one record. */
@@ -382,7 +413,25 @@ export default function ResourcePage({
             />
           ))}
 
-          {pageRows.length === 0 ? (
+          {loading && rows.length === 0 ? (
+            /* First load: the API is the source of truth, so wait for it. */
+            <div className="flex flex-col items-center justify-center gap-3 py-14">
+              <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+
+              <p className="text-[13px] text-slate-500">
+                Loading {title.toLowerCase()} from the server…
+              </p>
+            </div>
+          ) : error && rows.length === 0 ? (
+            /* The API is unreachable (or refused the session) — offer a retry
+               instead of showing an empty catalogue. */
+            <EmptyState
+              icon={CircleAlert}
+              title="Could not load data"
+              message={error}
+              action={<Button onClick={() => reload()}>Try again</Button>}
+            />
+          ) : pageRows.length === 0 ? (
             <EmptyState
               icon={isFiltered ? SearchX : Inbox}
               title={isFiltered ? "No matching records" : emptyTitle}
@@ -488,7 +537,15 @@ export default function ResourcePage({
               ? "Change the details below, then save."
               : `Add a ${singular.toLowerCase()} to the catalogue.`
           }
-          submitLabel={form.record ? "Save changes" : `Create ${singular}`}
+          submitLabel={
+            saving
+              ? form.record
+                ? "Saving…"
+                : "Creating…"
+              : form.record
+                ? "Save changes"
+                : `Create ${singular}`
+          }
           onSubmit={submit}
           onClose={() => setForm(null)}
         />

@@ -11,6 +11,7 @@ import PastPaperTable from '../../Components/paper/PastPaperTable';
 import TablePagination from '../../Components/common/TablePagination';
 import { ShowPapers, downloadPaper, paperFileUrl } from '../../api/paper.js';
 import { examLabel } from '../../utils/paper.js';
+import { mergeDepartments } from '../../utils/departments.js';
 
 const PAGE_SIZE = 6;
 
@@ -86,8 +87,10 @@ export default function PastPapers() {
     };
   }, []);
 
-  // Dropdown options come from the papers we actually have.
-  const departmentOptions = uniqueValues(papersList, 'department').sort();
+  // The canonical department list plus any value stored on the papers we have.
+  const departmentOptions = mergeDepartments(
+    uniqueValues(papersList, 'department')
+  );
   const courseOptions = uniqueValues(papersList, 'subject').sort();
   const semesterOptions = uniqueValues(papersList, 'semester').sort();
   const yearOptions = uniqueValues(papersList, 'year').sort(

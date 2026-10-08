@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ModernSelect from "../common/ModernSelect";
+import { departmentOptions } from "../../utils/departments.js";
 import { X, FileText } from "lucide-react";
 
 export default function UploadPaperModal({
@@ -120,13 +121,7 @@ export default function UploadPaperModal({
             label="Department"
             value={department}
             onChange={setDepartment}
-            options={[
-              { value: 'Computer Science', label: 'Computer Science' },
-              { value: 'Electrical Eng.', label: 'Electrical Eng.' },
-              { value: 'Management Sciences', label: 'Management Sciences' },
-              { value: 'Mechanical Eng.', label: 'Mechanical Eng.' },
-              { value: 'Business School', label: 'Business School' }
-            ]}
+            options={departmentOptions}
             placeholder="Select department"
           />
 

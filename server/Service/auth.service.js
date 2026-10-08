@@ -14,6 +14,8 @@ const registerService = async({name,email,password})=>{
             throw error
         }
 
+        // Only the hash is stored, so a leaked database cannot be used to reset
+        // anyone's password directly.
         const hashedPassword = await bcrypt.hash(password,10)
         const newUser = await User.create({
             name,
@@ -26,7 +28,10 @@ const registerService = async({name,email,password})=>{
            user:{
              _id:newUser._id,
             name:newUser.name,
-            email:newUser.email
+            email:newUser.email,
+            // Carried to the client so the admin console can tell an admin
+            // session apart from a student one after signing in.
+            role:newUser.role
            },
            token
         }
@@ -67,7 +72,10 @@ const loginService = async({email,password})=>{
             user:{
                 _id:user._id,
                 name:user.name,
-                email:user.email
+                email:user.email,
+                // The admin console signs in through this endpoint and checks
+                // the role before granting access to /admin data.
+                role:user.role
             },
             token
         };
@@ -111,8 +119,11 @@ const forgetPasswordService = async(email)=>{
         await user.save()
 
         // The client route that renders the "choose a new password" form. It is
-        // configurable so a deployment can point the link at the right host.
-        const clientURL = process.env.CLIENT_URL 
+        // configurable so a deployment can point the link at the right host, and
+        // falls back to the local student app so a missing CLIENT_URL can never
+        // produce a broken "undefined/..." link. A trailing slash is trimmed so
+        // the URL never ends up as ".../ /reset-password".
+        const clientURL = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/+$/, '')
         const resultURL = `${clientURL}/reset-password/${resetToken}`
 
         const html = resetPasswordEmail(user.name, resultURL)

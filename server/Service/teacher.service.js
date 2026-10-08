@@ -1,8 +1,6 @@
 import TeacherModel from '../Model/teacher.model.js'
 import { scrapeComsatsTeachers } from '../Service/comsats.service.js'
 
-// Columns the review surfaces read. The faculty list is a few thousand rows, so
-// the list endpoint returns only these instead of the whole document.
 const DIRECTORY_FIELDS =
     'name uid designation department campus image profileUrl'
 
@@ -27,9 +25,6 @@ export const scrapeAndSaveTeachers = async () => {
 
     const scrapedAt = new Date()
 
-    // One upsert per teacher, keyed on the COMSATS uid, so re-running the sync
-    // refreshes the directory instead of duplicating it. A single bulkWrite also
-    // replaces the per-teacher findOne round trip the loop used to make.
     const result = await TeacherModel.bulkWrite(
         teachers.map((teacher) => ({
             updateOne: {

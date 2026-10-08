@@ -1,17 +1,17 @@
 import { Navigate, Outlet } from "react-router-dom";
 
-import { isAdminEmail } from "../../lib/adminAuth";
 import { readSession } from "../../lib/session";
 
 /**
  * Sends anyone without a valid admin session to the sign-in page. The stored
- * session's email is re-checked against the allowlist so that a hand-edited
- * localStorage entry cannot grant access on its own.
+ * session must carry the `admin` role the server reported at sign-in, so a
+ * hand-edited localStorage entry (which cannot forge the httpOnly cookie the
+ * API needs anyway) grants nothing on its own.
  */
 export default function RequireAuth() {
   const session = readSession();
 
-  if (!session || !isAdminEmail(session.email)) {
+  if (!session || session.role !== "admin") {
     return <Navigate to="/login" replace />;
   }
 

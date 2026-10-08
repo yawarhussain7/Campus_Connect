@@ -27,6 +27,15 @@ const ProjectSchema = new mongoose.Schema(
       default: "",
     },
 
+    // Who the project is assigned to, shown as "Assigned To" in the admin
+    // console. Optional: student uploads do not set it.
+    student: {
+      type: String,
+      trim: true,
+      maxlength: 100,
+      default: "",
+    },
+
     subject: {
       type: String,
       required: [true, "Subject is required"],

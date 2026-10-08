@@ -1,100 +1,147 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { DataContext } from "./dataContext";
-import { seedRecords } from "./seed";
-
-const STORAGE_KEY = "campus-connect-admin:data:v1";
+import {
+  createRequest,
+  deleteRequest,
+  listRequest,
+  updateRequest,
+} from "../lib/api";
 
 /** The collections every admin screen reads from. */
 const COLLECTIONS = ["assignments", "papers", "projects", "reviews"];
 
-function newId() {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
+const EMPTY_RECORDS = {
+  assignments: [],
+  papers: [],
+  projects: [],
+  reviews: [],
+};
 
-  return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
+/**
+ * Mongo documents carry `_id`; every column, filter and drawer in the console
+ * reads `id`, so each row is renamed once on the way in.
+ */
+function normalise(doc) {
+  const { _id, ...rest } = doc;
 
-/** Reads the persisted snapshot, refusing anything that is not the full shape. */
-function readStored() {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-
-    if (!raw) return null;
-
-    const parsed = JSON.parse(raw);
-
-    const snapshot = {};
-
-    for (const key of COLLECTIONS) {
-      if (!Array.isArray(parsed?.[key])) return null;
-
-      snapshot[key] = parsed[key];
-    }
-
-    return snapshot;
-  } catch {
-    // Unreadable JSON or a blocked localStorage: fall back to the sample data.
-    return null;
-  }
+  return { ...rest, id: _id };
 }
 
 /**
- * Holds the whole catalogue in memory and mirrors it into localStorage, so the
- * create / edit / delete flows survive a page reload while the Express API has
- * no update or delete endpoints of its own.
+ * Holds the whole catalogue in memory, sourced from the Express API
+ * (`/admin/<collection>/all`) instead of the old seed data. Reads happen once
+ * on mount (and whenever `reload` is called); create / update / delete go
+ * straight to the server and fold the returned document back into the list, so
+ * what the tables show is always what MongoDB holds.
+ *
+ * `loading` and `error` let each screen render a spinner or a retry state
+ * rather than pretending an unreachable API is an empty catalogue.
  */
 export function DataProvider({ children }) {
-  const [records, setRecords] = useState(() => readStored() ?? seedRecords());
+  const [records, setRecords] = useState(EMPTY_RECORDS);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  /**
+   * Fetches every collection and resolves to the records map. Deliberately
+   * contains no setState — callers attach their own callbacks, which keeps the
+   * initial effect clear of synchronous state updates
+   * (react-hooks/set-state-in-effect).
+   */
+  const loadAll = useCallback(
+    () =>
+      Promise.all(COLLECTIONS.map((collection) => listRequest(collection))).then(
+        ([assignments, papers, projects, reviews]) => ({
+          assignments: assignments.map(normalise),
+          papers: papers.map(normalise),
+          projects: projects.map(normalise),
+          reviews: reviews.map(normalise),
+        })
+      ),
+    []
+  );
+
+  // Initial load: `loading` already starts true; results land in the promise
+  // callbacks, and the guard ignores anything resolving after unmount.
   useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-    } catch {
-      // A full or disabled localStorage must not break the tables.
-    }
-  }, [records]);
+    let active = true;
 
-  const create = useCallback((collection, values) => {
-    const record = {
-      ...values,
-      id: newId(),
-      createdAt: new Date().toISOString(),
-      updatedAt: null,
+    loadAll()
+      .then((next) => {
+        if (!active) return;
+        setError(null);
+        setRecords(next);
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError.message);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
     };
+  }, [loadAll]);
+
+  // Manual refresh (reload button, error retry): show the spinner again, then
+  // refetch. Only ever called from event handlers, never from an effect.
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      setRecords(await loadAll());
+    } catch (loadError) {
+      setError(loadError.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [loadAll]);
+
+  const create = useCallback(async (collection, values) => {
+    const payload = await createRequest(collection, values);
+    const created = normalise(payload.data);
 
     setRecords((current) => ({
       ...current,
-      [collection]: [record, ...current[collection]],
+      [collection]: [created, ...current[collection]],
     }));
 
-    return record;
+    return created;
   }, []);
 
-  const update = useCallback((collection, id, values) => {
+  const update = useCallback(async (collection, id, values) => {
+    const payload = await updateRequest(collection, id, values);
+    const updated = normalise(payload.data);
+
     setRecords((current) => ({
       ...current,
       [collection]: current[collection].map((record) =>
-        record.id === id
-          ? { ...record, ...values, updatedAt: new Date().toISOString() }
-          : record
+        record.id === id ? updated : record
       ),
     }));
+
+    return updated;
   }, []);
 
-  const remove = useCallback((collection, id) => {
+  const remove = useCallback(async (collection, id) => {
+    await deleteRequest(collection, id);
+
     setRecords((current) => ({
       ...current,
       [collection]: current[collection].filter((record) => record.id !== id),
     }));
   }, []);
 
-  const reset = useCallback(() => setRecords(seedRecords()), []);
+  // Kept under the name the Overview and Topbar already call: it now refetches
+  // the live data instead of restoring sample rows.
+  const reset = reload;
 
   const value = useMemo(
-    () => ({ records, create, update, remove, reset }),
-    [records, create, update, remove, reset]
+    () => ({ records, loading, error, reload, create, update, remove, reset }),
+    [records, loading, error, reload, create, update, remove, reset]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

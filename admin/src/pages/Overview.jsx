@@ -147,7 +147,7 @@ export default function Overview() {
                 icon={RefreshCw}
                 onClick={() => setIsResetting(true)}
               >
-                Reset data
+                Reload data
               </Button>
 
               <Link
@@ -320,13 +320,13 @@ export default function Overview() {
 
       <ConfirmDialog
         open={isResetting}
-        title="Reset demo data?"
-        confirmLabel="Reset"
-        message="Every record you added or edited will be discarded and the original sample data restored."
-        onConfirm={() => {
-          reset();
+        title="Reload data?"
+        confirmLabel="Reload"
+        message="Refetches every assignment, paper, project and review from the database. Unsaved changes in this tab are discarded."
+        onConfirm={async () => {
+          await reset();
           setIsResetting(false);
-          toast.success("Sample data restored");
+          toast.success("Data reloaded from the server");
         }}
         onCancel={() => setIsResetting(false)}
       />

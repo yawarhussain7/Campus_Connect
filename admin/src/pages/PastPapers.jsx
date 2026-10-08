@@ -4,6 +4,7 @@ import ResourcePage from "../components/crud/ResourcePage";
 import Avatar from "../components/ui/Avatar";
 import { Badge } from "../components/ui/Badge";
 import { relativeTime } from "../lib/format";
+import { DEPARTMENTS } from "../lib/departments";
 
 const SEMESTERS = [
   "Semester 1", "Semester 2", "Semester 3", "Semester 4",
@@ -101,7 +102,13 @@ const FIELDS = [
   },
   { name: "exam", label: "Exam", type: "select", options: EXAMS, defaultValue: "Mid" },
   { name: "batch", label: "Batch", required: true, placeholder: "BCS-2024" },
-  { name: "department", label: "Department", defaultValue: "Computer Science" },
+  {
+    name: "department",
+    label: "Department",
+    type: "select",
+    options: DEPARTMENTS,
+    defaultValue: "Computer Science",
+  },
   {
     name: "hasSolution",
     label: "Answer key",
@@ -114,7 +121,7 @@ const FIELDS = [
     label: "Attached file",
     wide: true,
     placeholder: "OS Final 2024.pdf",
-    hint: "File name only — this demo does not store uploads.",
+    hint: "File name reference — students upload the actual file from the student app.",
   },
 ];
 

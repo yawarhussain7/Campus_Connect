@@ -4,6 +4,7 @@ import ResourcePage from "../components/crud/ResourcePage";
 import Avatar from "../components/ui/Avatar";
 import { StatusBadge, Tag } from "../components/ui/Badge";
 import { formatDate } from "../lib/format";
+import { DEPARTMENTS } from "../lib/departments";
 
 const SEMESTERS = [
   "Semester 1", "Semester 2", "Semester 3", "Semester 4",
@@ -133,13 +134,19 @@ const FIELDS = [
     pattern: /^https?:\/\/\S+$/i,
     patternMessage: "Repository link must start with http:// or https://",
   },
-  { name: "department", label: "Department", defaultValue: "Computer Science" },
+  {
+    name: "department",
+    label: "Department",
+    type: "select",
+    options: DEPARTMENTS,
+    defaultValue: "Computer Science",
+  },
   {
     name: "originalName",
     label: "Attached file",
     wide: true,
     placeholder: "Library System.zip",
-    hint: "File name only — this demo does not store uploads.",
+    hint: "File name reference — students upload the actual file from the student app.",
   },
 ];
 

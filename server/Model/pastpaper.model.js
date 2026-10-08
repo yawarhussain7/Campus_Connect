@@ -50,10 +50,11 @@ const PastPaperSchema = new mongoose.Schema(
       trim: true,
     },
 
-    //  File upload fields
+    //  File upload fields. Optional so an admin-catalogued paper (which only
+    //  stores a file name) can exist without an actual attachment.
     fileUrl: {
       type: String,
-      required: true,
+      default: null,
     },
 
     fileName: {

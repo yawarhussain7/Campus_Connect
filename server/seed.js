@@ -26,7 +26,9 @@ const createAdmin = async()=>{
     const admin = await User.create({
         name:'Yawar Hussain',
         email,
-        password,
+        // Store the hash, not the plain password — bcrypt.compare can only
+        // verify against a hash, so the plain value made admin login fail.
+        password: hashed_password,
 
         role:'admin'
     })

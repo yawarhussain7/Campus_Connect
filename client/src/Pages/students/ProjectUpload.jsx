@@ -7,14 +7,7 @@ import Sidebar from '../../Components/common/Sidebar';
 import Header from '../../Components/common/Header';
 import ModernSelect from '../../Components/common/ModernSelect';
 import { uploadProject } from '../../api/project.js';
-
-const DEPARTMENTS = [
-  'Computer Science',
-  'Electrical Eng.',
-  'Management Sciences',
-  'Mechanical Eng.',
-  'Business School',
-];
+import { departmentOptions } from '../../utils/departments.js';
 
 const SEMESTERS = Array.from(
   { length: 8 },
@@ -38,7 +31,6 @@ export default function ProjectUpload() {
   const [desc, setDesc] = useState('');
   const [course, setCourse] = useState('');
   const [subject, setSubject] = useState('');
-  const [dueDate, setDueDate] = useState('');
   const [repo, setRepo] = useState('');
   const [semester, setSemester] = useState('Semester 1');
   const [department, setDepartment] = useState('Computer Science');
@@ -66,7 +58,6 @@ export default function ProjectUpload() {
       formData.append('desc', desc.trim());
       formData.append('course', course.trim());
       formData.append('subject', subject.trim());
-      formData.append('dueDate', dueDate);
       formData.append('repo', repo.trim());
       formData.append('semester', semester);
       formData.append('department', department);
@@ -181,17 +172,6 @@ export default function ProjectUpload() {
               </div>
 
               <div>
-                <label className={labelClass}>Due Date</label>
-
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(event) => setDueDate(event.target.value)}
-                  className={fieldClass}
-                />
-              </div>
-
-              <div>
                 <label className={labelClass}>Repository Link</label>
 
                 <input
@@ -207,10 +187,7 @@ export default function ProjectUpload() {
                 label="Department"
                 value={department}
                 onChange={setDepartment}
-                options={DEPARTMENTS.map((item) => ({
-                  value: item,
-                  label: item,
-                }))}
+                options={departmentOptions}
                 placeholder="Select department"
               />
 

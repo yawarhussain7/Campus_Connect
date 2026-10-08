@@ -5,7 +5,7 @@ import Header from '../../Components/common/Header';
 import ModernSelect from '../../Components/common/ModernSelect';
 import { ArrowLeft, Upload, BookOpen } from 'lucide-react';
 import { Uploadassignment,ShowAllassignment } from '../../api/assignment';
-import { ASSIGNMENT_STATUSES } from '../../utils/assignment.js';
+import { departmentOptions } from '../../utils/departments.js';
 import { ClipLoader } from 'react-spinners';
 
 export default function AssignmentUpload() {
@@ -17,25 +17,16 @@ export default function AssignmentUpload() {
   const [newTeacher, setNewTeacher] = useState('');
   const [newSemester, setNewSemester] = useState('Semester 1');
   const [newDept, setNewDept] = useState('Computer Science');
-  // The course code, deadline and status are what the assignments table shows,
-  // so they are collected here instead of being left empty on the stored row.
+  // Course code is optional; the deadline and status fields no longer exist on
+  // this form, so neither is collected or sent.
   const [newCourse, setNewCourse] = useState('');
-  const [newDueDate, setNewDueDate] = useState('');
-  const [newStatus, setNewStatus] = useState('Submitted');
   const [selectedFile, setSelectedFile] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if (
-      !newTitle ||
-      !newDesc ||
-      !newSubject ||
-      !newTeacher ||
-      !newCourse ||
-      !newDueDate
-    ) {
+    if (!newTitle || !newDesc || !newSubject || !newTeacher) {
       alert('Please fill out all required fields.');
       return;
     }
@@ -50,8 +41,6 @@ export default function AssignmentUpload() {
       formData.append('semester', newSemester);
       formData.append('department', newDept);
       formData.append('course', newCourse.trim().toUpperCase());
-      formData.append('dueDate', newDueDate);
-      formData.append('status', newStatus);
       if (selectedFile) {
         formData.append('file', selectedFile);
       }
@@ -150,11 +139,7 @@ export default function AssignmentUpload() {
                   label="Department"
                   value={newDept}
                   onChange={setNewDept}
-                  options={[
-                    { value: 'Computer Science', label: 'Computer Science' },
-                    { value: 'Electrical Eng.', label: 'Electrical Eng.' },
-                    { value: 'Management Sciences', label: 'Management Sciences' }
-                  ]}
+                  options={departmentOptions}
                   placeholder="Select department"
                 />
               </div>
@@ -180,33 +165,10 @@ export default function AssignmentUpload() {
                 <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-[0.07em] mb-1.5">Course Code</label>
                 <input
                   type="text"
-                  required
                   value={newCourse}
                   onChange={(e) => setNewCourse(e.target.value)}
                   placeholder="e.g., CS305"
                   className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 placeholder:text-slate-400"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-[0.07em] mb-1.5">Due Date</label>
-                <input
-                  type="date"
-                  required
-                  value={newDueDate}
-                  onChange={(e) => setNewDueDate(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700"
-                />
-              </div>
-              <div>
-                <ModernSelect
-                  label="Status"
-                  value={newStatus}
-                  onChange={setNewStatus}
-                  options={ASSIGNMENT_STATUSES.map((status) => ({
-                    value: status,
-                    label: status
-                  }))}
-                  placeholder="Select status"
                 />
               </div>
             </div>

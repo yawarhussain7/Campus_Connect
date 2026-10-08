@@ -60,9 +60,11 @@ const AssignmentSchema = new mongoose.Schema(
       default: "Pending",
     },
 
+    // Optional: the student app always uploads a file, while admin-created
+    // records only carry a file name. Stays null until something is attached.
     fileUrl: {
       type: String,
-      required: true,
+      default: null,
     },
 
     fileName: String,

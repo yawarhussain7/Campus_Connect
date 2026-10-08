@@ -1,5 +1,5 @@
 // src/Pages/students/StudentDashboard.jsx
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ClipboardList,
@@ -19,12 +19,15 @@ import { currentTermLabel, daysUntil } from '../../utils/date';
 import { fromAssignmentRecord, sortByDueDate as sortByDueDateAsc } from '../../utils/assignment.js';
 import { courseOptionsOf, fromProjectRecord } from '../../utils/project.js';
 import { averageRating, fromReviewRecord } from '../../utils/review.js';
+import { mergeDepartments } from '../../utils/departments.js';
 
 import Sidebar from '../../Components/common/Sidebar';
 import Header from '../../Components/common/Header';
 import PageHeading from '../../Components/dashboard/PageHeading';
 import StatTiles from '../../Components/dashboard/StatTiles';
-import DeadlineTable from '../../Components/dashboard/DeadlineTable';
+import SubmissionTrend from '../../Components/dashboard/SubmissionTrend';
+import StatusDonut from '../../Components/dashboard/StatusDonut';
+import CourseWorkload from '../../Components/dashboard/CourseWorkload';
 import ProjectList from '../../Components/dashboard/ProjectList';
 import ProgressBars from '../../Components/dashboard/ProgressBars';
 import ActivityFeed from '../../Components/dashboard/ActivityFeed';
@@ -124,7 +127,7 @@ export default function StudentDashboard() {
         key: 'department',
         label: 'Department',
         placeholder: 'All Departments',
-        options: valuesOf('department'),
+        options: mergeDepartments(valuesOf('department')),
       },
       {
         key: 'course',
@@ -238,8 +241,6 @@ export default function StudentDashboard() {
   const dueThisWeek = allDeadlines.filter(
     (deadline) => (daysUntil(deadline.due) ?? 99) <= 7
   ).length;
-
-  const deadlines = allDeadlines.slice(0, 6);
 
   const statTiles = [
     {
@@ -358,7 +359,23 @@ export default function StudentDashboard() {
                 </div>
               ) : (
                 <>
-                  <DeadlineTable items={deadlines} />
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <SubmissionTrend
+                      assignments={assignments}
+                      projects={projects}
+                    />
+
+                    <StatusDonut
+                      assignments={assignments}
+                      projects={projects}
+                    />
+                  </div>
+
+                  <CourseWorkload
+                    assignments={assignments}
+                    projects={projects}
+                    onOpenAll={navigate}
+                  />
 
                   <ProjectList
                     projects={filteredProjects}

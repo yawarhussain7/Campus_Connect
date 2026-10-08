@@ -9,7 +9,7 @@ import {
   MailCheck,
 } from "lucide-react";
 
-import { isAdminEmail } from "../lib/adminAuth";
+import { apiErrorMessage, forgotPasswordRequest } from "../lib/api";
 import {
   AUTH_PRIMARY_BUTTON_CLASS,
   EMAIL_PATTERN,
@@ -22,8 +22,9 @@ import { cx } from "../lib/format";
 
 /**
  * The password-reset screen at `/forgot-password`. Collects an email address,
- * validates it, then confirms the reset link. Like the sign-in page it runs on
- * local sample data, so nothing is actually emailed.
+ * validates it, then asks the backend (POST /auth/forget-password) to email a
+ * real reset link — the same flow the student app uses, so nothing is faked
+ * client-side any more.
  */
 export default function ForgotPassword() {
   const location = useLocation();
@@ -32,8 +33,9 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState(location.state?.email ?? "");
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault();
 
     if (!email.trim()) {
@@ -46,13 +48,17 @@ export default function ForgotPassword() {
       return;
     }
 
-    // Only an allowlisted admin may be sent a reset link.
-    if (!isAdminEmail(email)) {
-      setError("This email does not have admin access");
-      return;
-    }
+    setSubmitting(true);
 
-    setSent(true);
+    try {
+      await forgotPasswordRequest(email.trim());
+      setSent(true);
+    } catch (requestError) {
+      // e.g. "No account found with that email" — surfaced straight from the API.
+      setError(apiErrorMessage(requestError));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -155,9 +161,13 @@ export default function ForgotPassword() {
                   ) : null}
                 </div>
 
-                <button type="submit" className={AUTH_PRIMARY_BUTTON_CLASS}>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className={AUTH_PRIMARY_BUTTON_CLASS}
+                >
                   <ArrowRight size={16} strokeWidth={2.2} />
-                  Send reset link
+                  {submitting ? "Sending…" : "Send reset link"}
                 </button>
               </form>
 

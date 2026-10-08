@@ -1,13 +1,10 @@
 import axios from 'axios'
-// cheerio 1.x is ESM-only and ships no default export. The previous
-// `import cheerio from 'cheerio'` threw "does not provide an export named
-// 'default'" the moment this module loaded, taking the whole server down.
 import { load } from 'cheerio'
-// to get the teacher data for the cui website it will extract the data and sent 
-const COMSATS_URL =
-    "https://ww2.comsats.edu.pk/faculty/FacultyAtoZ.aspx";
+import dotenv from 'dotenv'
 
+dotenv.config()
 
+const COMSATS_URL = process.env.TEACHER_DATA_URL
 
 /** Every faculty card links here, and the uid is what identifies the teacher. */
 const FACULTY_LINK = /FacultyDetails\.aspx\?Uid=(\d+)/i;
@@ -20,11 +17,6 @@ const cardLines = ($, card) =>
         .map((line) => line.replace(/\s+/g, " ").trim())
         .filter(Boolean);
 
-/**
- * Reads one faculty card. A card reads
- *   Name / Designation / <Department> / "Department," / <Campus> / "Campus"
- * so the two label lines mark where the department and the campus end.
- */
 const parseFacultyCard = ($, card) => {
     const link = $(card).find("a[href*=FacultyDetails]").first()
     const href = link.attr("href")
@@ -57,7 +49,6 @@ export const scrapeComsatsTeachers = async () => {
     try {
         const response = await axios.get(COMSATS_URL, {
             timeout: 30000,
-            // The page is HTML, so make sure axios hands it over unparsed.
             responseType: "text",
 
             headers: {
