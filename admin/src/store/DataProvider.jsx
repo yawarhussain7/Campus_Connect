@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { DataContext } from "./dataContext";
 import {
@@ -7,12 +8,10 @@ import {
   listRequest,
   updateRequest,
 } from "../lib/api";
+import { clearSession } from "../lib/session";
 
 /** The collections every admin screen reads from. */
 const COLLECTIONS = ["assignments", "papers", "projects", "reviews", "users"];
-
-/** Which collections may be written; accounts have their own guarded routes. */
-const WRITABLE = new Set(["assignments", "papers", "projects", "reviews", "users"]);
 
 const EMPTY_RECORDS = {
   assignments: [],
@@ -20,12 +19,6 @@ const EMPTY_RECORDS = {
   projects: [],
   reviews: [],
   users: [],
-};
-
-const assertWritable = (collection) => {
-  if (!WRITABLE.has(collection)) {
-    throw new Error("This collection cannot be edited");
-  }
 };
 
 /**
@@ -38,26 +31,30 @@ function normalise(doc) {
   return { ...rest, id: _id };
 }
 
-/**
- * Holds the whole catalogue in memory, sourced from the Express API
- * (`/admin/<collection>/all`) instead of the old seed data. Reads happen once
- * on mount (and whenever `reload` is called); create / update / delete go
- * straight to the server and fold the returned document back into the list, so
- * what the tables show is always what MongoDB holds.
- *
- * `loading` and `error` let each screen render a spinner or a retry state
- * rather than pretending an unreachable API is an empty catalogue.
- */
+
 export function DataProvider({ children }) {
   const [records, setRecords] = useState(EMPTY_RECORDS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   /**
-   * Fetches every collection and resolves to the records map. Deliberately
-   * contains no setState — callers attach their own callbacks, which keeps the
-   * initial effect clear of synchronous state updates
-   * (react-hooks/set-state-in-effect).
+   * The API answers 401 (no/expired session) or 403 (signed in but not an
+   * admin) when the httpOnly cookie no longer matches an admin account — for
+   * example a student session from the shared localhost cookie jar, or an
+   * expired token. The local session cannot fix itself, so it is dropped and
+   * the user is sent back to sign-in rather than left behind a wall of errors.
+   */
+  const endSession = useCallback(() => {
+    clearSession();
+    navigate("/login", { replace: true });
+  }, [navigate]);
+
+  /**
+   * Fetches every collection and resolves to the records map. Shared by the
+   * mount effect and `reload`, and deliberately contains no setState — callers
+   * attach their own callbacks, which keeps the effect body clear of
+   * synchronous state updates (react-hooks/set-state-in-effect).
    */
   const loadAll = useCallback(
     () =>
@@ -85,7 +82,15 @@ export function DataProvider({ children }) {
         setRecords(next);
       })
       .catch((loadError) => {
-        if (active) setError(loadError.message);
+        if (!active) return;
+
+        // 401/403 mean the cookie no longer represents an admin: sign out.
+        if (loadError?.status === 401 || loadError?.status === 403) {
+          endSession();
+          return;
+        }
+
+        setError(loadError.message);
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -94,9 +99,9 @@ export function DataProvider({ children }) {
     return () => {
       active = false;
     };
-  }, [loadAll]);
+  }, [loadAll, endSession]);
 
-  // Manual refresh (reload button, error retry): show the spinner again, then
+  // Manual refresh (reload button, Topbar reset): show the spinner again, then
   // refetch. Only ever called from event handlers, never from an effect.
   const reload = useCallback(async () => {
     setLoading(true);
@@ -105,15 +110,18 @@ export function DataProvider({ children }) {
     try {
       setRecords(await loadAll());
     } catch (loadError) {
+      if (loadError?.status === 401 || loadError?.status === 403) {
+        endSession();
+        return;
+      }
+
       setError(loadError.message);
     } finally {
       setLoading(false);
     }
-  }, [loadAll]);
+  }, [loadAll, endSession]);
 
   const create = useCallback(async (collection, values) => {
-    assertWritable(collection);
-
     const payload = await createRequest(collection, values);
     const created = normalise(payload.data);
 
@@ -126,8 +134,6 @@ export function DataProvider({ children }) {
   }, []);
 
   const update = useCallback(async (collection, id, values) => {
-    assertWritable(collection);
-
     const payload = await updateRequest(collection, id, values);
     const updated = normalise(payload.data);
 
@@ -142,8 +148,6 @@ export function DataProvider({ children }) {
   }, []);
 
   const remove = useCallback(async (collection, id) => {
-    assertWritable(collection);
-
     await deleteRequest(collection, id);
 
     setRecords((current) => ({

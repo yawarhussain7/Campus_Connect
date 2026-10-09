@@ -1,5 +1,5 @@
 import { loginService,registerService,forgetPasswordService,resetPasswordService } from "../Service/auth.service.js"
-
+import { verifyEmailService, resendVerificationByEmail } from '../Service/emailVerification.service.js'
 
 export const registerController = async (req,res)=>{
 try{
@@ -13,17 +13,15 @@ try{
     }
     const result = await registerService({name,email,password})
 
-    res.cookie('token',result.token,{
-        httpOnly:true,
-        secure:false,
-        sameSite:'lax',
-        maxAge: 1 * 24 * 60 * 60 * 1000,
-    })
+    // No session is issued here: sign-in stays locked until the emailed
+    // verification link (or code) is entered, so the response only carries
+    // what the verification screen needs.
     res.status(201).send({
-        message:"User Registered Successfully",
+        message:"Account created. Check your inbox for the verification link.",
         success:true,
-        data:result.user,
-        token:result.token
+        data:{
+            email:result.user.email
+        }
     })
 }catch(error){
     console.error(error.message)
@@ -64,10 +62,12 @@ export const loginController = async(req,res)=>{
     }catch(error){
         // Bad credentials are a 401 from the service, not a 500. The client
         // surfaces `message`, which is why the previous "Internal Server Error"
-        // toast showed up on every wrong password.
+        // toast showed up on every wrong password. `code` lets the client tell
+        // "not verified yet" apart from a real failure and route accordingly.
         res.status(error.status || 500).send({
             message:error.message || 'Internal Server Error',
-            success:false
+            success:false,
+            code:error.code
         })
     }
 }
@@ -147,3 +147,43 @@ export const resetPasswordController = async(req,res)=>{
         })
     }
 }
+
+// Re-sends the verification link by email. Used right after signup and from
+// the verification screen — no session exists there, because login is locked
+// until the address is verified.
+export const sendVerification = async (req, res) => {
+  try {
+    const result = await resendVerificationByEmail(req.body?.email)
+
+    return res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    // Service marks client-side failures (missing email) with a `status`;
+    // an SMTP failure stays a 500.
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || "Unable to send verification email",
+    });
+  }
+};
+
+// Consumes the one-time token carried by the emailed link (?token=...).
+export const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    const result = await verifyEmailService(token);
+
+    return res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    return res.status(error.status || 400).json({
+      success: false,
+      message: error.message || "Email verification failed",
+    });
+  }
+};

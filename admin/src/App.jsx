@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 
 import AppShell from "./components/layout/AppShell";
 import RequireAuth from "./components/layout/RequireAuth";
+import { DataProvider } from "./store/DataProvider.jsx";
 
 import Assignments from "./pages/Assignments";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -20,7 +21,19 @@ const App = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
 
       <Route element={<RequireAuth />}>
-        <Route element={<AppShell />}>
+        {/*
+          DataProvider wraps only the signed-in shell: every consumer
+          (Topbar, Overview, the resource pages) lives inside it, and mounting
+          below RequireAuth means the /admin list requests fire only once a
+          real admin session exists — not on the public sign-in screens.
+        */}
+        <Route
+          element={
+            <DataProvider>
+              <AppShell />
+            </DataProvider>
+          }
+        >
           <Route path="/overview" element={<Overview />} />
           <Route path="/assignments" element={<Assignments />} />
           <Route path="/past-papers" element={<PastPapers />} />

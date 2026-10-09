@@ -2,6 +2,7 @@ import React from 'react'
 import AuthPage from './Pages/common/AuthPage'
 import ForgotPasswordPage from './Pages/common/ForgotPasswordPage'
 import ResetPasswordPage from './Pages/common/ResetPasswordPage'
+import VerifyEmailPage from './Pages/common/VerifyEmailPage'
 import {Routes,Route,Navigate} from 'react-router-dom'
 import { ToastContainer } from "react-toastify";
 import { AppProvider } from './context/AppContext'
@@ -21,6 +22,9 @@ const App = () => {
       <Route path="/auth/signUp" element={<AuthPage />} />
       <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+      {/* The verification email links to /verify-email?token=...; the page
+          hands the token to the API and reports the outcome. */}
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/student/*" element={<StudentRoute />} />
       {/* Unmatched URLs used to render an empty page (plus a console warning)
           instead of taking the visitor somewhere useful. */}

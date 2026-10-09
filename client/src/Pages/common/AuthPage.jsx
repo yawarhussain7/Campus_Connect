@@ -103,15 +103,26 @@ export default function AuthPage() {
         const response = await SignUpUser(formData);
 
         if (response.success) {
-          toast.success('Register successful!');
-          loginUser(response.data);
-          navigate('/auth/signIn');
+          // No session is issued at signup — the account is locked until the
+          // emailed link (or token) is entered, so go to the verify screen.
+          toast.success('Account created! Check your inbox for the verification link.');
+          navigate('/verify-email', { state: { email: formData.email.trim() } });
         } else {
           toast.error(response?.message || 'Registration failed. Please try again.');
         }
       }
     } catch (error) {
       console.error(error);
+
+      // The server locks sign-in until the address is verified; send the user
+      // to the verification screen instead of a dead-end toast. The cookie-less
+      // 403 carries the marker `code`, surfaced by the axios interceptor.
+      if (error?.code === 'EMAIL_NOT_VERIFIED') {
+        toast.info(error?.message || 'Please verify your email before signing in.');
+        navigate('/verify-email', { state: { email: formData.email.trim() } });
+        return;
+      }
+
       toast.error(error?.message || 'Something went wrong. Please try again.');
     } finally {
       setSubmitting(false);

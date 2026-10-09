@@ -4,6 +4,7 @@ import GenereateJWT from '../utils/GenerateJWT.js'
 import crypto from 'crypto'
 import {sendEmail} from '../utils/sendEmail.js'
 import resetPasswordEmail from '../utils/resetPassword.js'
+import { sendEmailVerification } from './emailVerification.service.js'
 
 const registerService = async({name,email,password})=>{
     try{
@@ -23,6 +24,15 @@ const registerService = async({name,email,password})=>{
             password:hashedPassword
         })
 
+        // Kick off email verification. A mail-server hiccup must not roll back
+        // the signup: the user can always request a fresh link from Settings,
+        // so the failure is only logged here.
+        try {
+            await sendEmailVerification(newUser._id)
+        } catch (mailError) {
+            console.error('Verification email not sent:', mailError.message)
+        }
+
         const token = GenereateJWT(newUser._id,newUser.email)
         return {
            user:{
@@ -31,7 +41,9 @@ const registerService = async({name,email,password})=>{
             email:newUser.email,
             // Carried to the client so the admin console can tell an admin
             // session apart from a student one after signing in.
-            role:newUser.role
+            role:newUser.role,
+            // Lets the client show the "verify your email" notice immediately.
+            isEmailVerified:newUser.isEmailVerified
            },
            token
         }
@@ -66,6 +78,17 @@ const loginService = async({email,password})=>{
             throw error
         }
 
+        // Sign-in stays locked until the emailed verification code is entered.
+        // Admins are exempt so the seeded admin account is never walled out of
+        // the admin portal by an email it never receives.
+        if(!user.isEmailVerified && user.role !== 'admin'){
+            const error = new Error('Your email is not verified yet. Enter the code we sent to your inbox to activate your account.')
+            error.status = 403
+            // Consumed by the client to route to the verification screen.
+            error.code = 'EMAIL_NOT_VERIFIED'
+            throw error
+        }
+
         const token = GenereateJWT(user._id,user.email)
 
         return {
@@ -75,7 +98,9 @@ const loginService = async({email,password})=>{
                 email:user.email,
                 // The admin console signs in through this endpoint and checks
                 // the role before granting access to /admin data.
-                role:user.role
+                role:user.role,
+                // Drives the "verify your email" notice on the client.
+                isEmailVerified:user.isEmailVerified
             },
             token
         };
@@ -118,11 +143,6 @@ const forgetPasswordService = async(email)=>{
 
         await user.save()
 
-        // The client route that renders the "choose a new password" form. It is
-        // configurable so a deployment can point the link at the right host, and
-        // falls back to the local student app so a missing CLIENT_URL can never
-        // produce a broken "undefined/..." link. A trailing slash is trimmed so
-        // the URL never ends up as ".../ /reset-password".
         const clientURL = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/+$/, '')
         const resultURL = `${clientURL}/reset-password/${resetToken}`
 
@@ -172,8 +192,7 @@ const resetPasswordService = async(token,newPassword)=>{
 
         user.password = hashedPassword
 
-        // Burn the token so the link cannot be reused, then persist the new
-        // password. The previous version forgot to save, so nothing changed.
+        
         user.resetPasswordToken = null
         user.resetPasswordTokenExpire = null
 

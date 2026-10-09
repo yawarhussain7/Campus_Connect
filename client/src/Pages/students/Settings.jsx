@@ -10,10 +10,14 @@ import {
   Lock,
   Camera,
   Key,
-  Loader2
+  Loader2,
+  Mail,
+  ShieldCheck,
+  ShieldAlert
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { updateProfile, uploadProfileImage, avatarUrl } from '../../api/profile';
+import { ResendVerificationEmail } from '../../api/auth';
 import { toast } from 'react-toastify';
 
 export default function Settings() {
@@ -33,6 +37,32 @@ export default function Settings() {
   });
 
   const [saving, setSaving] = useState(false);
+
+  // Drives the "Resend verification email" button in the account tab. The
+  // address travels in the body, since this endpoint is shared with the
+  // post-signup screen where no session exists.
+  const [resendingEmail, setResendingEmail] = useState(false);
+
+  // Emails a fresh verification link to the signed-in user. The old link (if
+  // any) is invalidated server-side, since a new token overwrites it.
+  const handleResendVerification = async () => {
+    setResendingEmail(true);
+
+    try {
+      const response = await ResendVerificationEmail(user?.email);
+
+      if (response.success) {
+        toast.success(response.message || 'Verification email sent — check your inbox.');
+      } else {
+        toast.error(response.message || 'Could not send the verification email.');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error?.message || 'Could not send the verification email.');
+    } finally {
+      setResendingEmail(false);
+    }
+  };
 
   // Notifications State
   const [preferences, setPreferences] = useState({
@@ -205,6 +235,51 @@ export default function Settings() {
                       <div className="md:col-span-2">
                         <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-[0.07em] mb-1.5">Primary Academic Email</label>
                         <input type="email" value={accountForm.email} onChange={(e) => handleInputChange('account', 'email', e.target.value)} className="w-full text-xs rounded-xl px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 transition-all font-medium" />
+                      </div>
+
+                      {/* Email verification status. `isEmailVerified` arrives with
+                          the profile payload; unverified accounts can request a
+                          fresh link without leaving this page. */}
+                      <div className="md:col-span-2 flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          {user?.isEmailVerified ? (
+                            <>
+                              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emerald-100">
+                                <ShieldCheck className="h-4.5 w-4.5 text-emerald-600" />
+                              </span>
+                              <div>
+                                <p className="text-xs font-semibold text-slate-800">Email verified</p>
+                                <p className="text-[11px] text-slate-400">Your address is confirmed — no action needed.</p>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-amber-100">
+                                <ShieldAlert className="h-4.5 w-4.5 text-amber-600" />
+                              </span>
+                              <div>
+                                <p className="text-xs font-semibold text-slate-800">Email not verified</p>
+                                <p className="text-[11px] text-slate-400">Check your inbox for the verification link.</p>
+                              </div>
+                            </>
+                          )}
+                        </div>
+
+                        {!user?.isEmailVerified && (
+                          <button
+                            type="button"
+                            onClick={handleResendVerification}
+                            disabled={resendingEmail}
+                            className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-blue-600 px-3.5 py-2 text-[11px] font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {resendingEmail ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Mail className="h-3.5 w-3.5" />
+                            )}
+                            {resendingEmail ? 'Sending…' : 'Resend link'}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

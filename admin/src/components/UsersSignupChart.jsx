@@ -35,7 +35,10 @@ function buildWindow() {
  */
 export default function UsersSignupChart() {
   const { records, loading } = useData();
-  const users = records.users;
+  // Degrade to the empty state rather than crashing the whole Overview if the
+  // store ever loads without the accounts collection (memo keeps the fallback
+  // reference stable so the month-bucketing memo below never re-runs).
+  const users = useMemo(() => records.users ?? [], [records.users]);
 
   const monthWindow = useMemo(() => buildWindow(), []);
 
