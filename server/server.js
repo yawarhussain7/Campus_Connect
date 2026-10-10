@@ -81,6 +81,32 @@ app.use((error, req, res, next) => {
     })
 })
 
-app.listen(PORT, () => {
+// `app.listen` reports bind failures (EADDRINUSE when an earlier instance of
+// the server is still holding the port) through the server's `error` event.
+// Without a listener Node turns that into an uncaught exception, so the process
+// died with a raw stack trace instead of a message saying what to do.
+const server = app.listen(PORT, () => {
     console.log(`Server is running on port: http://localhost:${PORT}`)
+})
+
+server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use.`)
+        console.error('Another instance of the server is still running — stop it (or change PORT in .env) and start again.')
+    } else {
+        console.error('Server failed to start:', error)
+    }
+    process.exit(1)
+})
+
+// Node's default is to kill the process for any promise no route awaited (a
+// fire-and-forget mail send, a mongoose callback, ...). One such rejection used
+// to take the whole API down mid-request, so it is logged and the server keeps
+// serving; the stack still lands in the console.
+process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled promise rejection:', reason)
+})
+
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught exception:', error)
 })

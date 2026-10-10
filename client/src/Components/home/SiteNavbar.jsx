@@ -1,21 +1,14 @@
-
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { GraduationCap, Menu, Search, X } from 'lucide-react';
+import { GraduationCap, LayoutDashboard, Library, Menu, Search, X } from 'lucide-react';
 
-/**
- * Marketing navigation, shared by the public landing page and the resource
- * library. Most items are anchors into the landing page (written as `/#id` so
- * they resolve from any route) while "Resources" is a route of its own.
- * "Search" focuses whichever hero search field is currently on screen.
- */
+import { useAppContext } from '../../context/AppContext';
 
 const NAV_LINKS = [
   { id: 'home', label: 'Home', to: '/#home' },
   { id: 'features', label: 'Features', to: '/#features' },
-  { id: 'resources', label: 'Resources', to: '/resources' },
+  { id: 'how', label: 'How it works', to: '/#how' },
   { id: 'community', label: 'Community', to: '/#community' },
-  { id: 'about', label: 'About', to: '/#about' },
 ];
 
 const linkClass = (isActive) =>
@@ -26,9 +19,10 @@ const linkClass = (isActive) =>
       : 'border-transparent text-slate-600 hover:text-blue-600',
   ].join(' ');
 
-const Navbar = () => {
+const SiteNavbar = ({ resourceCount = 0 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAppContext();
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -49,7 +43,6 @@ const Navbar = () => {
   }, [location.pathname, location.hash, location.key]);
 
   const isActive = (link) => {
-    if (link.id === 'resources') return onResourcesPage;
     if (onResourcesPage) return false;
 
     return currentHash ? currentHash === link.id : link.id === 'home';
@@ -71,6 +64,11 @@ const Navbar = () => {
     field.focus();
   };
 
+  const openPortal = () => {
+    setMenuOpen(false);
+    navigate(user ? '/student/dashboard' : '/auth/signIn');
+  };
+
   return (
     <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <div className="mx-auto flex h-[76px] max-w-7xl items-center gap-8 px-5 sm:px-8">
@@ -89,7 +87,7 @@ const Navbar = () => {
           </span>
         </Link>
 
-        {/* Anchors + the resource library route */}
+        {/* Anchors into the landing page */}
         <div className="hidden items-center gap-8 md:flex">
           {NAV_LINKS.map((link) => (
             <Link key={link.id} to={link.to} className={linkClass(isActive(link))}>
@@ -100,6 +98,18 @@ const Navbar = () => {
 
         {/* Actions */}
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          {/* Live library size, straight from the API. */}
+          {resourceCount > 0 && (
+            <Link
+              to="/#community"
+              title={`${resourceCount} resources shared so far`}
+              className="hidden items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50/80 px-3 py-1.5 text-[12px] font-semibold text-blue-700 transition hover:bg-blue-100 lg:inline-flex"
+            >
+              <Library className="h-3.5 w-3.5" />
+              {resourceCount.toLocaleString('en-US')} resources
+            </Link>
+          )}
+
           <button
             type="button"
             onClick={focusSearchField}
@@ -109,19 +119,32 @@ const Navbar = () => {
             <Search className="h-[18px] w-[18px]" />
           </button>
 
-          <Link
-            to="/auth/signIn"
-            className="hidden rounded-xl border border-slate-200 px-4 py-2.5 text-[13.5px] font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:inline-flex"
-          >
-            Login
-          </Link>
+          {user ? (
+            <button
+              type="button"
+              onClick={openPortal}
+              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-[13.5px] font-semibold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Open dashboard
+            </button>
+          ) : (
+            <>
+              <Link
+                to="/auth/signIn"
+                className="hidden rounded-xl border border-slate-200 px-4 py-2.5 text-[13.5px] font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:inline-flex"
+              >
+                Sign in
+              </Link>
 
-          <Link
-            to="/auth/signUp"
-            className="inline-flex rounded-xl bg-blue-600 px-4 py-2.5 text-[13.5px] font-semibold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md"
-          >
-            Sign Up
-          </Link>
+              <Link
+                to="/auth/signUp"
+                className="inline-flex rounded-xl bg-blue-600 px-4 py-2.5 text-[13.5px] font-semibold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md"
+              >
+                Join free
+              </Link>
+            </>
+          )}
 
           <button
             type="button"
@@ -155,7 +178,7 @@ const Navbar = () => {
             ))}
           </div>
 
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={focusSearchField}
@@ -165,12 +188,31 @@ const Navbar = () => {
               Search
             </button>
 
-            <Link
-              to="/auth/signIn"
-              className="inline-flex rounded-xl border border-slate-200 px-4 py-2.5 text-[13.5px] font-semibold text-slate-700 transition hover:bg-slate-50"
-            >
-              Login
-            </Link>
+            {user ? (
+              <button
+                type="button"
+                onClick={openPortal}
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-[13.5px] font-semibold text-white transition hover:bg-blue-700"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Open dashboard
+              </button>
+            ) : (
+              <Link
+                to="/auth/signIn"
+                onClick={() => setMenuOpen(false)}
+                className="inline-flex rounded-xl border border-slate-200 px-4 py-2.5 text-[13.5px] font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                Sign in
+              </Link>
+            )}
+
+            {resourceCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 text-[12px] font-semibold text-blue-700">
+                <Library className="h-3.5 w-3.5" />
+                {resourceCount.toLocaleString('en-US')} resources
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -178,4 +220,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default SiteNavbar;

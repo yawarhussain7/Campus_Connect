@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { BookOpen, GraduationCap, Layers, Star } from 'lucide-react';
+import { BookOpen, MessagesSquare, School, Layers } from 'lucide-react';
 
-/** Headline figures for the landing page. */
-const STATS = [
+/**
+ * Fallback figures shown until the landing page has read the API (or when it
+ * cannot be reached). The real numbers arrive through the `stats` prop.
+ */
+const FALLBACK_STATS = [
   { icon: Layers, value: 4, decimals: 0, suffix: '', label: 'Academic modules' },
-  { icon: BookOpen, value: 12000, decimals: 0, suffix: '+', label: 'Resources shared' },
-  { icon: GraduationCap, value: 3500, decimals: 0, suffix: '+', label: 'Active students' },
-  { icon: Star, value: 4.9, decimals: 1, suffix: '/5', label: 'Average rating' },
+  { icon: BookOpen, value: 0, decimals: 0, suffix: '+', label: 'Resources shared' },
+  { icon: MessagesSquare, value: 0, decimals: 0, suffix: '+', label: 'Teacher reviews' },
+  { icon: School, value: 0, decimals: 0, suffix: '+', label: 'Faculty profiles' },
 ];
 
 const formatValue = (value, decimals) =>
@@ -85,13 +88,15 @@ const Counter = ({ value, decimals = 0, suffix = '', duration = 1400 }) => {
 
 /**
  * Slim trust band under the hero: four animated figures separated by hairlines.
+ * The figures are the real library totals the landing page fetched from the
+ * API (see `stats`); until they arrive the zeroed fallbacks keep the layout.
  */
-export default function StatsBand() {
+export default function StatsBand({ stats = FALLBACK_STATS }) {
   return (
     <section className="border-b border-slate-100 bg-white">
       <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
         <dl className="grid grid-cols-2 gap-y-8 sm:grid-cols-4">
-          {STATS.map(({ icon: Icon, value, decimals, suffix, label }) => (
+          {stats.map(({ icon: Icon, value, decimals, suffix, label }) => (
             <div
               key={label}
               className="flex flex-col items-center gap-2 px-2 text-center sm:border-r sm:border-slate-100 sm:last:border-r-0"

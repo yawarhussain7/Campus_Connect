@@ -1,147 +1,175 @@
-import { ClipboardList, CodeXml, FileSearch, FileText } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { BookOpen, Layers, MessagesSquare, School } from 'lucide-react';
 
-import Navbar from '../../Components/common/Navbar';
+import { ShowAllassignment } from '../../api/assignment';
+import { ShowPapers } from '../../api/paper';
+import { ShowProjects } from '../../api/project';
+import { ShowReviews } from '../../api/review';
+import { ShowAllTeachers } from '../../api/teacher';
+import { formatFileSize } from '../../utils/format';
+import { formatRelativeTime } from '../../utils/date';
+import { useAppContext } from '../../context/AppContext';
+
+import SiteNavbar from '../../Components/home/SiteNavbar';
 import Hero from '../../Components/home/Hero';
 import StatsBand from '../../Components/home/StatsBand';
 import FeatureGrid from '../../Components/home/FeatureGrid';
-import FeatureCard from '../../Components/home/FeatureCard';
-import Reveal from '../../Components/home/Reveal';
 import HowItWorks from '../../Components/home/HowItWorks';
 import PopularResources from '../../Components/home/PopularResources';
 import Testimonials from '../../Components/home/Testimonials';
 import CTASection from '../../Components/home/CTASection';
 import SiteFooter from '../../Components/home/SiteFooter';
 
-/** Browse-by-type grid. Each card deep-links into the matching student section. */
-const CATEGORIES = [
-  {
-    id: 'notes',
-    title: 'Notes',
-    desc: 'Find and share class notes, summaries and study guides.',
-    icon: FileText,
-    tone: 'blue',
-    to: '/student/resources',
-  },
-  {
-    id: 'projects',
-    title: 'Projects',
-    desc: 'Access project ideas, source code and complete projects.',
-    icon: CodeXml,
-    tone: 'emerald',
-    to: '/student/projects',
-  },
-  {
-    id: 'past-papers',
-    title: 'Past Papers',
-    desc: 'Get past papers from different courses and universities.',
-    icon: FileSearch,
-    tone: 'violet',
-    to: '/student/past-papers',
-  },
-  {
-    id: 'assignments',
-    title: 'Assignments',
-    desc: 'View and share assignments, solutions and helpful resources.',
-    icon: ClipboardList,
-    tone: 'amber',
-    to: '/student/assignments',
-  },
-];
+/**
+ * The card's file-type tile, derived from the stored file name / path. A
+ * project that only carries a repository link reads as a code resource.
+ */
+const kindOf = ({ fileUrl, fileName, repo }) => {
+  const name = String(fileName || fileUrl || '').toLowerCase();
 
-/** Static showcase of the most downloaded uploads. */
-const POPULAR_RESOURCES = [
-  {
-    id: 'res-1',
-    title: 'Calculus Notes (Chapter 1-5)',
-    kind: 'pdf',
-    category: 'Notes',
-    downloads: '1.2k downloads',
-    age: '2 days ago',
-    to: '/student/resources',
-  },
-  {
-    id: 'res-2',
-    title: 'Web Development Project',
-    kind: 'code',
-    category: 'Projects',
-    downloads: '856 downloads',
-    age: '3 days ago',
-    to: '/student/projects',
-  },
-  {
-    id: 'res-3',
-    title: 'Physics Past Paper 2023',
-    kind: 'pdf',
-    category: 'Past Papers',
-    downloads: '1.5k downloads',
-    age: '5 days ago',
-    to: '/student/past-papers',
-  },
-  {
-    id: 'res-4',
-    title: 'Data Structures Assignment',
-    kind: 'doc',
-    category: 'Assignments',
-    downloads: '642 downloads',
-    age: '1 week ago',
-    to: '/student/assignments',
-  },
-];
+  if (name.endsWith('.pdf')) return 'pdf';
+  if (name.endsWith('.doc') || name.endsWith('.docx')) return 'doc';
+  if (!fileUrl && repo) return 'code';
+
+  return 'pdf';
+};
+
+/** Maps an assignment / paper / project row onto a "Popular Resources" card. */
+const toResourceCard = (record, { title, category, to }) => ({
+  id: record._id,
+  title: title || 'Untitled resource',
+  category,
+  to,
+  kind: kindOf(record),
+  downloads: record.fileSize ? `${formatFileSize(record.fileSize)} file` : 'Shared by students',
+  age: formatRelativeTime(record.createdAt),
+  createdAt: record.createdAt || '',
+});
 
 /**
  * Public landing page. A single vertical flow of marketing sections — hero,
- * trust figures, benefits, the browse-by-type grid, the how-it-works steps,
- * popular resources, testimonials, a closing CTA and the footer. Every anchor
- * id here is referenced by the Navbar and the footer.
+ * trust figures, benefits, the how-it-works steps, popular resources,
+ * testimonials, a closing CTA and the footer. Every anchor id here is
+ * referenced by the SiteNavbar and the footer.
+ *
+ * The trust figures, the navbar's library counter and the "Popular Resources"
+ * cards are read live from the public catalogue endpoints (assignments, past
+ * papers, projects, reviews and the faculty directory), so the page always
+ * shows the real size and freshness of the library. A failed request simply
+ * leaves that surface at zero / empty instead of inventing numbers.
  */
-const LandingPage = () => (
-  <div className="min-h-screen bg-white">
-    <Navbar />
+const LandingPage = () => {
+  const { user } = useAppContext();
 
-    <main>
-      <Hero />
-      <StatsBand />
-      <FeatureGrid />
+  const [resourceCount, setResourceCount] = useState(0);
+  const [stats, setStats] = useState(null);
+  const [popular, setPopular] = useState([]);
 
-      {/* Browse by resource type */}
-      <section id="resources" className="scroll-mt-20 bg-white">
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20">
-          <Reveal className="mx-auto mb-12 max-w-2xl text-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3.5 py-1.5 text-[12px] font-semibold text-blue-700">
-              Browse the library
-            </span>
+  useEffect(() => {
+    let isActive = true;
 
-            <h2 className="mt-5 text-[28px] font-extrabold leading-tight tracking-tight text-slate-900 sm:text-[36px]">
-              Everything, sorted by <span className="gradient-text">what you need</span>
-            </h2>
+    const load = async () => {
+      const [assignmentResult, paperResult, projectResult, reviewResult, teacherResult] =
+        await Promise.allSettled([
+          ShowAllassignment(),
+          ShowPapers(),
+          ShowProjects(),
+          ShowReviews(),
+          ShowAllTeachers(),
+        ]);
 
-            <p className="mx-auto mt-4 max-w-xl text-[14.5px] leading-relaxed text-slate-500">
-              Four focused modules, one login. Jump straight to the material that helps you
-              most.
-            </p>
-          </Reveal>
+      if (!isActive) return;
 
-          <div className="grid items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {CATEGORIES.map(({ id, ...card }, index) => (
-              <Reveal key={id} delay={index * 70}>
-                <FeatureCard {...card} />
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      // The client unwraps the JSON envelope, but a bare array is accepted too.
+      const recordsOf = (result) => {
+        if (result.status !== 'fulfilled') {
+          console.error('Landing page request failed:', result.reason);
+          return [];
+        }
 
-      <HowItWorks />
+        const payload = result.value?.data ?? result.value;
 
-      <PopularResources resources={POPULAR_RESOURCES} />
+        return Array.isArray(payload) ? payload : [];
+      };
 
-      <Testimonials />
+      const assignments = recordsOf(assignmentResult);
+      const papers = recordsOf(paperResult);
+      const projects = recordsOf(projectResult);
+      const reviews = recordsOf(reviewResult);
+      const teachers = recordsOf(teacherResult);
 
-      <CTASection />
-    </main>
+      const totalResources = assignments.length + papers.length + projects.length;
 
-    <SiteFooter />
-  </div>
-);
+      setResourceCount(totalResources);
+
+      setStats([
+        { icon: Layers, value: 4, decimals: 0, suffix: '', label: 'Academic modules' },
+        { icon: BookOpen, value: totalResources, decimals: 0, suffix: '+', label: 'Resources shared' },
+        { icon: MessagesSquare, value: reviews.length, decimals: 0, suffix: '+', label: 'Teacher reviews' },
+        { icon: School, value: teachers.length, decimals: 0, suffix: '+', label: 'Faculty profiles' },
+      ]);
+
+      // The four newest uploads across the three catalogues.
+      setPopular(
+        [
+          ...assignments.map((row) =>
+            toResourceCard(row, {
+              title: row.title,
+              category: 'Assignments',
+              to: '/student/assignments',
+            })
+          ),
+          ...papers.map((row) =>
+            toResourceCard(row, {
+              title: row.subject,
+              category: 'Past Papers',
+              to: '/student/past-papers',
+            })
+          ),
+          ...projects.map((row) =>
+            toResourceCard(row, {
+              title: row.title,
+              category: 'Projects',
+              to: '/student/projects',
+            })
+          ),
+        ]
+          .sort((a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0))
+          .slice(0, 4)
+      );
+    };
+
+    load();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-white">
+      <SiteNavbar resourceCount={resourceCount} />
+
+      <main>
+        <Hero />
+        <StatsBand stats={stats || undefined} />
+        <FeatureGrid />
+
+        <HowItWorks />
+
+        <PopularResources
+          resources={popular}
+          viewAllTo={user ? '/student/dashboard' : '/resources'}
+        />
+
+        <Testimonials />
+
+        <CTASection />
+      </main>
+
+      <SiteFooter />
+    </div>
+  );
+};
 
 export default LandingPage;

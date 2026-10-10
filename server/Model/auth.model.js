@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { boolean } from 'zod'
 const UserSchema = new mongoose.Schema({
     name:{
         type:String,
@@ -60,15 +61,20 @@ const UserSchema = new mongoose.Schema({
         type:String,
         default:null
     },
-
-    // Gender picks the default portrait (the male/female icon shipped in the
-    // client's public folder) shown wherever the student has no uploaded
-    // avatar. Optional so accounts created before this field keep working.
     gender:{
         type:String,
         enum:['male','female'],
         default:null
     },
+    
+    isblock:{
+        type:Boolean,
+        default:false
+    },
+    blockStatus:{
+        type:String,
+        default:'No block'
+    }
 
 },{
     timestamps:true

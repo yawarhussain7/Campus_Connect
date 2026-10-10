@@ -117,7 +117,7 @@ const Hero = () => {
             </button>
 
             <a
-              href="#resources"
+              href="#community"
               className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-[13.5px] font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
             >
               Browse resources

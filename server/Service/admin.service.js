@@ -231,3 +231,78 @@ export const deleteUserService = async (id, adminId) => {
 
   return toSafeUser(removed);
 };
+
+/**
+ * PUT /admin/users/:id/verify-email — the admin confirms an address by hand
+ * (the student never received the emailed link). The one-time token fields are
+ * cleared so a leaked link cannot be replayed after the manual verification.
+ *
+ * The token fields are select:false and `password` is required by the model's
+ * save() validation, so all three are pulled in explicitly (same reason as
+ * updateUserService).
+ */
+export const verifyUserEmailService = async (id) => {
+  const user = await User.findById(id).select(
+    "+password +emailVerificationToken +emailVerificationTokenExpire"
+  );
+
+  if (!user) {
+    const error = new Error("User not found");
+    error.status = 404;
+    throw error;
+  }
+
+  if (user.isEmailVerified) {
+    const error = new Error("This email is already verified");
+    error.status = 409;
+    throw error;
+  }
+
+  user.isEmailVerified = true;
+  user.emailVerificationToken = null;
+  user.emailVerificationTokenExpire = null;
+
+  await user.save();
+
+  return toSafeUser(user);
+};
+
+/**
+ * PUT /admin/users/:id/block — sets `isblock` to the requested state, so the
+ * console can offer both "Block" and "Unblock" against the same endpoint.
+ * Blocking takes effect on the next sign-in *and* immediately on any live
+ * session (both auth middlewares re-read the flag from the database).
+ *
+ * An admin must never be able to lock themself out — same guard as deleting
+ * your own account.
+ */
+export const setUserBlockService = async (id, isblock, adminId) => {
+  if (String(id) === String(adminId)) {
+    const error = new Error("You cannot block your own account");
+    error.status = 400;
+    throw error;
+  }
+
+  const user = await User.findById(id).select("+password");
+
+  if (!user) {
+    const error = new Error("User not found");
+    error.status = 404;
+    throw error;
+  }
+
+  if (Boolean(user.isblock) === Boolean(isblock)) {
+    const error = new Error(
+      isblock ? "This account is already blocked" : "This account is not blocked"
+    );
+    error.status = 409;
+    throw error;
+  }
+
+  user.isblock = Boolean(isblock);
+  user.blockStatus = isblock ? 'blocked' : 'No block';
+  await user.save();
+
+  return toSafeUser(user);
+};
+

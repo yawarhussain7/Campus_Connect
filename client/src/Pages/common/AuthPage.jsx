@@ -128,6 +128,14 @@ export default function AuthPage() {
         return;
       }
 
+      // An account an admin blocked never signs in — say why and stay put.
+      if (error?.code === 'ACCOUNT_BLOCKED') {
+        toast.error(
+          error?.message || 'Your account has been blocked. Contact an administrator.'
+        );
+        return;
+      }
+
       toast.error(error?.message || 'Something went wrong. Please try again.');
     } finally {
       setSubmitting(false);

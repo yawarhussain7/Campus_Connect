@@ -1,31 +1,34 @@
 import jwt from "jsonwebtoken";
 import User from "../Model/auth.model.js";
 
-/**
- * Guards every /admin route: the JWT cookie is verified exactly like
- * ProtectedRoute, then the account's role is re-checked against the database so
- * a stale token from before a role change cannot keep admin access.
- *
- * 401 = no/invalid session, 403 = signed in but not an admin.
- */
 export const AdminRoute = async (req, res, next) => {
   try {
-    const token = req.cookies?.token;
 
-    if (!token) {
+    const candidates = [req.cookies?.admin_token, req.cookies?.token].filter(
+      Boolean
+    );
+
+    if (candidates.length === 0) {
       return res.status(401).json({
         success: false,
         message: "Unauthorized user",
       });
     }
 
-    let decode;
+    let decode = null;
+    let expired = false;
 
-    try {
-      decode = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (error) {
-      const expired = error.name === "TokenExpiredError";
+    for (const candidate of candidates) {
+      try {
+        decode = jwt.verify(candidate, process.env.JWT_SECRET);
+        break;
+      } catch (error) {
+        // Try the next cookie; only remember expiry for the message below.
+        if (error.name === "TokenExpiredError") expired = true;
+      }
+    }
 
+    if (!decode) {
       return res.status(401).json({
         success: false,
         message: expired
@@ -34,12 +37,19 @@ export const AdminRoute = async (req, res, next) => {
       });
     }
 
-    const user = await User.findById(decode.id).select("role email name");
+    const user = await User.findById(decode.id).select("role email name isblock");
 
     if (!user || user.role !== "admin") {
       return res.status(403).json({
         success: false,
         message: "Admin access required",
+      });
+    }
+    if (user.isblock) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account has been blocked. Contact an administrator to restore access.",
+        code: "ACCOUNT_BLOCKED",
       });
     }
 

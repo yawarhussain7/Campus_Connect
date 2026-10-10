@@ -1,21 +1,39 @@
-import { useState } from "react";
-import { RotateCcw, Save } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Camera, RotateCcw, Save, X } from "lucide-react";
 
 import Avatar from "../components/ui/Avatar";
 import Button from "../components/ui/Button";
 import { Field, Input, Select } from "../components/ui/Field";
 import { useToast } from "../components/ui/toastContext";
+import {
+  apiErrorMessage,
+  avatarUrl,
+  getProfileRequest,
+  updateProfileRequest,
+} from "../lib/api";
 import { cx } from "../lib/format";
 
 const STORAGE_KEY = "campus-connect-admin:settings:v1";
 
 const ROLES = ["Administrator", "Editor", "Reviewer"];
 
+// The server's multer accepts these image types up to 2MB, so anything else
+// is rejected here before it travels.
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+const AVATAR_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+];
+
 const DEFAULTS = {
   name: "Yawar Hussain",
   email: "yawarhussain793@gmail.com",
   department: "Computer Science",
   role: "Administrator",
+  avatar: null,
   emailNotifications: true,
   weeklyDigest: false,
   overdueAlerts: true,
@@ -62,15 +80,111 @@ function Row({ label, description, checked, onChange }) {
   );
 }
 
+/*
+ * Account Settings for the signed-in admin.
+ *
+ * Name, email and the profile picture are saved on the server
+ * (GET/PUT /admin/profile) so they survive every browser; the returned
+ * account is mirrored into localStorage, which is what the top bar renders.
+ * Department, the display role and the notification switches stay local —
+ * the User model has no fields for them.
+ */
 export default function Settings() {
   const toast = useToast();
 
   const [values, setValues] = useState(readStored);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const fileRef = useRef(null);
+  // The blob URL behind avatarPreview, revoked whenever the pick is
+  // discarded, saved, or the page unmounts.
+  const previewRef = useRef("");
+
+  // Start the edit from what the database has, not from stale local storage.
+  useEffect(() => {
+    let active = true;
+
+    (async () => {
+      try {
+        const response = await getProfileRequest();
+        const user = response.data;
+
+        if (!active || !user) return;
+
+        setValues((current) => ({
+          ...current,
+          name: user.name ?? current.name,
+          email: user.email ?? current.email,
+          avatar: user.avatar ?? null,
+        }));
+      } catch (error) {
+        // Server unreachable: keep the stored copy so the form still works.
+        if (active) toast.error(apiErrorMessage(error));
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [toast]);
+
+  useEffect(
+    () => () => {
+      if (previewRef.current) URL.revokeObjectURL(previewRef.current);
+    },
+    []
+  );
 
   const set = (key, value) =>
     setValues((current) => ({ ...current, [key]: value }));
 
-  const save = (event) => {
+  const clearPreview = () => {
+    if (previewRef.current) {
+      URL.revokeObjectURL(previewRef.current);
+      previewRef.current = "";
+    }
+
+    setAvatarPreview("");
+  };
+
+  /** Validates a picked picture against the server's rules, then previews it. */
+  const pickAvatar = (event) => {
+    const file = event.target.files?.[0];
+    // Reset so picking the same file again still fires a change event.
+    event.target.value = "";
+
+    if (!file) return;
+
+    if (!AVATAR_TYPES.includes(file.type)) {
+      toast.error("Only JPG, JPEG, PNG, GIF or WEBP images are allowed");
+      return;
+    }
+
+    if (file.size > MAX_AVATAR_BYTES) {
+      toast.error("Profile picture must be 2MB or smaller");
+      return;
+    }
+
+    clearPreview();
+
+    const url = URL.createObjectURL(file);
+    previewRef.current = url;
+    setAvatarPreview(url);
+    setAvatarFile(file);
+  };
+
+  /** Drops a picture that was picked but not saved yet. */
+  const discardAvatar = () => {
+    clearPreview();
+    setAvatarFile(null);
+  };
+
+  const save = async (event) => {
     event.preventDefault();
 
     if (values.name.trim().length < 3) {
@@ -83,9 +197,72 @@ export default function Settings() {
       return;
     }
 
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
-    toast.success("Settings saved");
+    // Never overwrite the server with values fetched after the user clicked.
+    if (loading || saving) return;
+
+    setSaving(true);
+
+    try {
+      const name = values.name.trim();
+      const email = values.email.trim();
+      let response;
+
+      if (avatarFile) {
+        // Multipart, so the picture itself reaches the server.
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("email", email);
+        formData.append("avatar", avatarFile);
+
+        response = await updateProfileRequest(formData);
+      } else {
+        response = await updateProfileRequest({ name, email });
+      }
+
+      const saved = response.data ?? {};
+      const next = {
+        ...values,
+        name: saved.name ?? name,
+        email: saved.email ?? email,
+        avatar: saved.avatar ?? values.avatar,
+      };
+
+      // Mirror the server's answer so the top bar shows the saved account.
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      setValues(next);
+      discardAvatar();
+      toast.success("Settings saved");
+    } catch (error) {
+      // The picked picture stays selected so the save can simply be retried.
+      toast.error(apiErrorMessage(error));
+    } finally {
+      setSaving(false);
+    }
   };
+
+  /**
+   * Reverts the console-only preferences. Name, email and the picture are
+   * the server's to keep, so they are left exactly as they are.
+   */
+  const reset = () => {
+    discardAvatar();
+
+    const next = {
+      ...values,
+      department: DEFAULTS.department,
+      role: DEFAULTS.role,
+      emailNotifications: DEFAULTS.emailNotifications,
+      weeklyDigest: DEFAULTS.weeklyDigest,
+      overdueAlerts: DEFAULTS.overdueAlerts,
+    };
+
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    setValues(next);
+    toast.success("Preferences reset");
+  };
+
+  // The freshly picked picture first, otherwise the saved avatar.
+  const picture = avatarPreview || avatarUrl(values.avatar);
 
   return (
     <>
@@ -104,17 +281,19 @@ export default function Settings() {
           <Button
             variant="secondary"
             icon={RotateCcw}
-            onClick={() => {
-              setValues(DEFAULTS);
-              window.localStorage.removeItem(STORAGE_KEY);
-              toast.success("Preferences reset");
-            }}
+            onClick={reset}
+            disabled={saving}
           >
             Reset
           </Button>
 
-          <Button icon={Save} type="submit" form="settings-form">
-            Save changes
+          <Button
+            icon={Save}
+            type="submit"
+            form="settings-form"
+            disabled={saving || loading}
+          >
+            {saving ? "Saving…" : loading ? "Loading…" : "Save changes"}
           </Button>
         </div>
       </header>
@@ -130,11 +309,16 @@ export default function Settings() {
             <h2 className="text-[13.5px] font-semibold text-slate-900">Profile</h2>
 
             <p className="mt-0.5 text-[12px] text-slate-500">
-              Shown next to records you add.
+              Shown next to records you add. Saved to your account.
             </p>
 
             <div className="mt-4 flex items-center gap-4">
-              <Avatar name={values.name} seed={values.email} size="lg" />
+              <Avatar
+                name={values.name}
+                seed={values.email}
+                src={picture}
+                size="lg"
+              />
 
               <div className="min-w-0">
                 <p className="truncate text-[13px] font-medium text-slate-800">
@@ -142,6 +326,43 @@ export default function Settings() {
                 </p>
 
                 <p className="text-[12px] text-slate-500">{values.role}</p>
+
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept={AVATAR_TYPES.join(",")}
+                    className="hidden"
+                    onChange={pickAvatar}
+                  />
+
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon={Camera}
+                    disabled={saving || loading}
+                    onClick={() => fileRef.current?.click()}
+                  >
+                    {avatarFile ? "Change picture" : "Upload picture"}
+                  </Button>
+
+                  {avatarFile ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={X}
+                      disabled={saving}
+                      onClick={discardAvatar}
+                    >
+                      Discard
+                    </Button>
+                  ) : null}
+                </div>
+
+                <p className="mt-1.5 text-[11.5px] text-slate-400">
+                  JPG, PNG, GIF or WEBP · up to 2MB
+                  {avatarFile ? " · picked picture not saved yet" : ""}
+                </p>
               </div>
             </div>
 

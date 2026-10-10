@@ -1,15 +1,17 @@
 
 export const API_BASE_URL = "http://localhost:8080";
 
-async function request(path, { method = "GET", body } = {}) {
+async function request(path, { method = "GET", body, formData } = {}) {
   let response;
 
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       method,
       credentials: "include",
-      headers: body ? { "Content-Type": "application/json" } : undefined,
-      body: body ? JSON.stringify(body) : undefined,
+      // FormData carries its own multipart boundary, so the JSON header must
+      // be omitted (a plain object body is still serialized as JSON).
+      headers: formData || !body ? undefined : { "Content-Type": "application/json" },
+      body: formData ?? (body ? JSON.stringify(body) : undefined),
     });
   } catch {
     throw new Error(
@@ -73,3 +75,35 @@ export const updateRequest = (collection, id, values) =>
 
 export const deleteRequest = (collection, id) =>
   request(`/admin/${collection}/${id}`, { method: "DELETE" });
+
+/* ---------------------------------------------------------------------------
+ * Account moderation — the Users screen's row actions.
+ * ------------------------------------------------------------------------ */
+
+/** PUT /admin/users/:id/verify-email — the admin confirms the address by hand. */
+export const verifyUserEmailRequest = (id) =>
+  request(`/admin/users/${id}/verify-email`, { method: "PUT" });
+
+/**
+ * PUT /admin/users/:id/block — sends the *target* state rather than a blind
+ * toggle: true blocks the account, false lets it back in.
+ */
+export const setUserBlockRequest = (id, isblock) =>
+  request(`/admin/users/${id}/block`, { method: "PUT", body: { isblock } });
+
+
+/** GET /admin/profile — the account as the database has it. */
+export const getProfileRequest = () => request("/admin/profile");
+export const updateProfileRequest = (data) =>
+  request("/admin/profile", {
+    method: "PUT",
+    ...(data instanceof FormData ? { formData: data } : { body: data }),
+  });
+
+/** Absolute URL for a stored avatar path so it renders off the API origin. */
+export const avatarUrl = (avatar) => {
+  if (!avatar) return "";
+  if (/^https?:\/\//i.test(avatar)) return avatar;
+
+  return `${API_BASE_URL}${avatar.startsWith("/") ? "" : "/"}${avatar}`;
+};

@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken'
 import { loginService,registerService,forgetPasswordService,resetPasswordService } from "../Service/auth.service.js"
 import { verifyEmailService, resendVerificationByEmail } from '../Service/emailVerification.service.js'
 
@@ -44,14 +45,26 @@ export const loginController = async(req,res)=>{
         }
         const {email,password} = req.body
         const result = await loginService({email,password})
-        
-        res.cookie('token',result.token,{
+
+        const sessionCookie = {
             httpOnly:true,
             secure:false,
             sameSite:'lax',
             maxAge: 1 * 24 * 60 * 60 * 1000,
 
-        })
+        }
+
+        res.cookie('token',result.token,sessionCookie)
+
+        // The admin console (localhost:5174) and the student app
+        // (localhost:5173) share one cookie jar — cookies ignore ports, so a
+        // student signing in on the client used to overwrite the admin's only
+        // session cookie. The console then received a 403 on its next load and
+        // signed itself out. Admins therefore also get a dedicated cookie that
+        // only /admin reads, so the two apps can sign in and out independently.
+        if(result.user?.role === 'admin'){
+            res.cookie('admin_token',result.token,sessionCookie)
+        }
 
     res.status(200).send({
         message:"User Logged In Successfully",
@@ -74,11 +87,36 @@ export const loginController = async(req,res)=>{
 
 export const logoutController = async(req,res)=>{
     try{
-        res.clearCookie('token',{
+        const clearOptions = {
             httpOnly:true,
             secure:false,
             sameSite:'lax'
-        })
+        }
+
+        res.clearCookie('token',clearOptions)
+
+        // Admins hold a second, dedicated `admin_token` (set at sign-in) so a
+        // student session from the shared localhost cookie jar cannot clobber
+        // the console session. It is only cleared when it belongs to the same
+        // account as the `token` being signed out — a student signing out of
+        // the client must never end a different (admin) session in this
+        // browser, while an admin signing out ends their session everywhere.
+        const token = req.cookies?.token
+        const adminToken = req.cookies?.admin_token
+
+        if(token && adminToken){
+            try{
+                const decode = jwt.verify(token, process.env.JWT_SECRET)
+                const adminDecode = jwt.verify(adminToken, process.env.JWT_SECRET)
+
+                if(decode?.id && decode.id === adminDecode.id){
+                    res.clearCookie('admin_token',clearOptions)
+                }
+            }catch{
+                // An unreadable cookie must not fail the sign-out itself.
+            }
+        }
+
         res.status(200).send({
             message:"Logged out successfully",
             success:true

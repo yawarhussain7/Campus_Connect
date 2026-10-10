@@ -44,7 +44,9 @@ export const createReview = async (req, res) => {
         })
     } catch (error) {
         console.error('Review publish error:', error)
-        res.status(500).json({
+        // Services mark client-side failures (duplicate review) with a `status`;
+        // only a genuinely unexpected error stays a 500.
+        res.status(error.status || 500).json({
             success: false,
             message: error.message || 'Failed to publish the review',
         })

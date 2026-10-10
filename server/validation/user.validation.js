@@ -1,13 +1,5 @@
 import { z } from "zod";
 
-/**
- * Payloads the admin console may write for accounts. Email is checked with a
- * regex (version-proof across zod releases) and the role enum mirrors the
- * model, so an admin can only ever store 'user' or 'admin'.
- *
- * On create the password is mandatory; on update an empty password means
- * "keep the current one".
- */
 const emailField = z
   .string()
   .trim()
@@ -45,4 +37,16 @@ export const AdminUserUpdateZod = z.object({
     .optional()
     .default(""),
   avatar: z.string().trim().max(500, "Avatar link is too long").optional().default(""),
+});
+
+/**
+ * Body for PUT /admin/users/:id/block — the console sends the target state
+ * (true = block, false = unblock) rather than a blind toggle, so a double
+ * click can never flip the flag twice.
+ */
+export const AdminUserBlockZod = z.object({
+  isblock: z.boolean({
+    required_error: "isblock is required",
+    invalid_type_error: "isblock must be true or false",
+  }),
 });

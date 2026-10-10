@@ -48,8 +48,15 @@ export const AppProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
-      // Only clear user if it's an authentication error
-      if (error?.status === 401 || error?.statusCode === 401) {
+      // Only clear user if it's an authentication error. A blocked account
+      // (403 + code from ProtectedRoute) must also drop the local session —
+      // the server refuses every further request, so staying "signed in" only
+      // produces a wall of errors until the user signs in again.
+      if (
+        error?.status === 401 ||
+        error?.statusCode === 401 ||
+        error?.code === 'ACCOUNT_BLOCKED'
+      ) {
         setUser(null);
         localStorage.removeItem('user');
       }

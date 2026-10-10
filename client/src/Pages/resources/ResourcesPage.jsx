@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { SearchX } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-import Navbar from '../../Components/common/Navbar';
+import SiteNavbar from '../../Components/home/SiteNavbar';
 import SiteFooter from '../../Components/home/SiteFooter';
 import ResourcesHero from '../../Components/resources/ResourcesHero';
 import ResourceFilters from '../../Components/resources/ResourceFilters';
@@ -120,7 +120,7 @@ export default function ResourcesPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
+      <SiteNavbar />
 
       <main>
         <ResourcesHero

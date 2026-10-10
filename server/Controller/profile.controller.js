@@ -44,6 +44,23 @@ export const updateProfileController = async(req,res)=>{
             data:user
         })
     }catch(error){
+        // A taken email is a client mistake (409), not a server fault — the
+        // same clash the admin user service maps to 409.
+        if(error?.code === 11000){
+            return res.status(409).send({
+                message:'An account with that email already exists',
+                success:false
+            })
+        }
+
+        // Schema rejections (e.g. a too-short name) are bad input (400).
+        if(error?.name === 'ValidationError'){
+            return res.status(400).send({
+                message:error.message,
+                success:false
+            })
+        }
+
         console.error(error.message)
         res.status(500).send({
             message:'Internal Server Error',

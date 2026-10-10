@@ -40,3 +40,17 @@ export const profileUploadMiddleware = multer({
         fileSize: 2 * 1024 * 1024 // 2MB, matching the hint shown in Settings
     }
 });
+
+// Wraps the single `avatar` upload so a rejected file answers with the same
+// JSON shape the rest of the API uses instead of Express' default HTML error.
+// Shared by the student profile route and the admin console's own route.
+export const uploadAvatar = (req, res, next) => {
+    profileUploadMiddleware.single('avatar')(req, res, (error) => {
+        if (!error) return next()
+
+        return res.status(400).json({
+            success: false,
+            message: error.message || 'Profile image upload failed'
+        })
+    })
+}

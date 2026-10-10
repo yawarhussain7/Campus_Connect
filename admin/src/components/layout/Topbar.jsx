@@ -11,6 +11,7 @@ import {
   Settings,
 } from "lucide-react";
 
+import { avatarUrl } from "../../lib/api";
 import { cx } from "../../lib/format";
 import { readProfile } from "../../lib/profile";
 import { clearSession } from "../../lib/session";
@@ -233,7 +234,12 @@ export default function Topbar() {
                 open && "bg-slate-100"
               )}
             >
-              <Avatar name={profile.name} seed="admin-user" size="sm" />
+              <Avatar
+                name={profile.name}
+                seed="admin-user"
+                src={avatarUrl(profile.avatar)}
+                size="sm"
+              />
 
               <span className="hidden max-w-[110px] truncate text-[13px] font-medium text-slate-700 sm:block">
                 {profile.name.split(" ")[0]}

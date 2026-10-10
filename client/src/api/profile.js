@@ -10,8 +10,6 @@ export const updateProfile = async (data) => {
   return response;
 };
 
-// Profile picture upload: sent as multipart/form-data so the file itself
-// reaches the server instead of being flattened into JSON.
 export const uploadProfileImage = async (data) => {
   const response = await api.put("/student/update", data, {
     headers: {

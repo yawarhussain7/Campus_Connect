@@ -22,14 +22,9 @@ const registerService = async({name,email,password,gender})=>{
             name,
             email,
             password:hashedPassword,
-            // Only the two known values are stored; anything else stays null so
-            // the client falls back to its generic portrait.
             gender: gender === 'male' || gender === 'female' ? gender : null
         })
 
-        // Kick off email verification. A mail-server hiccup must not roll back
-        // the signup: the user can always request a fresh link from Settings,
-        // so the failure is only logged here.
         try {
             await sendEmailVerification(newUser._id)
         } catch (mailError) {
@@ -42,8 +37,6 @@ const registerService = async({name,email,password,gender})=>{
              _id:newUser._id,
             name:newUser.name,
             email:newUser.email,
-            // Carried to the client so the admin console can tell an admin
-            // session apart from a student one after signing in.
             role:newUser.role,
             // Lets the client show the "verify your email" notice immediately.
             isEmailVerified:newUser.isEmailVerified,
@@ -55,9 +48,6 @@ const registerService = async({name,email,password,gender})=>{
 
     }catch(error){
         console.error(error)
-
-        // Rethrown untouched so the `status` set above survives: wrapping it in
-        // a fresh Error() dropped the status and every failure became a 500.
         throw error
     }
 }
@@ -83,9 +73,15 @@ const loginService = async({email,password})=>{
             throw error
         }
 
-        // Sign-in stays locked until the emailed verification code is entered.
-        // Admins are exempt so the seeded admin account is never walled out of
-        // the admin portal by an email it never receives.
+       
+        if(user.isblock){
+            const error = new Error('Your account has been blocked. Contact an administrator to restore access.')
+            error.status = 403
+            // Surfaced by the controller and rendered by both front-ends.
+            error.code = 'ACCOUNT_BLOCKED'
+            throw error
+        }
+
         if(!user.isEmailVerified && user.role !== 'admin'){
             const error = new Error('Your email is not verified yet. Enter the code we sent to your inbox to activate your account.')
             error.status = 403
@@ -107,7 +103,10 @@ const loginService = async({email,password})=>{
                 // Drives the "verify your email" notice on the client.
                 isEmailVerified:user.isEmailVerified,
                 // Drives the male/female default portrait on the client.
-                gender:user.gender
+                gender:user.gender,
+                // Lets the admin console show the saved profile picture the
+                // moment it signs in, before Settings has fetched the profile.
+                avatar:user.avatar
             },
             token
         };
@@ -141,8 +140,7 @@ const forgetPasswordService = async(email)=>{
 
         const resetToken = crypto.randomBytes(32).toString('hex')
 
-        // Only the hash is stored, so a leaked database cannot be used to reset
-        // anyone's password directly.
+      
         const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex")
 
         user.resetPasswordToken = hashedToken

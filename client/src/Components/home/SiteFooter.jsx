@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 const EXPLORE_LINKS = [
   { label: 'Home', href: '#home' },
   { label: 'Features', href: '#features' },
-  { label: 'Resources', href: '#resources' },
   { label: 'Community', href: '#community' },
 ];
 

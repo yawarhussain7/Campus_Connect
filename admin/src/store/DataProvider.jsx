@@ -156,13 +156,29 @@ export function DataProvider({ children }) {
     }));
   }, []);
 
+  /**
+   * Merges a server-returned partial into one local row. Targeted actions
+   * with their own endpoints (verify email, block/unblock on Users) use this
+   * so the table reflects the change without refetching every collection.
+   */
+  const patch = useCallback((collection, id, data) => {
+    const changes = normalise(data);
+
+    setRecords((current) => ({
+      ...current,
+      [collection]: current[collection].map((record) =>
+        record.id === id ? { ...record, ...changes } : record
+      ),
+    }));
+  }, []);
+
   // Kept under the name the Overview and Topbar already call: it now refetches
   // the live data instead of restoring sample rows.
   const reset = reload;
 
   const value = useMemo(
-    () => ({ records, loading, error, reload, create, update, remove, reset }),
-    [records, loading, error, reload, create, update, remove, reset]
+    () => ({ records, loading, error, reload, create, update, remove, patch, reset }),
+    [records, loading, error, reload, create, update, remove, patch, reset]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

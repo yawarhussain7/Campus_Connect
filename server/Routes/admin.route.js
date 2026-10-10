@@ -4,14 +4,18 @@ import { getTotalAssignmentController,ShowAssignments } from '../Controller/assi
 import {getTotalPaperController,GetPaper} from '../Controller/paper.controller.js'
 import {projectCountController,ShowProjects} from '../Controller/project.controller.js'
 import {ShowTotalReviewsController,ShowReviews} from '../Controller/review.controller.js'
-import { createRecord, updateRecord, deleteRecord, listUsers, countUsers, createUser, updateUser, deleteUser } from '../Controller/admin.controller.js'
+import { createRecord, updateRecord, deleteRecord, listUsers, countUsers, createUser, updateUser, deleteUser, verifyUserEmail, blockUser } from '../Controller/admin.controller.js'
+import { getProfileController, updateProfileController } from '../Controller/profile.controller.js'
+import { uploadAvatar } from '../middleware/profileUpload.middleware.js'
 import { AdminRoute } from '../middleware/verifyAdmin.js'
 
 const Adminrouter = express.Router()
 
-// Every admin endpoint reads or writes the live database, so the whole router
-// sits behind the role check: a valid student session gets a 403 here.
+
 Adminrouter.use(AdminRoute)
+
+Adminrouter.get('/profile', getProfileController)
+Adminrouter.put('/profile', uploadAvatar, updateProfileController)
 
 Adminrouter.get('/assignments',getTotalAssignmentController)
 Adminrouter.get('/assignments/all',ShowAssignments)
@@ -33,6 +37,14 @@ Adminrouter.get('/users/all', listUsers)
 Adminrouter.post('/users', createUser)
 Adminrouter.put('/users/:id', updateUser)
 Adminrouter.delete('/users/:id', deleteUser)
+
+// Targeted account flags: mark an address verified without the emailed link,
+// and block / unblock (body { isblock }). The two-segment paths are declared
+// after the plain `:id` routes — Express matches the full path, so they can
+// never shadow PUT /users/:id. Blocking applies immediately: both auth
+// middlewares re-read `isblock` from the database on every request.
+Adminrouter.put('/users/:id/verify-email', verifyUserEmail)
+Adminrouter.put('/users/:id/block', blockUser)
 
 // Full CRUD for the four collections the console manages. The `:id` routes are
 // declared last so they can never shadow the `/…/all` list endpoints above.

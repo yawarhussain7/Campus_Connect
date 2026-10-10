@@ -6,9 +6,15 @@ import {
   createUserService,
   updateUserService,
   deleteUserService,
+  verifyUserEmailService,
+  setUserBlockService,
 } from "../Service/admin.service.js";
 import User from "../Model/auth.model.js";
-import { AdminUserCreateZod, AdminUserUpdateZod } from "../validation/user.validation.js";
+import {
+  AdminUserCreateZod,
+  AdminUserUpdateZod,
+  AdminUserBlockZod,
+} from "../validation/user.validation.js";
 
 const sendError = (res, error) =>
   res.status(error.status || 500).json({
@@ -149,6 +155,53 @@ export const deleteUser = async (req, res) => {
     await deleteUserService(req.params.id, req.user?.id);
 
     res.status(200).json({ success: true, message: "User deleted successfully" });
+  } catch (error) {
+    sendError(res, error);
+  }
+};
+
+/**
+ * PUT /admin/users/:id/verify-email — marks the account's address as verified
+ * without the emailed link (404 unknown, 409 already verified). The updated,
+ * secret-stripped account goes back so the Users table can refresh in place.
+ */
+export const verifyUserEmail = async (req, res) => {
+  try {
+    const user = await verifyUserEmailService(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: "Email verified successfully",
+      data: user,
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+};
+
+/**
+ * PUT /admin/users/:id/block — body { isblock: true|false } blocks or unblocks
+ * the account. Refuses your own account (400) and a redundant state (409).
+ */
+export const blockUser = async (req, res) => {
+  try {
+    const validate = AdminUserBlockZod.safeParse(req.body);
+
+    if (!validate.success) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid data",
+        errors: validate.error.flatten().fieldErrors,
+      });
+    }
+
+    const user = await setUserBlockService(req.params.id, validate.data.isblock, req.user?.id);
+
+    res.status(200).json({
+      success: true,
+      message: validate.data.isblock ? "User blocked successfully" : "User unblocked successfully",
+      data: user,
+    });
   } catch (error) {
     sendError(res, error);
   }

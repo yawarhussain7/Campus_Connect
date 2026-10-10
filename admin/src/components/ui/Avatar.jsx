@@ -23,9 +23,15 @@ function portraitUrl(seed) {
   return `https://i.pravatar.cc/120?img=${portraitIndex(seed)}`;
 }
 
-/** Remote portrait with an initials fallback if the CDN is unreachable. */
-export default function Avatar({ name, seed, size = "md", className }) {
-  const [broken, setBroken] = useState(false);
+/**
+ * The uploaded picture when `src` is given (an admin's saved avatar), the
+ * deterministic remote portrait otherwise — with an initials fallback if the
+ * image fails to load.
+ */
+export default function Avatar({ name, seed, src, size = "md", className }) {
+  // The URL that failed to load, if any. Keyed by the URL rather than a bare
+  // flag, so a newly saved avatar automatically gets a fresh chance to load.
+  const [failedSrc, setFailedSrc] = useState("");
 
   const initials = String(name || "?")
     .split(/\s+/)
@@ -35,7 +41,9 @@ export default function Avatar({ name, seed, size = "md", className }) {
     .join("")
     .toUpperCase();
 
-  if (broken) {
+  const url = src || portraitUrl(seed || name);
+
+  if (failedSrc === url) {
     return (
       <span
         className={cx(
@@ -51,10 +59,10 @@ export default function Avatar({ name, seed, size = "md", className }) {
 
   return (
     <img
-      src={portraitUrl(seed || name)}
+      src={url}
       alt={name || "Portrait"}
       loading="lazy"
-      onError={() => setBroken(true)}
+      onError={() => setFailedSrc(url)}
       className={cx(
         "shrink-0 rounded-full object-cover ring-1 ring-slate-200/80",
         SIZES[size] ?? SIZES.md,

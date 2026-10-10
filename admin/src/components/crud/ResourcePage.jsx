@@ -127,6 +127,10 @@ export default function ResourcePage({
   // Rows for the detail drawer; defaults to the form config. Lets a page add
   // read-only facts (like a join date) that must never appear as inputs.
   detailFields = fields,
+  // Optional — (record) => [{ key, label, icon, danger, onSelect }] splices
+  // page-specific entries into the row menu between Edit and Delete (the Users
+  // screen's verify-email / block actions live here).
+  rowActions = null,
 }) {
   const { records, create, update, remove, loading, error, reload } = useData();
   const toast = useToast();
@@ -328,6 +332,15 @@ export default function ResourcePage({
         <MenuItem icon={Pencil} onClick={() => setForm({ record })}>
           Edit
         </MenuItem>
+
+        {/* Page-specific moderation entries (verify email, block/unblock). */}
+        {(rowActions ? rowActions(record) : []).map(
+          ({ key, label, icon, danger, onSelect }) => (
+            <MenuItem key={key} icon={icon} danger={danger} onClick={onSelect}>
+              {label}
+            </MenuItem>
+          )
+        )}
 
         <MenuItem danger icon={Trash} onClick={() => setPendingDelete(record)}>
           Delete

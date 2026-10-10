@@ -108,6 +108,8 @@ export default function Login() {
         name: user.name,
         email: user.email,
         role: user.role,
+        // So the top bar can show the saved picture before Settings loads.
+        avatar: user.avatar ?? null,
         rememberMe,
       });
       toast.success(`Welcome back, ${(user.name || "Admin").split(" ")[0]}`);

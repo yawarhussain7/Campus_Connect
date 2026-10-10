@@ -2,7 +2,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "smoke": "node smoke.mjs"
   },
   "dependencies": {
     "axios": "^1.20.0",
