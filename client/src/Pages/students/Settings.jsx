@@ -18,6 +18,7 @@ import {
 import { useAppContext } from '../../context/AppContext';
 import { updateProfile, uploadProfileImage, avatarUrl } from '../../api/profile';
 import { ResendVerificationEmail } from '../../api/auth';
+import { GENDER_OPTIONS, genderIconUrl, genderLabel } from '../../utils/gender';
 import { toast } from 'react-toastify';
 
 export default function Settings() {
@@ -32,6 +33,9 @@ export default function Settings() {
     fullName: '',
     email: '',
     studentId: '',
+    // Drives the male/female icon (from the public folder) used as the default
+    // portrait while no photo is uploaded.
+    gender: '',
     profileImage: null,
     avatarFile: null
   });
@@ -84,7 +88,8 @@ export default function Settings() {
         ...prev,
         fullName: user.name || '',
         email: user.email || '',
-        studentId: user._id ? user._id.slice(-8).toUpperCase() : 'N/A'
+        studentId: user._id ? user._id.slice(-8).toUpperCase() : 'N/A',
+        gender: user.gender || ''
       }));
     }
   }, [user]);
@@ -123,7 +128,7 @@ export default function Settings() {
     setSaving(true);
 
     try {
-      const { fullName, email, avatarFile } = accountForm;
+      const { fullName, email, gender, avatarFile } = accountForm;
 
       let response;
 
@@ -132,11 +137,12 @@ export default function Settings() {
         const formData = new FormData();
         formData.append('name', fullName);
         formData.append('email', email);
+        formData.append('gender', gender);
         formData.append('avatar', avatarFile);
 
         response = await uploadProfileImage(formData);
       } else {
-        response = await updateProfile({ name: fullName, email });
+        response = await updateProfile({ name: fullName, email, gender });
       }
 
       if (response.success) {
@@ -203,6 +209,12 @@ export default function Settings() {
                         <div className="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300 overflow-hidden">
                           {avatarPreview ? (
                             <img src={avatarPreview} alt="Profile" className="w-full h-full object-cover" />
+                          ) : genderIconUrl(user?.gender) ? (
+                            <img
+                              src={genderIconUrl(user?.gender)}
+                              alt={genderLabel(user?.gender)}
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
                             <User className="h-8 w-8 text-slate-400" />
                           )}
@@ -235,6 +247,24 @@ export default function Settings() {
                       <div className="md:col-span-2">
                         <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-[0.07em] mb-1.5">Primary Academic Email</label>
                         <input type="email" value={accountForm.email} onChange={(e) => handleInputChange('account', 'email', e.target.value)} className="w-full text-xs rounded-xl px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 transition-all font-medium" />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-[0.07em] mb-1.5">Gender</label>
+                        <select
+                          value={accountForm.gender}
+                          onChange={(e) => handleInputChange('account', 'gender', e.target.value)}
+                          className="w-full text-xs rounded-xl px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 transition-all font-medium cursor-pointer"
+                        >
+                          <option value="">Prefer not to say</option>
+                          {GENDER_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="mt-1.5 text-[10.5px] text-slate-400">
+                          Picks the default portrait shown until you upload a profile photo.
+                        </p>
                       </div>
 
                       {/* Email verification status. `isEmailVerified` arrives with

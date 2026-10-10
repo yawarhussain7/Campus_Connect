@@ -6,7 +6,7 @@ import {sendEmail} from '../utils/sendEmail.js'
 import resetPasswordEmail from '../utils/resetPassword.js'
 import { sendEmailVerification } from './emailVerification.service.js'
 
-const registerService = async({name,email,password})=>{
+const registerService = async({name,email,password,gender})=>{
     try{
         const existUser = await User.findOne({email})
         if(existUser){
@@ -21,7 +21,10 @@ const registerService = async({name,email,password})=>{
         const newUser = await User.create({
             name,
             email,
-            password:hashedPassword
+            password:hashedPassword,
+            // Only the two known values are stored; anything else stays null so
+            // the client falls back to its generic portrait.
+            gender: gender === 'male' || gender === 'female' ? gender : null
         })
 
         // Kick off email verification. A mail-server hiccup must not roll back
@@ -43,7 +46,9 @@ const registerService = async({name,email,password})=>{
             // session apart from a student one after signing in.
             role:newUser.role,
             // Lets the client show the "verify your email" notice immediately.
-            isEmailVerified:newUser.isEmailVerified
+            isEmailVerified:newUser.isEmailVerified,
+            // Drives the male/female default portrait on the client.
+            gender:newUser.gender
            },
            token
         }
@@ -100,7 +105,9 @@ const loginService = async({email,password})=>{
                 // the role before granting access to /admin data.
                 role:user.role,
                 // Drives the "verify your email" notice on the client.
-                isEmailVerified:user.isEmailVerified
+                isEmailVerified:user.isEmailVerified,
+                // Drives the male/female default portrait on the client.
+                gender:user.gender
             },
             token
         };

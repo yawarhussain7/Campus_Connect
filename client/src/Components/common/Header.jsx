@@ -19,6 +19,7 @@ import {
   markAllAsRead,
 } from '../../api/notifications';
 import { avatarUrl } from '../../api/profile';
+import { genderIconUrl, genderLabel } from '../../utils/gender';
 
 const PROFILE_IMAGE =
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&q=80';
@@ -341,8 +342,12 @@ export default function Header({
               className="flex h-10 items-center gap-2 rounded-[10px] pl-1 pr-2 transition hover:bg-slate-50"
             >
               <img
-                src={user?.avatar ? avatarUrl(user.avatar) : PROFILE_IMAGE}
-                alt={user?.name || 'Profile'}
+                src={
+                  user?.avatar
+                    ? avatarUrl(user.avatar)
+                    : genderIconUrl(user?.gender) || PROFILE_IMAGE
+                }
+                alt={user?.avatar || !user?.gender ? (user?.name || 'Profile') : genderLabel(user?.gender)}
                 onError={(event) => {
                   // A missing/blocked upload falls back to the default portrait
                   // instead of showing a broken image.

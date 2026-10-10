@@ -61,6 +61,15 @@ const UserSchema = new mongoose.Schema({
         default:null
     },
 
+    // Gender picks the default portrait (the male/female icon shipped in the
+    // client's public folder) shown wherever the student has no uploaded
+    // avatar. Optional so accounts created before this field keep working.
+    gender:{
+        type:String,
+        enum:['male','female'],
+        default:null
+    },
+
 },{
     timestamps:true
 })

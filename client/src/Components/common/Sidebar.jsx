@@ -15,6 +15,7 @@ import {
 
 import { useAppContext } from '../../context/AppContext';
 import { logoutUser } from '../../api/profile';
+import { genderIconUrl, genderLabel } from '../../utils/gender';
 import { toast } from 'react-toastify';
 
 const NAV_GROUPS = [
@@ -239,9 +240,19 @@ export default function Sidebar() {
       {/* Account */}
       <div className="shrink-0 border-t border-slate-100 p-2.5">
         <div className="flex items-center gap-2.5 rounded-[10px] px-2.5 py-2">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11.5px] font-semibold text-slate-500">
-            {initials}
-          </span>
+          {genderIconUrl(user?.gender) ? (
+            // The male/female icon from the public folder stands in for the
+            // photo; students without a stored gender keep the initials tile.
+            <img
+              src={genderIconUrl(user?.gender)}
+              alt={genderLabel(user?.gender)}
+              className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-slate-200"
+            />
+          ) : (
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11.5px] font-semibold text-slate-500">
+              {initials}
+            </span>
+          )}
 
           <span className="min-w-0 flex-1">
             <span className="block truncate text-[12px] font-medium text-slate-800">

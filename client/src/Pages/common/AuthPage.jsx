@@ -11,6 +11,7 @@ import {
   Lock,
   Mail,
   User,
+  VenusAndMars,
 } from 'lucide-react';
 
 import AuthShell, {
@@ -21,6 +22,7 @@ import AuthShell, {
 } from '../../Components/common/AuthShell.jsx';
 import { SignInUser, SignUpUser } from '../../api/auth.js';
 import { useAppContext } from '../../context/AppContext.jsx';
+import { GENDER_OPTIONS } from '../../utils/gender.js';
 
 /** The email address "Remember me" opted into, so it can be prefilled. */
 const REMEMBERED_EMAIL_KEY = 'rememberedEmail';
@@ -55,6 +57,9 @@ export default function AuthPage() {
     name: '',
     email: readRememberedEmail(),
     password: '',
+    // Picked at signup so the portal can show the matching male/female
+    // portrait wherever the student has not uploaded a photo yet.
+    gender: '',
   }));
 
   const handleChange = (e) => {
@@ -162,6 +167,45 @@ export default function AuthPage() {
                 onChange={handleChange}
                 className={`${FIELD_CLASS} pr-3.5`}
               />
+            </div>
+          </div>
+        )}
+
+        {/* Gender (sign-up only): selects the public-folder icon used as the
+            default portrait until a photo is uploaded. */}
+        {!isSignIn && (
+          <div>
+            <label htmlFor="gender" className={LABEL_CLASS}>
+              Gender
+            </label>
+
+            <div className="relative">
+              <VenusAndMars className={FIELD_ICON_CLASS} strokeWidth={1.9} />
+
+              <select
+                id="gender"
+                name="gender"
+                required
+                value={formData.gender}
+                onChange={handleChange}
+                className={`${FIELD_CLASS} cursor-pointer appearance-none pr-3.5 ${
+                  formData.gender ? '' : 'text-[#9aa8c2]'
+                }`}
+              >
+                <option value="" disabled className="text-[#16305f]">
+                  Select your gender
+                </option>
+
+                {GENDER_OPTIONS.map((option) => (
+                  <option
+                    key={option.value}
+                    value={option.value}
+                    className="text-[#16305f]"
+                  >
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         )}

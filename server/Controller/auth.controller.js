@@ -3,7 +3,7 @@ import { verifyEmailService, resendVerificationByEmail } from '../Service/emailV
 
 export const registerController = async (req,res)=>{
 try{
-    const {name,email,password} = req.body
+    const {name,email,password,gender} = req.body
 
     if(!name || !email || !password){
         return res.status(400).send({
@@ -11,7 +11,7 @@ try{
             success:false
         })
     }
-    const result = await registerService({name,email,password})
+    const result = await registerService({name,email,password,gender})
 
     // No session is issued here: sign-in stays locked until the emailed
     // verification link (or code) is entered, so the response only carries
