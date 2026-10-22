@@ -1,36 +1,39 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { GraduationCap, LayoutDashboard, Library, Menu, Search, X } from 'lucide-react';
+import {
+  Calendar,
+  GraduationCap,
+  LayoutDashboard,
+  Library,
+  Menu,
+  Search,
+  Sparkles,
+  X,
+} from 'lucide-react';
 
 import { useAppContext } from '../../context/AppContext';
 
 const NAV_LINKS = [
-  { id: 'home', label: 'Home', to: '/#home' },
-  { id: 'features', label: 'Features', to: '/#features' },
-  { id: 'how', label: 'How it works', to: '/#how' },
-  { id: 'community', label: 'Community', to: '/#community' },
+  { id: 'home', label: 'Home', to: '/#home', isHash: true },
+  { id: 'resources', label: 'Resources', to: '/resources', isRoute: true },
+  { id: 'timetable', label: 'Timetable', to: '/student/create-timetable', isRoute: true, badge: 'New' },
+  { id: 'features', label: 'Features', to: '/#features', isHash: true },
+  { id: 'how', label: 'How it works', to: '/#how', isHash: true },
+  { id: 'community', label: 'Community', to: '/#community', isHash: true },
+  { id: 'faq', label: 'FAQ', to: '/#faq', isHash: true },
 ];
 
-const linkClass = (isActive) =>
-  [
-    'border-b-2 pb-1 text-[14px] font-medium transition-colors',
-    isActive
-      ? 'border-blue-600 text-blue-600'
-      : 'border-transparent text-slate-600 hover:text-blue-600',
-  ].join(' ');
-
-const SiteNavbar = ({ resourceCount = 0 }) => {
+export default function SiteNavbar({ resourceCount = 0 }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAppContext();
 
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const onResourcesPage = location.pathname.startsWith('/resources');
+  const currentPath = location.pathname;
   const currentHash = location.hash.replace('#', '');
 
-  // Land on `/#features` from another route and the browser will not scroll for
-  // us, so do it once the landing page has had a chance to render.
+  // Smooth scroll to hash anchor on navigation
   useEffect(() => {
     if (location.pathname !== '/' || !location.hash) return undefined;
 
@@ -42,15 +45,18 @@ const SiteNavbar = ({ resourceCount = 0 }) => {
     return () => window.clearTimeout(timer);
   }, [location.pathname, location.hash, location.key]);
 
-  const isActive = (link) => {
-    if (onResourcesPage) return false;
-
-    return currentHash ? currentHash === link.id : link.id === 'home';
+  const isLinkActive = (link) => {
+    if (link.isRoute) {
+      return currentPath === link.to;
+    }
+    if (currentPath === '/') {
+      return currentHash ? currentHash === link.id : link.id === 'home';
+    }
+    return false;
   };
 
   const focusSearchField = () => {
     setMenuOpen(false);
-
     const field =
       document.getElementById('landing-search') ||
       document.getElementById('resources-search');
@@ -70,43 +76,64 @@ const SiteNavbar = ({ resourceCount = 0 }) => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
-      <div className="mx-auto flex h-[76px] max-w-7xl items-center gap-8 px-5 sm:px-8">
-        {/* Logo */}
+    <nav className="sticky top-0 z-50 border-b border-slate-200/90 bg-white/95 backdrop-blur-md transition-all">
+      <div className="mx-auto flex h-[72px] max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
+        {/* Brand Logo */}
         <Link
           to="/"
           onClick={() => setMenuOpen(false)}
-          className="flex shrink-0 items-center gap-2.5"
+          className="group flex shrink-0 items-center gap-2.5 transition"
         >
-          <span className="flex h-10 w-10 items-center justify-center rounded-[13px] bg-blue-600 text-white shadow-sm">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm transition group-hover:bg-blue-700">
             <GraduationCap className="h-5 w-5" />
           </span>
 
-          <span className="text-[21px] font-bold tracking-tight text-slate-900">
-            CUI<span className="text-blue-600">Hub</span>
+          <span className="text-left">
+            <span className="block text-[18px] font-bold leading-none tracking-tight text-slate-900">
+              Campus<span className="text-blue-600">Connect</span>
+            </span>
+            <span className="block text-[10.5px] font-medium leading-tight text-slate-400">
+              Student portal
+            </span>
           </span>
         </Link>
 
-        {/* Anchors into the landing page */}
-        <div className="hidden items-center gap-8 md:flex">
-          {NAV_LINKS.map((link) => (
-            <Link key={link.id} to={link.to} className={linkClass(isActive(link))}>
-              {link.label}
-            </Link>
-          ))}
+        {/* Desktop Navigation Links */}
+        <div className="hidden items-center gap-1.5 md:flex lg:gap-2">
+          {NAV_LINKS.map((link) => {
+            const active = isLinkActive(link);
+            return (
+              <Link
+                key={link.id}
+                to={link.to}
+                className={`relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13.5px] font-medium transition ${
+                  active
+                    ? 'bg-blue-50 font-semibold text-blue-700'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                <span>{link.label}</span>
+                {link.badge && (
+                  <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-wider text-blue-700">
+                    {link.badge}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
         </div>
 
-        {/* Actions */}
-        <div className="ml-auto flex items-center gap-2 sm:gap-3">
-          {/* Live library size, straight from the API. */}
+        {/* Right Actions */}
+        <div className="ml-auto flex items-center gap-2 sm:gap-2.5">
+          {/* Live resource counter pill */}
           {resourceCount > 0 && (
             <Link
-              to="/#community"
-              title={`${resourceCount} resources shared so far`}
-              className="hidden items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50/80 px-3 py-1.5 text-[12px] font-semibold text-blue-700 transition hover:bg-blue-100 lg:inline-flex"
+              to="/resources"
+              title={`${resourceCount} resources available in library`}
+              className="hidden items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11.5px] font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 lg:inline-flex"
             >
-              <Library className="h-3.5 w-3.5" />
-              {resourceCount.toLocaleString('en-US')} resources
+              <Library className="h-3.5 w-3.5 text-blue-600" />
+              <span>{resourceCount.toLocaleString('en-US')} resources</span>
             </Link>
           )}
 
@@ -114,110 +141,110 @@ const SiteNavbar = ({ resourceCount = 0 }) => {
             type="button"
             onClick={focusSearchField}
             aria-label="Search resources"
-            className="hidden rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 sm:inline-flex"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
           >
-            <Search className="h-[18px] w-[18px]" />
+            <Search className="h-4 w-4" />
           </button>
 
           {user ? (
             <button
               type="button"
               onClick={openPortal}
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-[13.5px] font-semibold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md"
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-blue-600 px-4 text-[13px] font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
             >
               <LayoutDashboard className="h-4 w-4" />
-              Open dashboard
+              <span>Dashboard</span>
             </button>
           ) : (
             <>
               <Link
                 to="/auth/signIn"
-                className="hidden rounded-xl border border-slate-200 px-4 py-2.5 text-[13.5px] font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:inline-flex"
+                className="hidden h-9 items-center rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 active:scale-95 sm:inline-flex"
               >
                 Sign in
               </Link>
 
               <Link
                 to="/auth/signUp"
-                className="inline-flex rounded-xl bg-blue-600 px-4 py-2.5 text-[13.5px] font-semibold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-blue-600 px-4 text-[13px] font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
               >
-                Join free
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Get Started</span>
               </Link>
             </>
           )}
 
+          {/* Mobile hamburger button */}
           <button
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={menuOpen}
-            className="inline-flex rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 md:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:bg-slate-50 md:hidden"
           >
-            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile Drawer Menu */}
       {menuOpen && (
-        <div className="border-t border-slate-100 bg-white px-5 pb-5 pt-3 md:hidden">
-          <div className="flex flex-col">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.id}
-                to={link.to}
-                onClick={() => setMenuOpen(false)}
-                className={`rounded-lg px-3 py-2.5 text-[14px] font-medium transition ${
-                  isActive(link)
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+        <div className="border-t border-slate-100 bg-white px-4 py-4 md:hidden shadow-lg animate-fadeIn">
+          <div className="space-y-1">
+            {NAV_LINKS.map((link) => {
+              const active = isLinkActive(link);
+              return (
+                <Link
+                  key={link.id}
+                  to={link.to}
+                  onClick={() => setMenuOpen(false)}
+                  className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-[14px] font-medium transition ${
+                    active
+                      ? 'bg-blue-50 font-semibold text-blue-700'
+                      : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <span>{link.label}</span>
+                  {link.badge && (
+                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase text-blue-700">
+                      {link.badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={focusSearchField}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-[13.5px] font-semibold text-slate-700 transition hover:bg-slate-50"
-            >
-              <Search className="h-4 w-4" />
-              Search
-            </button>
-
+          <div className="mt-4 border-t border-slate-100 pt-4 flex flex-col gap-2">
             {user ? (
               <button
                 type="button"
                 onClick={openPortal}
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-[13.5px] font-semibold text-white transition hover:bg-blue-700"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-[13.5px] font-semibold text-white transition hover:bg-blue-700"
               >
                 <LayoutDashboard className="h-4 w-4" />
-                Open dashboard
+                <span>Go to Dashboard</span>
               </button>
             ) : (
-              <Link
-                to="/auth/signIn"
-                onClick={() => setMenuOpen(false)}
-                className="inline-flex rounded-xl border border-slate-200 px-4 py-2.5 text-[13.5px] font-semibold text-slate-700 transition hover:bg-slate-50"
-              >
-                Sign in
-              </Link>
-            )}
-
-            {resourceCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 text-[12px] font-semibold text-blue-700">
-                <Library className="h-3.5 w-3.5" />
-                {resourceCount.toLocaleString('en-US')} resources
-              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  to="/auth/signIn"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-center rounded-xl border border-slate-200 py-2.5 text-[13.5px] font-semibold text-slate-700 transition hover:bg-slate-50"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/auth/signUp"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-center rounded-xl bg-blue-600 py-2.5 text-[13.5px] font-semibold text-white transition hover:bg-blue-700"
+                >
+                  Sign up
+                </Link>
+              </div>
             )}
           </div>
         </div>
       )}
     </nav>
   );
-};
-
-export default SiteNavbar;
+}

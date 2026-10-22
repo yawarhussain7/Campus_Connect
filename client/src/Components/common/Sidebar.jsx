@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
+  Calendar,
   ClipboardList,
   FileText,
   FolderKanban,
@@ -30,7 +31,7 @@ const NAV_GROUPS = [
       { path: '/student/projects', name: 'Projects', icon: FolderKanban },
       { path: '/student/past-papers', name: 'Past papers', icon: FileText },
       { path: '/student/assignments', name: 'Assignments', icon: ClipboardList },
-      { path: '/student/teachers-review', name: 'Teacher reviews', icon: Star },
+      { path: '/student/create-timetable', name: 'Create Timetable', icon: Calendar },
     ],
   },
 ];

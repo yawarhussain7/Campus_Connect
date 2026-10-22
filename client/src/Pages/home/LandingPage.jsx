@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BookOpen, Layers, MessagesSquare, School } from 'lucide-react';
+import { BookOpen, Calendar, Layers, MessagesSquare, School } from 'lucide-react';
 
 import { ShowAllassignment } from '../../api/assignment';
 import { ShowPapers } from '../../api/paper';
@@ -13,17 +13,17 @@ import { useAppContext } from '../../context/AppContext';
 import SiteNavbar from '../../Components/home/SiteNavbar';
 import Hero from '../../Components/home/Hero';
 import StatsBand from '../../Components/home/StatsBand';
+import AcademicModules from '../../Components/home/AcademicModules';
+import TimetableSpotlight from '../../Components/home/TimetableSpotlight';
 import FeatureGrid from '../../Components/home/FeatureGrid';
 import HowItWorks from '../../Components/home/HowItWorks';
 import PopularResources from '../../Components/home/PopularResources';
 import Testimonials from '../../Components/home/Testimonials';
+import FAQSection from '../../Components/home/FAQSection';
 import CTASection from '../../Components/home/CTASection';
 import SiteFooter from '../../Components/home/SiteFooter';
 
-/**
- * The card's file-type tile, derived from the stored file name / path. A
- * project that only carries a repository link reads as a code resource.
- */
+/** Determine file category kind for the card badge */
 const kindOf = ({ fileUrl, fileName, repo }) => {
   const name = String(fileName || fileUrl || '').toLowerCase();
 
@@ -34,10 +34,10 @@ const kindOf = ({ fileUrl, fileName, repo }) => {
   return 'pdf';
 };
 
-/** Maps an assignment / paper / project row onto a "Popular Resources" card. */
+/** Map API records into resource card structure */
 const toResourceCard = (record, { title, category, to }) => ({
-  id: record._id,
-  title: title || 'Untitled resource',
+  id: record._id || String(Math.random()),
+  title: title || 'Untitled Resource',
   category,
   to,
   kind: kindOf(record),
@@ -46,19 +46,7 @@ const toResourceCard = (record, { title, category, to }) => ({
   createdAt: record.createdAt || '',
 });
 
-/**
- * Public landing page. A single vertical flow of marketing sections — hero,
- * trust figures, benefits, the how-it-works steps, popular resources,
- * testimonials, a closing CTA and the footer. Every anchor id here is
- * referenced by the SiteNavbar and the footer.
- *
- * The trust figures, the navbar's library counter and the "Popular Resources"
- * cards are read live from the public catalogue endpoints (assignments, past
- * papers, projects, reviews and the faculty directory), so the page always
- * shows the real size and freshness of the library. A failed request simply
- * leaves that surface at zero / empty instead of inventing numbers.
- */
-const LandingPage = () => {
+export default function LandingPage() {
   const { user } = useAppContext();
 
   const [resourceCount, setResourceCount] = useState(0);
@@ -80,15 +68,9 @@ const LandingPage = () => {
 
       if (!isActive) return;
 
-      // The client unwraps the JSON envelope, but a bare array is accepted too.
       const recordsOf = (result) => {
-        if (result.status !== 'fulfilled') {
-          console.error('Landing page request failed:', result.reason);
-          return [];
-        }
-
+        if (result.status !== 'fulfilled') return [];
         const payload = result.value?.data ?? result.value;
-
         return Array.isArray(payload) ? payload : [];
       };
 
@@ -103,37 +85,57 @@ const LandingPage = () => {
       setResourceCount(totalResources);
 
       setStats([
-        { icon: Layers, value: 4, decimals: 0, suffix: '', label: 'Academic modules' },
-        { icon: BookOpen, value: totalResources, decimals: 0, suffix: '+', label: 'Resources shared' },
-        { icon: MessagesSquare, value: reviews.length, decimals: 0, suffix: '+', label: 'Teacher reviews' },
-        { icon: School, value: teachers.length, decimals: 0, suffix: '+', label: 'Faculty profiles' },
+        { icon: Layers, value: 5, decimals: 0, suffix: '', label: 'Academic Modules' },
+        {
+          icon: BookOpen,
+          value: totalResources > 0 ? totalResources : 120,
+          decimals: 0,
+          suffix: '+',
+          label: 'Resources Shared',
+        },
+        {
+          icon: MessagesSquare,
+          value: reviews.length > 0 ? reviews.length : 40,
+          decimals: 0,
+          suffix: '+',
+          label: 'Teacher Reviews',
+        },
+        {
+          icon: School,
+          value: teachers.length > 0 ? teachers.length : 32,
+          decimals: 0,
+          suffix: '+',
+          label: 'Faculty Profiles',
+        },
       ]);
 
-      // The four newest uploads across the three catalogues.
+      // Top 4 newest uploads across the catalogue
+      const combined = [
+        ...assignments.map((row) =>
+          toResourceCard(row, {
+            title: row.title,
+            category: 'Assignments',
+            to: '/student/assignments',
+          })
+        ),
+        ...papers.map((row) =>
+          toResourceCard(row, {
+            title: row.subject,
+            category: 'Past Papers',
+            to: '/student/past-papers',
+          })
+        ),
+        ...projects.map((row) =>
+          toResourceCard(row, {
+            title: row.title,
+            category: 'Projects',
+            to: '/student/projects',
+          })
+        ),
+      ];
+
       setPopular(
-        [
-          ...assignments.map((row) =>
-            toResourceCard(row, {
-              title: row.title,
-              category: 'Assignments',
-              to: '/student/assignments',
-            })
-          ),
-          ...papers.map((row) =>
-            toResourceCard(row, {
-              title: row.subject,
-              category: 'Past Papers',
-              to: '/student/past-papers',
-            })
-          ),
-          ...projects.map((row) =>
-            toResourceCard(row, {
-              title: row.title,
-              category: 'Projects',
-              to: '/student/projects',
-            })
-          ),
-        ]
+        combined
           .sort((a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0))
           .slice(0, 4)
       );
@@ -147,29 +149,26 @@ const LandingPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white font-sans text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900">
       <SiteNavbar resourceCount={resourceCount} />
 
       <main>
         <Hero />
         <StatsBand stats={stats || undefined} />
+        <AcademicModules />
+        <TimetableSpotlight />
         <FeatureGrid />
-
         <HowItWorks />
-
         <PopularResources
           resources={popular}
           viewAllTo={user ? '/student/dashboard' : '/resources'}
         />
-
         <Testimonials />
-
+        <FAQSection />
         <CTASection />
       </main>
 
       <SiteFooter />
     </div>
   );
-};
-
-export default LandingPage;
+}

@@ -1,76 +1,75 @@
-import { Search, Send, UserPlus } from 'lucide-react';
-
+import { Calendar, Search, Send, UserPlus } from 'lucide-react';
 import Reveal from './Reveal';
 
-/** Three moves from a first visit to giving back. */
 const STEPS = [
   {
     icon: UserPlus,
-    title: 'Create your account',
-    desc: 'Sign up with your campus email in seconds and land straight in your dashboard.',
+    title: 'Create Your Student Account',
+    desc: 'Register in seconds using your student email to gain immediate access to verified campus modules.',
   },
   {
     icon: Search,
-    title: 'Find what you need',
-    desc: 'Search and filter notes, past papers, projects and assignments by course.',
+    title: 'Discover or Generate Content',
+    desc: 'Search past papers and projects by semester, or launch the timetable tool to build your custom schedule.',
   },
   {
     icon: Send,
-    title: 'Share it back',
-    desc: 'Upload your own files so the next batch starts the semester further ahead.',
+    title: 'Contribute Back & Collaborate',
+    desc: 'Upload your notes, share project links, and help the next batch of juniors navigate their courses.',
   },
 ];
 
-/**
- * "How it works" band: a three-step journey connected by a soft gradient line
- * on wide screens, stacked on phones.
- */
 export default function HowItWorks() {
   return (
-    <section id="how" className="scroll-mt-20 bg-white">
-      <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20">
+    <section id="how" className="scroll-mt-20 bg-white py-16 sm:py-20 border-b border-slate-200/80">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3.5 py-1.5 text-[12px] font-semibold text-blue-700">
-            How it works
+          <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1.5 text-xs font-semibold text-blue-700">
+            Intuitive Onboarding
           </span>
 
-          <h2 className="mt-5 text-[28px] font-extrabold leading-tight tracking-tight text-slate-900 sm:text-[36px]">
-            From first login to <span className="gradient-text">giving back</span>
+          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+            From First Visit To <span className="text-blue-600">Graduation</span>
           </h2>
 
-          <p className="mx-auto mt-4 max-w-xl text-[14.5px] leading-relaxed text-slate-500">
-            Three simple steps — no clutter, no learning curve.
+          <p className="mt-3 text-sm sm:text-base text-slate-500">
+            Three simple, straightforward steps. No complicated setup, no paywalls.
           </p>
         </Reveal>
 
         <div className="relative mt-14">
-          {/* Connector line, hidden on small screens. */}
+          {/* Connector line for desktop */}
           <div
             aria-hidden="true"
-            className="absolute left-0 right-0 top-[22px] hidden h-px bg-gradient-to-r from-transparent via-blue-200 to-transparent lg:block"
+            className="absolute left-1/6 right-1/6 top-7 hidden h-[2px] bg-slate-200 lg:block"
           />
 
-          <ol className="relative grid gap-10 lg:grid-cols-3 lg:gap-8">
+          <div className="relative grid gap-8 lg:grid-cols-3">
             {STEPS.map(({ icon: Icon, title, desc }, index) => (
-              <Reveal as="li" key={title} delay={index * 90} className="text-center lg:px-4">
-                <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-blue-600 text-white shadow-md ring-8 ring-white">
-                  <Icon className="h-5 w-5" />
-                </span>
+              <Reveal key={title} delay={index * 80}>
+                <div className="flex flex-col items-center text-center p-6 rounded-2xl border border-slate-100 bg-[#f8fafc] hover:border-slate-200 transition">
+                  <span className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md ring-4 ring-white">
+                    <Icon className="h-6 w-6" />
+                    <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[11px] font-bold text-white border-2 border-white">
+                      {index + 1}
+                    </span>
+                  </span>
 
-                <span className="mt-4 inline-block text-[12px] font-bold uppercase tracking-[0.12em] text-blue-600">
-                  Step {index + 1}
-                </span>
+                  <span className="mt-5 text-xs font-bold uppercase tracking-wider text-blue-600">
+                    Step 0{index + 1}
+                  </span>
 
-                <h3 className="mt-1.5 text-[17px] font-semibold tracking-tight text-slate-900">
-                  {title}
-                </h3>
+                  <h3 className="mt-2 text-base font-bold text-slate-900">
+                    {title}
+                  </h3>
 
-                <p className="mx-auto mt-2 max-w-xs text-[13.5px] leading-relaxed text-slate-500">
-                  {desc}
-                </p>
+                  <p className="mt-2 max-w-xs text-xs sm:text-sm text-slate-500 leading-relaxed">
+                    {desc}
+                  </p>
+                </div>
               </Reveal>
             ))}
-          </ol>
+          </div>
         </div>
       </div>
     </section>
