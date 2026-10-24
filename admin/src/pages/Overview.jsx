@@ -144,7 +144,7 @@ export default function Overview() {
           icon={LayoutDashboard}
           tone="indigo"
           title="Dashboard"
-          description="Everything in the CampusConnect catalogue, at a glance."
+          description="Everything in the UniMate catalogue, at a glance."
           action={
             <div className="flex items-center gap-2">
               <Button

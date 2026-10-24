@@ -1,11 +1,15 @@
 import { CreatePaperService, GetPastPaperService, GetPaperByIdService,GetTotalPapaperService } from '../Service/paper.service.js'
 import { PastPaperSchemaZod } from '../validation/paper.validatoin.js'
+import { verifyEducationalContent } from '../Service/verifyEducationalContent.service.js'
 import fs from 'fs'
 import path from 'path'
 
 
 
 export const PaperUpload = async (req, res) => {
+    const file = req.file;
+    let verifyingContent = false;
+
     try {
         
         // Convert string values to appropriate types for validation
@@ -17,6 +21,7 @@ export const PaperUpload = async (req, res) => {
         
         const validate = PastPaperSchemaZod.safeParse(bodyData)
         if (!validate.success) {
+            if (file?.path) await fs.promises.unlink(file.path).catch(() => {})
             return res.status(400).json({
                 message: 'invalid data',
                 success: false,
@@ -24,7 +29,37 @@ export const PaperUpload = async (req, res) => {
             })
         }
 
-        const file = req.file;
+        if (!file) {
+            return res.status(400).json({
+                success: false,
+                message: 'A file is required for educational content verification.'
+            })
+        }
+
+        verifyingContent = true;
+        const verification = await verifyEducationalContent(
+            await fs.promises.readFile(file.path),
+            {
+                mimeType: file.mimetype,
+                subject: validate.data.subject,
+                resourceType: 'past examination paper',
+                metadata: {
+                    exam: validate.data.exam,
+                    semester: validate.data.semester,
+                    year: validate.data.year,
+                    department: validate.data.department
+                }
+            }
+        )
+        verifyingContent = false;
+
+        if (verification.status !== 'approved') {
+            await fs.promises.unlink(file.path).catch(() => {})
+            return res.status(422).json({
+                success: false,
+                message: `Upload rejected: ${verification.reason || `the file could not be verified as educational material related to ${validate.data.subject}.`}`
+            })
+        }
 
         const data = {
             ...validate.data,
@@ -43,10 +78,13 @@ export const PaperUpload = async (req, res) => {
             data: paper
         })
     } catch (error) {
+        if (file?.path) await fs.promises.unlink(file.path).catch(() => {})
         console.error('Paper upload error:', error);
-        res.status(500).json({
+        res.status(verifyingContent ? 503 : 500).json({
             success: false,
-            message: error.message || 'Failed to upload paper'
+            message: verifyingContent
+                ? 'Educational content verification is unavailable. Please try again later.'
+                : error.message || 'Failed to upload paper'
         })
     }
 }

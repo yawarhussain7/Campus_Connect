@@ -7,8 +7,9 @@ import { cx } from "../../lib/format";
 const WIDTHS = { sm: "max-w-sm", md: "max-w-md", lg: "max-w-2xl" };
 
 /**
- * Right-hand slide-over. Used for record forms and the read-only detail view.
- * Closes on Escape, on a backdrop click, and restores page scrolling on exit.
+ * Centred dialog-style panel. Used for record forms and the read-only detail
+ * view. Closes on Escape, on a backdrop click, and restores page scrolling on
+ * exit.
  */
 export default function Drawer({
   open,
@@ -41,7 +42,7 @@ export default function Drawer({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-slate-900/40"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -51,11 +52,11 @@ export default function Drawer({
         aria-modal="true"
         aria-label={title}
         className={cx(
-          "flex h-full w-full flex-col bg-white shadow-2xl",
+          "drawer-enter flex max-h-[calc(100dvh-2rem)] w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl",
           WIDTHS[width] ?? WIDTHS.md
         )}
       >
-        <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
+        <header className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
           <div>
             <h2 className="text-[15px] font-semibold text-slate-900">{title}</h2>
 
@@ -77,7 +78,7 @@ export default function Drawer({
         <div className="flex-1 overflow-y-auto px-5 py-5">{children}</div>
 
         {footer ? (
-          <footer className="border-t border-slate-200 bg-slate-50 px-5 py-3.5">
+          <footer className="shrink-0 border-t border-slate-200 bg-slate-50 px-5 py-3.5">
             {footer}
           </footer>
         ) : null}

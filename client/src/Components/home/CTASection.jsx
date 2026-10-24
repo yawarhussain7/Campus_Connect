@@ -7,7 +7,7 @@ export default function CTASection() {
     <section className="bg-white py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal>
-          <div className="relative overflow-hidden rounded-3xl bg-slate-900 px-6 py-12 sm:px-12 sm:py-16 text-center text-white shadow-xl">
+          <div className="relative overflow-hidden rounded-3xl bg-slate-900 px-6 py-12 sm:px-12 sm:py-16 text-center text-white ">
             {/* Subtle flat grid pattern */}
             <div
               aria-hidden="true"
@@ -36,7 +36,7 @@ export default function CTASection() {
               <div className="pt-2 flex flex-wrap justify-center gap-3">
                 <Link
                   to="/auth/signUp"
-                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
+                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-semibold text-white  transition hover:bg-blue-700 "
                 >
                   <span>Create Free Account</span>
                   <ArrowRight className="h-4 w-4" />
@@ -44,7 +44,7 @@ export default function CTASection() {
 
                 <Link
                   to="/student/create-timetable"
-                  className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-5 text-sm font-semibold text-slate-200 transition hover:bg-slate-700 hover:border-slate-600 active:scale-95"
+                  className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-5 text-sm font-semibold text-slate-200 transition hover:bg-slate-700 hover:border-slate-600 "
                 >
                   <Calendar className="h-4 w-4 text-blue-400" />
                   <span>Try Timetable Generator</span>

@@ -328,7 +328,7 @@ export default function AuthPage() {
       </div>
 
       <p className="mt-3 text-center text-[12.5px] text-[#5d76a9] [@media(min-height:820px)]:mt-4 [@media(min-height:820px)]:text-[13px]">
-        {isSignIn ? 'New to CampusConnect?' : 'Already have an account?'}{' '}
+        {isSignIn ? 'New to UniMate?' : 'Already have an account?'}{' '}
         <button
           type="button"
           onClick={() => navigate(isSignIn ? '/auth/signUp' : '/auth/signIn')}

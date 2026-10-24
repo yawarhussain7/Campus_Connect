@@ -5,12 +5,10 @@ import {
   ClipboardList,
   FileText,
   FolderKanban,
-  GraduationCap,
   Info,
   LayoutDashboard,
   LogOut,
   Settings,
-  Star,
   X,
 } from 'lucide-react';
 
@@ -18,6 +16,7 @@ import { useAppContext } from '../../context/AppContext';
 import { logoutUser } from '../../api/profile';
 import { genderIconUrl, genderLabel } from '../../utils/gender';
 import { toast } from 'react-toastify';
+import uniMateLogo from '../../assets/uniMat.png';
 
 const NAV_GROUPS = [
   {
@@ -128,15 +127,9 @@ export default function Sidebar() {
           onClick={() => goTo('/student/dashboard')}
           className="flex items-center gap-2.5"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-blue-600 text-white">
-            <GraduationCap className="h-4 w-4" />
-          </span>
+          <img src={uniMateLogo} alt="UniMate" className="h-14 w-14 shrink-0 object-contain" />
 
           <span className="text-left">
-            <span className="block text-[13.5px] font-semibold leading-5 tracking-tight text-slate-900">
-              CampusConnect
-            </span>
-
             <span className="block text-[10.5px] leading-4 text-slate-400">
               Student portal
             </span>

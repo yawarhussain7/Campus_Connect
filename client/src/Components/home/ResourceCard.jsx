@@ -27,7 +27,7 @@ const ResourceCard = ({ resource }) => {
   return (
     <Link
       to={resource.to}
-      className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg"
+      className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition  hover:border-blue-200 hover:"
     >
       <div className="flex items-start gap-4">
         <span

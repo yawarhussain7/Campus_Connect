@@ -117,11 +117,15 @@ const FIELDS = [
     wide: true,
   },
   {
-    name: "originalName",
-    label: "Attached file",
+    name: "file",
+    label: "Past paper file",
+    type: "file",
+    accept: ".pdf,.jpg,.jpeg,.png,.webp",
+    required: true,
+    requiredOnCreate: true,
+    createOnly: true,
     wide: true,
-    placeholder: "OS Final 2024.pdf",
-    hint: "File name reference — students upload the actual file from the student app.",
+    hint: "Upload the actual exam paper. It will be checked against the subject before saving.",
   },
 ];
 

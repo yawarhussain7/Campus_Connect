@@ -156,7 +156,7 @@ const forgetPasswordService = async(email)=>{
         // sendEmail expects a single options object.
         await sendEmail({
             email: user.email,
-            subject: "Reset your CampusConnector Password",
+            subject: "Reset your UniMate password",
             html
         })
 

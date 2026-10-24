@@ -86,7 +86,7 @@ export const assignmentSeed = [
     dueDate: day(19),
     status: "Pending",
     fileName: "srs-campus.pdf",
-    originalName: "SRS Campus Connect.pdf",
+    originalName: "SRS UniMate.pdf",
     fileSize: 384512,
     createdAt: stamp(4, 1),
     updatedAt: null,

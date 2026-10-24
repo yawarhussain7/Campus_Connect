@@ -13,7 +13,8 @@ import {
 } from "../lib/api";
 import { cx } from "../lib/format";
 
-const STORAGE_KEY = "campus-connect-admin:settings:v1";
+const STORAGE_KEY = "unimate-admin:settings:v1";
+const LEGACY_STORAGE_KEY = "campus-connect-admin:settings:v1";
 
 const ROLES = ["Administrator", "Editor", "Reviewer"];
 
@@ -41,7 +42,16 @@ const DEFAULTS = {
 
 function readStored() {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    let raw = window.localStorage.getItem(STORAGE_KEY);
+
+    if (raw === null) {
+      raw = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+
+      if (raw !== null) {
+        window.localStorage.setItem(STORAGE_KEY, raw);
+        window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+      }
+    }
 
     return raw ? { ...DEFAULTS, ...JSON.parse(raw) } : DEFAULTS;
   } catch {

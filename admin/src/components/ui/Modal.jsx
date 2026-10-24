@@ -45,7 +45,7 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:p-8"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -55,7 +55,7 @@ export default function Modal({
         aria-modal="true"
         aria-label={title}
         className={cx(
-          "my-auto w-full rounded-lg border border-slate-200 bg-white shadow-xl shadow-slate-900/10",
+          "drawer-enter my-auto w-full rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/10",
           SIZES[size] ?? SIZES.md
         )}
       >

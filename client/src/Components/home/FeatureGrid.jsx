@@ -59,7 +59,7 @@ export default function FeatureGrid() {
     <section id="features" className="scroll-mt-20 bg-[#f8fafc] py-16 sm:py-20 border-b border-slate-200/80">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-blue-700 shadow-sm">
+          <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-blue-700 ">
             Core Platform Architecture
           </span>
 
@@ -75,7 +75,7 @@ export default function FeatureGrid() {
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map(({ icon: Icon, iconBg, title, desc }, index) => (
             <Reveal key={title} delay={index * 50}>
-              <div className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-slate-300 hover:shadow-md">
+              <div className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-6  transition  hover:border-slate-300 hover:">
                 <span
                   className={`flex h-11 w-11 items-center justify-center rounded-xl border ${iconBg}`}
                 >

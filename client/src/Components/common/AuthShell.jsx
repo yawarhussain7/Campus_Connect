@@ -1,6 +1,5 @@
-import { GraduationCap } from 'lucide-react';
-
 import loginBackground from '../../assets/login_bg.png';
+import uniMateLogo from '../../assets/uniMat.png';
 
 /*
  * Palette sampled from the `login_bg.png` mockup so every auth page matches it:
@@ -43,14 +42,14 @@ const CARD_CLASS =
 /**
  * The full-window frame shared by every student auth screen (sign in, sign up,
  * forgot password, reset password). It renders the artwork, the small-screen
- * scrim, the right-aligned card and the CampusConnect brand header, then hands
+ * scrim, the right-aligned card and the UniMate brand header, then hands
  * the rest of the card to `children`.
  *
  * Keeping this in one place is what guarantees the forgot/reset screens look
  * exactly like the login screen.
  *
  * @param {object} props
- * @param {string} props.subtitle  The line under the "CampusConnect" wordmark.
+ * @param {string} props.subtitle  The line under the "UniMate" wordmark.
  * @param {React.ReactNode} props.children  Card body rendered below the header.
  */
 export default function AuthShell({ subtitle, children }) {
@@ -76,6 +75,10 @@ export default function AuthShell({ subtitle, children }) {
         className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-left lg:object-contain"
       />
 
+      <div className="pointer-events-none absolute left-0 top-0 z-[1] grid h-[156px] w-[min(380px,94vw)] place-items-center bg-white">
+        <img src={uniMateLogo} alt="UniMate" className="h-36 w-36 object-contain" />
+      </div>
+
       {/*
         Below `lg` the card is centred on the artwork, so it is softened first to
         keep the form readable.
@@ -90,18 +93,10 @@ export default function AuthShell({ subtitle, children }) {
       <div className="relative z-10 flex h-full w-full items-center justify-center overflow-hidden px-4 py-4 sm:px-8 lg:justify-end lg:pr-[4%] xl:pr-[7%] 2xl:pr-[10%]">
         <div className={CARD_CLASS}>
           {/* Card header */}
-          <div className="flex items-center justify-center gap-3">
-            <GraduationCap
-              className="h-7 w-7 shrink-0 text-[#1869f2] [@media(min-height:820px)]:h-8 [@media(min-height:820px)]:w-8"
-              strokeWidth={1.8}
-            />
-            <span className="leading-tight">
-              <span className="block text-[19px] font-extrabold tracking-tight text-[#0b2570] [@media(min-height:820px)]:text-[21px]">
-                CampusConnect
-              </span>
-              <span className="block text-[12px] font-medium text-[#5d76a9] [@media(min-height:820px)]:text-[13px]">
-                {subtitle}
-              </span>
+          <div className="flex flex-col items-center gap-1">
+            <img src={uniMateLogo} alt="UniMate" className="h-16 w-16 object-contain" />
+            <span className="text-[12px] font-medium text-[#5d76a9] [@media(min-height:820px)]:text-[13px]">
+              {subtitle}
             </span>
           </div>
 

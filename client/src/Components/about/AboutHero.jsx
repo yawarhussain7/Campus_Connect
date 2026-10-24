@@ -12,12 +12,12 @@ const FACTS = ['Four academic modules', 'One unified portal', 'Built by students
  */
 export default function AboutHero() {
   return (
-    <section className="surface-card animate-fadeInUp overflow-hidden border-blue-100 bg-gradient-to-br from-blue-50 via-white to-blue-50/60 p-6 sm:p-8 lg:p-10">
+    <section className="surface-card animate-fadeInUp overflow-hidden border-blue-100 bg-blue-50 p-6 sm:p-8 lg:p-10">
       <div className="grid items-center gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
         <div className="min-w-0">
           <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white/80 px-3.5 py-1.5 text-[12px] font-semibold text-blue-700">
             <GraduationCap className="h-3.5 w-3.5" />
-            About CampusConnect
+            About UniMate
           </span>
 
           <h1 className="mt-5 text-[28px] font-extrabold leading-[1.12] tracking-tight text-slate-900 sm:text-[36px]">
@@ -25,7 +25,7 @@ export default function AboutHero() {
           </h1>
 
           <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-slate-500">
-            CampusConnect is a student-built hub that gathers projects, past papers,
+            UniMate is a student-built hub that gathers projects, past papers,
             assignments and teacher reviews into one calm, searchable workspace — so you
             spend less time hunting for material and more time learning from it.
           </p>

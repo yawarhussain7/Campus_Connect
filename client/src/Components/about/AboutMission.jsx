@@ -11,10 +11,6 @@ const POINTS = [
   'Give every student the same access, not just the loudest group chat.',
 ];
 
-/**
- * Mission block: a photograph beside the story of why the portal exists, with
- * the three ideas that shape every decision about it.
- */
 export default function AboutMission() {
   return (
     <section className="surface-card animate-fadeInUp overflow-hidden">
@@ -24,7 +20,7 @@ export default function AboutMission() {
             src={MISSION_IMAGE}
             alt="Students collaborating around a laptop"
             className="h-full w-full object-cover"
-            fallbackClassName="h-full min-h-[260px] w-full bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700"
+            fallbackClassName="h-full min-h-[260px] w-full bg-blue-600"
           />
         </div>
 
@@ -41,7 +37,7 @@ export default function AboutMission() {
           <p className="mt-3 text-[13.5px] leading-relaxed text-slate-500">
             Every semester, useful work quietly disappears — notes buried in group chats,
             past papers on someone else&apos;s drive, project write-ups lost after
-            graduation. CampusConnect keeps that knowledge in one living library that
+            graduation. UniMate keeps that knowledge in one living library that
             belongs to the students who create it.
           </p>
 

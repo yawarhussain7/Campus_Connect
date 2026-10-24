@@ -335,7 +335,7 @@ export default function Users() {
     <>
       <ResourcePage
         title="Users"
-        description="Every student and administrator registered on CampusConnect."
+        description="Every student and administrator registered on UniMate."
         icon={UsersIcon}
         tone="info"
         collection="users"

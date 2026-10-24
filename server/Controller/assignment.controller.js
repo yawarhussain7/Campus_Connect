@@ -8,20 +8,56 @@ import {
 } from '../Service/assignment.service.js'
 
 import { assignmentSchemaZod } from "../validation/assign.validation.js";
+import { verifyEducationalContent } from "../Service/verifyEducationalContent.service.js";
 
 // CREATE
 export const assignmentUpload = async (req, res) => {
+  const file = req.file;
+  let verifyingContent = false;
+
   try {
     const validate = assignmentSchemaZod.safeParse(req.body);
 
     if (!validate.success) {
+      if (file?.path) await fs.promises.unlink(file.path).catch(() => {});
       return res.status(400).json({
         success: false,
         errors: validate.error.flatten().fieldErrors,
       });
     }
 
-    const file = req.file;
+    if (!file) {
+      return res.status(400).json({
+        success: false,
+        message: "A file is required for educational content verification.",
+      });
+    }
+
+    verifyingContent = true;
+    const verification = await verifyEducationalContent(
+      await fs.promises.readFile(file.path),
+      {
+        mimeType: file.mimetype,
+        subject: validate.data.subject,
+        resourceType: "assignment",
+        metadata: {
+          title: validate.data.title,
+          description: validate.data.description,
+          course: validate.data.course,
+          semester: validate.data.semester,
+          department: validate.data.department,
+        },
+      }
+    );
+    verifyingContent = false;
+
+    if (verification.status !== "approved") {
+      await fs.promises.unlink(file.path).catch(() => {});
+      return res.status(422).json({
+        success: false,
+        message: `Upload rejected: ${verification.reason || `the file could not be verified as educational material related to ${validate.data.subject}.`}`,
+      });
+    }
 
     const data = {
       ...validate.data,
@@ -40,7 +76,13 @@ export const assignmentUpload = async (req, res) => {
       data: assignment,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    if (file?.path) await fs.promises.unlink(file.path).catch(() => {});
+    res.status(verifyingContent ? 503 : 500).json({
+      success: false,
+      message: verifyingContent
+        ? "Educational content verification is unavailable. Please try again later."
+        : error.message,
+    });
   }
 };
 

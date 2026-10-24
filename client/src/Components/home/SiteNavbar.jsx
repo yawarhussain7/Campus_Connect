@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Calendar,
   GraduationCap,
   LayoutDashboard,
   Library,
@@ -14,13 +13,9 @@ import {
 import { useAppContext } from '../../context/AppContext';
 
 const NAV_LINKS = [
-  { id: 'home', label: 'Home', to: '/#home', isHash: true },
-  { id: 'resources', label: 'Resources', to: '/resources', isRoute: true },
-  { id: 'timetable', label: 'Timetable', to: '/student/create-timetable', isRoute: true, badge: 'New' },
-  { id: 'features', label: 'Features', to: '/#features', isHash: true },
-  { id: 'how', label: 'How it works', to: '/#how', isHash: true },
-  { id: 'community', label: 'Community', to: '/#community', isHash: true },
-  { id: 'faq', label: 'FAQ', to: '/#faq', isHash: true },
+  { id: 'home', label: 'Home', to: '/', isRoute: true },
+  { id: 'about', label: 'About', to: '/about', isRoute: true },
+  { id: 'services', label: 'Services', to: '/services', isRoute: true },
 ];
 
 export default function SiteNavbar({ resourceCount = 0 }) {
@@ -29,9 +24,11 @@ export default function SiteNavbar({ resourceCount = 0 }) {
   const { user } = useAppContext();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState(location.hash ? location.hash.slice(1) : 'home');
+  const menuRef = useRef(null);
+  const buttonRef = useRef(null);
 
   const currentPath = location.pathname;
-  const currentHash = location.hash.replace('#', '');
 
   // Smooth scroll to hash anchor on navigation
   useEffect(() => {
@@ -45,12 +42,73 @@ export default function SiteNavbar({ resourceCount = 0 }) {
     return () => window.clearTimeout(timer);
   }, [location.pathname, location.hash, location.key]);
 
+  // Close the mobile menu on outside click / Escape and lock body scroll while open
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (
+        menuRef.current?.contains(event.target) ||
+        buttonRef.current?.contains(event.target)
+      ) {
+        return;
+      }
+      setMenuOpen(false);
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuOpen]);
+
+  // Highlight the nav link for the section currently in view on the home page
+  useEffect(() => {
+    if (currentPath !== '/') return undefined;
+
+    const sectionIds = ['home', 'about', 'features'];
+    const elements = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter(Boolean);
+
+    if (elements.length === 0) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+        if (visible.length > 0) {
+          setActiveSection(visible[0].target.id);
+        }
+      },
+      { rootMargin: '-35% 0px -55% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] }
+    );
+
+    elements.forEach((element) => observer.observe(element));
+
+    return () => observer.disconnect();
+  }, [currentPath]);
+
   const isLinkActive = (link) => {
     if (link.isRoute) {
       return currentPath === link.to;
     }
     if (currentPath === '/') {
-      return currentHash ? currentHash === link.id : link.id === 'home';
+      return link.id === activeSection;
     }
     return false;
   };
@@ -76,7 +134,7 @@ export default function SiteNavbar({ resourceCount = 0 }) {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-slate-200/90 bg-white/95 backdrop-blur-md transition-all">
+    <nav className="sticky top-0 z-50 border-b border-slate-200/90 bg-white transition-all">
       <div className="mx-auto flex h-[72px] max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
         {/* Brand Logo */}
         <Link
@@ -84,7 +142,7 @@ export default function SiteNavbar({ resourceCount = 0 }) {
           onClick={() => setMenuOpen(false)}
           className="group flex shrink-0 items-center gap-2.5 transition"
         >
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm transition group-hover:bg-blue-700">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white  transition group-hover:bg-blue-700">
             <GraduationCap className="h-5 w-5" />
           </span>
 
@@ -125,32 +183,11 @@ export default function SiteNavbar({ resourceCount = 0 }) {
 
         {/* Right Actions */}
         <div className="ml-auto flex items-center gap-2 sm:gap-2.5">
-          {/* Live resource counter pill */}
-          {resourceCount > 0 && (
-            <Link
-              to="/resources"
-              title={`${resourceCount} resources available in library`}
-              className="hidden items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11.5px] font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 lg:inline-flex"
-            >
-              <Library className="h-3.5 w-3.5 text-blue-600" />
-              <span>{resourceCount.toLocaleString('en-US')} resources</span>
-            </Link>
-          )}
-
-          <button
-            type="button"
-            onClick={focusSearchField}
-            aria-label="Search resources"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
-          >
-            <Search className="h-4 w-4" />
-          </button>
-
           {user ? (
             <button
               type="button"
               onClick={openPortal}
-              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-blue-600 px-4 text-[13px] font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-blue-600 px-4 text-[13px] font-semibold text-white  transition hover:bg-blue-700 "
             >
               <LayoutDashboard className="h-4 w-4" />
               <span>Dashboard</span>
@@ -159,14 +196,13 @@ export default function SiteNavbar({ resourceCount = 0 }) {
             <>
               <Link
                 to="/auth/signIn"
-                className="hidden h-9 items-center rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 active:scale-95 sm:inline-flex"
+                className="hidden h-9 items-center rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50  sm:inline-flex"
               >
                 Sign in
               </Link>
-
               <Link
                 to="/auth/signUp"
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-blue-600 px-4 text-[13px] font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-blue-600 px-4 text-[13px] font-semibold text-white  transition hover:bg-blue-700 "
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 <span>Get Started</span>
@@ -176,10 +212,13 @@ export default function SiteNavbar({ resourceCount = 0 }) {
 
           {/* Mobile hamburger button */}
           <button
+            ref={buttonRef}
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:bg-slate-50 md:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 md:hidden"
           >
             {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
@@ -188,7 +227,11 @@ export default function SiteNavbar({ resourceCount = 0 }) {
 
       {/* Mobile Drawer Menu */}
       {menuOpen && (
-        <div className="border-t border-slate-100 bg-white px-4 py-4 md:hidden shadow-lg animate-fadeIn">
+        <div
+          id="mobile-menu"
+          ref={menuRef}
+          className="border-t border-slate-200 bg-white px-4 py-4 md:hidden"
+        >
           <div className="space-y-1">
             {NAV_LINKS.map((link) => {
               const active = isLinkActive(link);

@@ -11,7 +11,6 @@ import Assignments from '../Pages/students/Assignments'
 import AssignmentUpload from '../Pages/students/AssignmentUpload'
 import Settings from '../Pages/students/Settings'
 import About from '../Pages/students/About'
-import CreateTimetable from '../Pages/students/CreateTimetable'
 import ComingSoon from '../Pages/students/ComingSoon'
 
 const StudentRoute = () => {
@@ -28,8 +27,8 @@ const StudentRoute = () => {
           <Route path='assignments' element={<Assignments/>} />
           <Route path='assignment/upload' element={<AssignmentUpload/>} />
           <Route path='settings' element={<Settings/>} />
-          <Route path='create-timetable' element={<CreateTimetable/>} />
-          <Route path='timetable' element={<CreateTimetable/>} />
+          <Route path='create-timetable' element={<ComingSoon title='Timetable' description='The smart timetable generator is being revamped. Check back soon.' />} />
+          <Route path='timetable' element={<ComingSoon title='Timetable' description='The smart timetable generator is being revamped. Check back soon.' />} />
 
           {/* Sidebar destinations that are still being built */}
           <Route

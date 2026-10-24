@@ -47,14 +47,14 @@ export default function Testimonials() {
           </h2>
 
           <p className="mt-3 text-sm sm:text-base text-slate-500">
-            Hear from students across departments who rely on CampusConnect every semester.
+            Hear from students across departments who rely on UniMate every semester.
           </p>
         </Reveal>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
           {TESTIMONIALS.map(({ name, program, initials, semester, tone, quote }, index) => (
             <Reveal key={name} delay={index * 80}>
-              <figure className="flex h-full flex-col justify-between rounded-2xl border border-slate-200 bg-[#f8fafc] p-6 shadow-sm hover:border-slate-300 transition">
+              <figure className="flex h-full flex-col justify-between rounded-2xl border border-slate-200 bg-[#f8fafc] p-6  hover:border-slate-300 transition">
                 <div>
                   <div className="flex items-center justify-between">
                     <div className="flex gap-1">
@@ -78,7 +78,7 @@ export default function Testimonials() {
 
                 <div className="mt-6 flex items-center gap-3 border-t border-slate-200/60 pt-4">
                   <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white shadow-sm ${tone}`}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white  ${tone}`}
                   >
                     {initials}
                   </span>

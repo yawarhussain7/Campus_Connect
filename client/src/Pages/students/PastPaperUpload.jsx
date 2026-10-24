@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../Components/common/Sidebar'
 import Header from '../../Components/common/Header.jsx'
@@ -7,6 +7,7 @@ import { ArrowLeft, Upload, FileText } from 'lucide-react';
 import { toast } from "react-toastify";
 import {PaperUpload} from '../../api/paper.js'
 import { departmentOptions } from '../../utils/departments.js';
+import ContentCheckLoader from '../../Components/common/ContentCheckLoader.jsx';
 
 export default function PastPaperUpload() {
   const navigate = useNavigate();
@@ -21,12 +22,15 @@ export default function PastPaperUpload() {
   const [department, setDepartment] = useState('Computer Science');
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setUploadError('');
 
     if (!subject || !instructor || !batch || !file) {
-      toast.error("Please fill all required fields");
+      const message = "Please fill all required fields";
+      setUploadError(message);
       return;
     }
 
@@ -43,20 +47,22 @@ export default function PastPaperUpload() {
       formData.append('department', department);
       formData.append('file', file);
 
-      const upload = await PaperUpload(formData)
+      await PaperUpload(formData)
       toast.success("Paper uploaded successfully")
       navigate('/student/past-papers');
     } catch (error) {
       console.error('Upload error:', error);
       console.error('Error details:', JSON.stringify(error, null, 2));
-      const errorMessage = error?.message || error?.data?.message || 'Failed to upload past paper. Please try again.';
-      toast.error(errorMessage);
+      const firstFieldError = Object.values(error?.errors ?? error?.error ?? error?.data?.error ?? {}).flat()[0];
+      const errorMessage = firstFieldError || error?.response?.data?.message || error?.data?.message || error?.message || 'Failed to upload past paper. Please try again.';
+      setUploadError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
+    <>
     <div className="min-h-screen bg-[#f7f9fc] text-slate-800 flex font-sans antialiased">
       <Sidebar />
 
@@ -88,6 +94,12 @@ export default function PastPaperUpload() {
 
           {/* Upload Form */}
           <form onSubmit={handleSubmit} className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-sm space-y-5 max-w-3xl">
+            {uploadError ? (
+              <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-5 text-red-700">
+                {uploadError}
+              </div>
+            ) : null}
+
             <div>
               <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-[0.07em] mb-1.5">Subject *</label>
               <input
@@ -184,6 +196,9 @@ export default function PastPaperUpload() {
                 onChange={(e) => setFile(e.target.files[0])}
                 className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
               />
+              <p className="mt-1.5 text-[11px] text-slate-400">
+                The paper is checked for educational content and relevance to the selected subject before upload.
+              </p>
               {file && (
                 <p className="text-xs text-slate-500 mt-1.5">
                   Selected: {file.name}
@@ -218,12 +233,14 @@ export default function PastPaperUpload() {
                 className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-md transition-all duration-200 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Upload className="h-3.5 w-3.5" />
-                {loading ? 'Uploading...' : 'Upload Paper'}
+                {loading ? 'Verifying paper...' : 'Upload Paper'}
               </button>
             </div>
           </form>
         </div>
       </div>
     </div>
+    {loading && <ContentCheckLoader title="Checking past paper" />}
+    </>
   );
 }

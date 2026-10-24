@@ -1,12 +1,28 @@
 // A tiny stand-in for real authentication: the console runs on local sample
 // data, so signing in only records who is signed in for this browser.
 
-const STORAGE_KEY = "campus-connect-admin:session:v1";
+const STORAGE_KEY = "unimate-admin:session:v1";
+const LEGACY_STORAGE_KEY = "campus-connect-admin:session:v1";
+
+function readStoredSession() {
+  const current = window.localStorage.getItem(STORAGE_KEY);
+
+  if (current !== null) return current;
+
+  const legacy = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+
+  if (legacy !== null) {
+    window.localStorage.setItem(STORAGE_KEY, legacy);
+    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+  }
+
+  return legacy;
+}
 
 /** The signed-in admin, or null when there is no usable session. */
 export function readSession() {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = readStoredSession();
 
     if (!raw) return null;
 
@@ -37,6 +53,7 @@ export function saveSession(session) {
 export function clearSession() {
   try {
     window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
   } catch {
     // Nothing to clean up when storage is unavailable.
   }

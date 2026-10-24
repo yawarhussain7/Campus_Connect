@@ -88,6 +88,10 @@ function byCreatedAt(order) {
 
 /** The detail view reuses the form config, so there is nothing extra to map. */
 function detailValue(field, record) {
+  if (field.type === "file") {
+    return record.originalName || (record.fileUrl ? "Attached" : "—");
+  }
+
   const value = record[field.name];
 
   if (field.type === "checkbox") return value ? "Yes" : "No";
@@ -144,6 +148,8 @@ export default function ResourcePage({
   // True while a create / update / delete is in flight, so a second click
   // cannot fire a duplicate request.
   const [saving, setSaving] = useState(false);
+  const [checkingUpload, setCheckingUpload] = useState(false);
+  const [saveErrorMessage, setSaveErrorMessage] = useState("");
 
   /** The term lives in the URL so the topbar search can pre-filter this table. */
   const query = params.get("q") ?? "";
@@ -268,7 +274,14 @@ export default function ResourcePage({
   const submit = async (values) => {
     if (saving) return;
 
+    setSaveErrorMessage("");
+    const shouldCheckUpload =
+      !form?.record &&
+      (collection === "assignments" || collection === "papers") &&
+      Boolean(values.file);
+
     setSaving(true);
+    setCheckingUpload(shouldCheckUpload);
 
     try {
       if (form?.record) {
@@ -282,9 +295,14 @@ export default function ResourcePage({
       setForm(null);
       setPage(1);
     } catch (saveError) {
-      toast.error(apiErrorMessage(saveError));
+      const message = apiErrorMessage(saveError);
+      setSaveErrorMessage(message);
+      if (collection !== "assignments" && collection !== "papers") {
+        toast.error(message);
+      }
     } finally {
       setSaving(false);
+      setCheckingUpload(false);
     }
   };
 
@@ -350,7 +368,7 @@ export default function ResourcePage({
 
   return (
     <>
-      <div className="px-6 py-6">
+      <div className="flex min-h-[calc(100vh-72px)] flex-col px-6 py-6">
         <PageHeader
           icon={icon}
           tone={tone}
@@ -380,8 +398,8 @@ export default function ResourcePage({
 
         {insightsNode ? <div className="mt-5">{insightsNode}</div> : null}
 
-        <section className="mt-5 rounded-xl border border-slate-200 bg-white">
-          <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 px-4 py-3.5">
+        <section className="mt-5 flex-1 rounded-xl bg-white">
+          <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-4 py-3.5">
             <div className="relative w-full sm:w-[280px]">
               <Search
                 size={15}
@@ -497,11 +515,11 @@ export default function ResourcePage({
             />
           ) : (
             <>
-              <div className="scroll-x">
-                <table className="w-full min-w-[900px] border-collapse text-left">
+              <div className="scroll-x h-full min-h-[60vh] w-full overflow-auto">
+                <table className="w-full min-w-[900px] border-collapse text-left text-[13.5px]">
                   <thead>
                     <tr className="border-b border-slate-200 bg-slate-50/70">
-                      <th className="w-[56px] px-4 py-3 text-[12.5px] font-semibold text-slate-500">
+                      <th className="w-[56px] px-5 py-3.5 text-[13px] font-semibold text-slate-500">
                         #
                       </th>
 
@@ -509,7 +527,7 @@ export default function ResourcePage({
                         <th
                           key={column.key}
                           className={cx(
-                            "px-4 py-3 text-[12.5px] font-semibold text-slate-500",
+                            "px-5 py-3.5 text-[13px] font-semibold text-slate-500",
                             column.headerClassName
                           )}
                         >
@@ -517,7 +535,7 @@ export default function ResourcePage({
                         </th>
                       ))}
 
-                      <th className="px-4 py-3 text-right text-[12.5px] font-semibold text-slate-500">
+                      <th className="px-5 py-3.5 text-right text-[13px] font-semibold text-slate-500">
                         Actions
                       </th>
                     </tr>
@@ -529,7 +547,7 @@ export default function ResourcePage({
                         key={record.id}
                         className="border-b border-slate-100 last:border-0 hover:bg-slate-50/60"
                       >
-                        <td className="px-4 py-3.5 align-middle text-[13px] text-slate-400">
+                        <td className="px-5 py-4 align-middle text-[14px] text-slate-400">
                           {start + index + 1}
                         </td>
 
@@ -537,7 +555,7 @@ export default function ResourcePage({
                           <td
                             key={column.key}
                             className={cx(
-                              "px-4 py-3.5 align-middle text-[13px] text-slate-700",
+                              "px-5 py-4 align-middle text-[14px] text-slate-700",
                               column.cellClassName
                             )}
                           >
@@ -547,7 +565,7 @@ export default function ResourcePage({
                           </td>
                         ))}
 
-                        <td className="px-4 py-3.5 align-middle text-right">
+                        <td className="px-5 py-4 align-middle text-right">
                           {rowMenu(record)}
                         </td>
                       </tr>
@@ -581,7 +599,9 @@ export default function ResourcePage({
               : `Add a ${singular.toLowerCase()} to the catalogue.`
           }
           submitLabel={
-            saving
+            checkingUpload
+              ? "Checking file…"
+              : saving
               ? form.record
                 ? "Saving…"
                 : "Creating…"
@@ -589,6 +609,9 @@ export default function ResourcePage({
                 ? "Save changes"
                 : `Create ${singular}`
           }
+          checkingUpload={checkingUpload}
+          checkingTitle={`Checking ${collection === "papers" ? "past paper" : "assignment"}`}
+          submitError={saveErrorMessage}
           onSubmit={submit}
           onClose={() => setForm(null)}
         />

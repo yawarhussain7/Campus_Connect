@@ -5,10 +5,8 @@
     "dev": "nodemon server.js",
     "smoke": "node smoke.mjs"
   },
-
-  
-
   "dependencies": {
+    "@google/genai": "^2.31.0",
     "axios": "^1.20.0",
     "bcrypt": "^6.0.0",
     "cheerio": "^1.2.0",
@@ -21,6 +19,7 @@
     "multer": "^2.2.0",
     "nodemailer": "^10.0.14",
     "nodemon": "^3.1.14",
+    "sharp": "^0.35.5",
     "zod": "^4.4.3"
   }
 }

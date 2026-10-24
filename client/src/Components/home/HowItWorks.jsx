@@ -48,7 +48,7 @@ export default function HowItWorks() {
             {STEPS.map(({ icon: Icon, title, desc }, index) => (
               <Reveal key={title} delay={index * 80}>
                 <div className="flex flex-col items-center text-center p-6 rounded-2xl border border-slate-100 bg-[#f8fafc] hover:border-slate-200 transition">
-                  <span className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md ring-4 ring-white">
+                  <span className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white  ring-4 ring-white">
                     <Icon className="h-6 w-6" />
                     <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[11px] font-bold text-white border-2 border-white">
                       {index + 1}

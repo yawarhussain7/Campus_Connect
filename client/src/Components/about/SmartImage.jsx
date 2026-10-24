@@ -18,7 +18,7 @@ export default function SmartImage({
         aria-hidden="true"
         className={
           fallbackClassName ||
-          `bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 ${className}`
+          `bg-blue-600 ${className}`
         }
       />
     );

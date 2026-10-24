@@ -17,6 +17,7 @@ import reviewRoute from './Routes/review.route.js'
 import cuiteacherRoute from './Routes/cuiteacher.routes.js'
 import Adminrouter from './Routes/admin.route.js'
 
+
 import connectDB from './config/dbconfig.js'
 
 const PORT = process.env.PORT || 8080
@@ -50,6 +51,7 @@ app.use('/student',reviewRoute)
 app.use('/admin',Adminrouter)
 // The COMSATS faculty directory the teacher-review pickers are built from.
 app.use('/cui-teachers',cuiteacherRoute)
+
 
 app.get('/',(req,res)=>{
     res.send('Hello World')

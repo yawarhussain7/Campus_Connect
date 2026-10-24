@@ -4,9 +4,9 @@ import Reveal from './Reveal';
 
 const FAQS = [
   {
-    question: 'Is CampusConnect completely free to use?',
+    question: 'Is UniMate completely free to use?',
     answer:
-      'Yes, CampusConnect is 100% free and open for all students. There are no paywalls, hidden fees, or subscription tiers. Everything is built to support the student community.',
+      'Yes, UniMate is 100% free and open for all students. There are no paywalls, hidden fees, or subscription tiers. Everything is built to support the student community.',
   },
   {
     question: 'How does the Smart Timetable Generator work?',
@@ -56,7 +56,7 @@ export default function FAQSection() {
           </h2>
 
           <p className="mt-3 text-sm sm:text-base text-slate-500">
-            Everything you need to know about navigating and benefiting from the CampusConnect ecosystem.
+            Everything you need to know about navigating and benefiting from the UniMate ecosystem.
           </p>
         </Reveal>
 
@@ -68,7 +68,7 @@ export default function FAQSection() {
                 <div
                   className={`rounded-2xl border transition-all duration-200 ${
                     isOpen
-                      ? 'border-blue-300 bg-blue-50/20 shadow-sm'
+                      ? 'border-blue-300 bg-blue-50/20 '
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >

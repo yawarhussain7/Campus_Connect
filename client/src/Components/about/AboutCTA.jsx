@@ -13,12 +13,12 @@ const CTA_IMAGE =
 export default function AboutCTA() {
   return (
     <section className="animate-fadeInUp">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
+      <div className="relative overflow-hidden rounded-2xl bg-blue-700">
         <SmartImage
           src={CTA_IMAGE}
           alt=""
           className="absolute inset-0 h-full w-full object-cover opacity-25"
-          fallbackClassName="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-700 opacity-40"
+          fallbackClassName="absolute inset-0 bg-blue-600 opacity-40"
         />
 
         <div className="relative px-6 py-10 text-center sm:px-10 sm:py-14">
@@ -56,7 +56,7 @@ export default function AboutCTA() {
       </div>
 
       <p className="mt-4 text-center text-[11.5px] text-slate-400">
-        CampusConnect is a student project and is not an official COMSATS website.
+        UniMate is a student project and is not an official COMSATS website.
       </p>
     </section>
   );

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BookOpenCheck } from "lucide-react";
 
 import Button from "../ui/Button";
 import Drawer from "../ui/Drawer";
@@ -9,6 +10,11 @@ function initialValues(fields, record) {
 
   for (const field of fields) {
     const current = record?.[field.name];
+
+    if (field.type === "file") {
+      values[field.name] = null;
+      continue;
+    }
 
     if (field.type === "checkbox") {
       values[field.name] = Boolean(current ?? field.defaultValue ?? false);
@@ -21,10 +27,17 @@ function initialValues(fields, record) {
   return values;
 }
 
-function validate(fields, values) {
+function validate(fields, values, record) {
   const errors = {};
 
   for (const field of fields) {
+    if (field.type === "file") {
+      if (field.requiredOnCreate && !record && !values[field.name]) {
+        errors[field.name] = `${field.label} is required`;
+      }
+      continue;
+    }
+
     if (field.type === "checkbox") continue;
 
     const text = String(values[field.name] ?? "").trim();
@@ -54,7 +67,9 @@ function coerce(fields, values) {
   for (const field of fields) {
     const value = values[field.name];
 
-    if (field.type === "checkbox") output[field.name] = Boolean(value);
+    if (field.type === "file") {
+      if (value) output[field.name] = value;
+    } else if (field.type === "checkbox") output[field.name] = Boolean(value);
     else if (field.type === "number")
       output[field.name] = value === "" ? null : Number(value);
     else output[field.name] = String(value ?? "").trim();
@@ -70,6 +85,9 @@ export default function RecordForm({
   title,
   description,
   submitLabel,
+  checkingUpload = false,
+  checkingTitle = "Checking file",
+  submitError = "",
   onSubmit,
   onClose,
 }) {
@@ -87,7 +105,7 @@ export default function RecordForm({
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    const nextErrors = validate(fields, values);
+    const nextErrors = validate(fields, values, record);
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
@@ -101,6 +119,25 @@ export default function RecordForm({
     const id = `field-${field.name}`;
     const invalid = Boolean(errors[field.name]);
     const set = (value) => setValue(field.name, value);
+
+    if (field.type === "file") {
+      return (
+        <div>
+          <Input
+            id={id}
+            type="file"
+            accept={field.accept}
+            invalid={invalid}
+            onChange={(event) => set(event.target.files?.[0] ?? null)}
+          />
+          {values[field.name]?.name ? (
+            <p className="mt-1.5 text-[11.5px] text-slate-500">
+              Selected: {values[field.name].name}
+            </p>
+          ) : null}
+        </div>
+      );
+    }
 
     if (field.type === "select") {
       return (
@@ -163,6 +200,7 @@ export default function RecordForm({
   };
 
   return (
+    <>
     <Drawer
       open
       onClose={onClose}
@@ -187,7 +225,15 @@ export default function RecordForm({
         onSubmit={handleSubmit}
         className="grid grid-cols-1 gap-4 sm:grid-cols-2"
       >
-        {fields.map((field) =>
+        {submitError ? (
+          <div
+            role="alert"
+            className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] leading-5 text-red-700 sm:col-span-2"
+          >
+            {submitError}
+          </div>
+        ) : null}
+        {fields.filter((field) => !(field.createOnly && record)).map((field) =>
           field.type === "checkbox" ? (
             <div key={field.name} className={field.wide ? "sm:col-span-2" : ""}>
               <Checkbox
@@ -213,5 +259,33 @@ export default function RecordForm({
         )}
       </form>
     </Drawer>
+    {checkingUpload ? (
+      <div
+        className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/35 p-4 backdrop-blur-sm"
+        role="status"
+        aria-live="polite"
+        aria-label={checkingTitle}
+      >
+        <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white px-7 py-8 text-center shadow-2xl shadow-slate-950/20">
+          <div className="relative mx-auto grid h-20 w-20 place-items-center">
+            <span className="absolute inset-0 rounded-full border border-indigo-100" />
+            <span className="absolute inset-1 rounded-full border-[3px] border-transparent border-t-indigo-600 animate-spin" />
+            <span className="absolute inset-3 rounded-full border-2 border-transparent border-b-emerald-500 animate-[spin_1.4s_linear_infinite_reverse]" />
+            <BookOpenCheck className="h-7 w-7 text-slate-700" strokeWidth={1.8} />
+          </div>
+
+          <h2 className="mt-5 text-base font-semibold text-slate-900">{checkingTitle}</h2>
+          <p className="mt-1.5 text-sm leading-5 text-slate-500">
+            Checking the file content and subject relevance.
+          </p>
+          <div className="mt-5 flex justify-center gap-1.5" aria-hidden="true">
+            <span className="h-1 w-8 rounded-full bg-indigo-600 animate-pulse" />
+            <span className="h-1 w-8 rounded-full bg-emerald-500 animate-pulse [animation-delay:150ms]" />
+            <span className="h-1 w-8 rounded-full bg-slate-300 animate-pulse [animation-delay:300ms]" />
+          </div>
+        </div>
+      </div>
+    ) : null}
+    </>
   );
 }

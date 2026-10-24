@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
-  GraduationCap,
   KeyRound,
   Mail,
   MailCheck,
@@ -75,20 +74,9 @@ export default function ForgotPassword() {
 
         <div className="rounded-2xl border border-white/80 bg-white px-6 py-7 shadow-[0_20px_50px_-30px_rgba(15,35,80,0.28)] sm:px-7">
           {/* Brand lockup */}
-          <div className="flex items-center justify-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-blue-600 text-white shadow-[0_12px_22px_-14px_rgba(37,99,235,0.9)]">
-              <GraduationCap size={22} strokeWidth={2} />
-            </span>
-
-            <span className="leading-tight">
-              <span className="block text-[18px] font-bold tracking-tight text-slate-900">
-                CampusConnect
-              </span>
-
-              <span className="mt-0.5 block text-[12px] text-slate-500">
-                Admin Portal
-              </span>
-            </span>
+          <div className="flex flex-col items-center gap-1">
+            <img src="/uniMat.png" alt="UniMate" className="h-24 w-24 object-contain" />
+            <span className="text-[12px] text-slate-500">Admin Portal</span>
           </div>
 
           {sent ? (

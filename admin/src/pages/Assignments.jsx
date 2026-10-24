@@ -115,10 +115,15 @@ const FIELDS = [
     defaultValue: "Computer Science",
   },
   {
-    name: "originalName",
-    label: "Attached file",
-    placeholder: "Assignment 02.pdf",
-    hint: "File name reference — students upload the actual file from the student app.",
+    name: "file",
+    label: "Assignment file",
+    type: "file",
+    accept: ".pdf,.jpg,.jpeg,.png,.webp",
+    required: true,
+    requiredOnCreate: true,
+    createOnly: true,
+    wide: true,
+    hint: "Upload the actual educational file. It will be checked against the subject before saving.",
   },
 ];
 

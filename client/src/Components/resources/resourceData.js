@@ -82,7 +82,7 @@ export const RESOURCES = [
   {
     id: 'fyp-portal',
     type: 'projects',
-    title: 'Campus Connect Portal (Final Year Project)',
+    title: 'UniMate Portal (Final Year Project)',
     subject: 'Software Engineering',
     department: 'Software Engineering',
     semester: 'Semester 8',

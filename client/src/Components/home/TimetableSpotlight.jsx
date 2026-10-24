@@ -13,7 +13,7 @@ export default function TimetableSpotlight() {
   return (
     <section className="bg-[#f8fafc] py-16 sm:py-20 border-b border-slate-200/80">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-10 lg:p-12 shadow-sm">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-10 lg:p-12 ">
           <div className="grid items-center gap-10 lg:grid-cols-12">
             {/* Left Content */}
             <div className="lg:col-span-5 space-y-6">
@@ -62,7 +62,7 @@ export default function TimetableSpotlight() {
               <div className="pt-3 flex flex-wrap items-center gap-3">
                 <Link
                   to="/student/create-timetable"
-                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
+                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white  transition hover:bg-blue-700 "
                 >
                   <Calendar className="h-4 w-4" />
                   <span>Build Your Timetable</span>
@@ -78,13 +78,13 @@ export default function TimetableSpotlight() {
             {/* Right Visual: Replica of the uploaded official table */}
             <div className="lg:col-span-7">
               <Reveal>
-                <div className="rounded-2xl border border-slate-300 bg-white shadow-md overflow-hidden">
+                <div className="rounded-2xl border border-slate-300 bg-white  overflow-hidden">
                   {/* Mock URL bar */}
                   <div className="flex items-center justify-between gap-2 border-b border-slate-200 bg-[#f8fafc] px-4 py-2.5">
                     <div className="flex items-center gap-2 min-w-0">
                       <Share2 className="h-3.5 w-3.5 text-blue-600 shrink-0" />
                       <span className="text-xs font-mono text-slate-600 truncate">
-                        https://campusconnect.app/timetable/7f3a9e2c
+                        https://unimate.app/timetable/7f3a9e2c
                       </span>
                     </div>
                     <span className="rounded-md bg-blue-600 px-2 py-0.5 text-[10px] font-semibold text-white shrink-0">

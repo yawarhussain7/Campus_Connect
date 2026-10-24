@@ -3,7 +3,7 @@ import { day, stamp } from "./helpers";
 /** Mirrors Project in server/Model/project.model.js, plus `student` (admin-only "assigned to"). */
 export const projectSeed = [
   {
-    title: "Campus Connect Portal",
+    title: "UniMate Student Portal",
     desc:
       "Resource-sharing portal for students with assignment, past paper and project uploads.",
     course: "CS405",

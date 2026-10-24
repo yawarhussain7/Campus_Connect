@@ -15,7 +15,7 @@ async function request(path, { method = "GET", body, formData } = {}) {
     });
   } catch {
     throw new Error(
-      "Cannot reach the CampusConnect API — is the server running on port 8080?"
+      "Cannot reach the UniMate API — is the server running on port 8080?"
     );
   }
 
@@ -67,8 +67,25 @@ export const listRequest = async (collection) => {
   return payload.data ?? [];
 };
 
-export const createRequest = (collection, values) =>
-  request(`/admin/${collection}`, { method: "POST", body: values });
+export const createRequest = (collection, values) => {
+  const file = values.file;
+
+  if (typeof File !== "undefined" && file instanceof File) {
+    const formData = new FormData();
+
+    for (const [key, value] of Object.entries(values)) {
+      if (key !== "file" && value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    }
+
+    formData.append("file", file);
+
+    return request(`/admin/${collection}`, { method: "POST", formData });
+  }
+
+  return request(`/admin/${collection}`, { method: "POST", body: values });
+};
 
 export const updateRequest = (collection, id, values) =>
   request(`/admin/${collection}/${id}`, { method: "PUT", body: values });

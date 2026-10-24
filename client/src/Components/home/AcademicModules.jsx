@@ -133,7 +133,7 @@ export default function AcademicModules() {
             return (
               <Reveal key={module.id} delay={index * 60}>
                 <div
-                  className={`group flex h-full flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${module.borderHover}`}
+                  className={`group flex h-full flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6  transition-all duration-200  hover: ${module.borderHover}`}
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">

@@ -8,7 +8,7 @@ import AboutValues from '../../Components/about/AboutValues.jsx';
 import AboutCTA from '../../Components/about/AboutCTA.jsx';
 
 /**
- * About screen: a short, polished tour of what CampusConnect is, why it exists
+ * About screen: a short, polished tour of what UniMate is, why it exists
  * and where each part of it lives. Composed from the same shell as the other
  * student pages (fixed sidebar + sticky header) so it reads as part of the app.
  */

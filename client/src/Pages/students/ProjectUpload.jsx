@@ -20,10 +20,7 @@ const labelClass =
 const fieldClass =
   'w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 placeholder:text-slate-400';
 
-/**
- * Upload a project: the file itself is optional, but a project has to point
- * somewhere, so either a file or a repository link is required.
- */
+/** Upload a project with a GitHub repository link; an attached file is optional. */
 export default function ProjectUpload() {
   const navigate = useNavigate();
 
@@ -45,8 +42,8 @@ export default function ProjectUpload() {
       return;
     }
 
-    if (!file && !repo.trim()) {
-      toast.error('Attach a project file or add a repository link');
+    if (!repo.trim()) {
+      toast.info('Please add a GitHub link before uploading your project');
       return;
     }
 
@@ -172,7 +169,7 @@ export default function ProjectUpload() {
               </div>
 
               <div>
-                <label className={labelClass}>Repository Link</label>
+                <label className={labelClass}>GitHub Repository Link *</label>
 
                 <input
                   type="url"

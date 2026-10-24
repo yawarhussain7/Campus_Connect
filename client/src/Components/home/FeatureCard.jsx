@@ -19,7 +19,7 @@ const FeatureCard = ({ icon: Icon, title, desc, to = '/auth/signIn', tone = 'blu
   return (
     <Link
       to={to}
-      className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg"
+      className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition  hover:border-blue-200 hover:"
     >
       <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${palette.tile}`}>
         <Icon className="h-5 w-5" />
@@ -32,7 +32,7 @@ const FeatureCard = ({ icon: Icon, title, desc, to = '/auth/signIn', tone = 'blu
       <p className="mt-1.5 text-[13.5px] leading-relaxed text-slate-500">{desc}</p>
 
       <ArrowRight
-        className={`mt-5 h-[18px] w-[18px] transition-transform group-hover:translate-x-0.5 ${palette.arrow}`}
+        className={`mt-5 h-[18px] w-[18px] transition-transform  ${palette.arrow}`}
       />
     </Link>
   );

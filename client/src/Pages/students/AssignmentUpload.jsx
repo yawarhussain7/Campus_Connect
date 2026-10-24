@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../Components/common/Sidebar';
 import Header from '../../Components/common/Header';
 import ModernSelect from '../../Components/common/ModernSelect';
 import { ArrowLeft, Upload, BookOpen } from 'lucide-react';
-import { Uploadassignment,ShowAllassignment } from '../../api/assignment';
+import { Uploadassignment } from '../../api/assignment';
 import { departmentOptions } from '../../utils/departments.js';
-import { ClipLoader } from 'react-spinners';
+import { toast } from 'react-toastify';
+import ContentCheckLoader from '../../Components/common/ContentCheckLoader.jsx';
 
 export default function AssignmentUpload() {
   const navigate = useNavigate();
@@ -23,11 +24,14 @@ export default function AssignmentUpload() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if (!newTitle || !newDesc || !newSubject || !newTeacher) {
-      alert('Please fill out all required fields.');
+    setUploadError('');
+    if (!newTitle.trim() || !newDesc.trim() || !newSubject.trim() || !newTeacher.trim() || !selectedFile) {
+      const message = 'Please complete all required fields and select a file.';
+      setUploadError(message);
       return;
     }
 
@@ -46,16 +50,19 @@ export default function AssignmentUpload() {
       }
 
       await Uploadassignment(formData);
-      alert('Assignment uploaded successfully!');
+      toast.success('Assignment uploaded successfully');
       navigate('/student/assignments');
     } catch (error) {
-      alert(error.message || 'Failed to upload assignment. Please try again.');
+      const firstFieldError = Object.values(error?.errors ?? error?.error ?? error?.data?.error ?? {}).flat()[0];
+      const message = firstFieldError || error?.response?.data?.message || error?.data?.message || error?.message || 'Failed to upload assignment. Please try again.';
+      setUploadError(message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
+    <>
     <div className="min-h-screen bg-[#f7f9fc] text-slate-800 flex font-sans antialiased">
       <Sidebar />
 
@@ -87,6 +94,12 @@ export default function AssignmentUpload() {
 
           {/* Upload Form */}
           <form onSubmit={handleFormSubmit} className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-sm space-y-5 max-w-3xl">
+            {uploadError ? (
+              <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-5 text-red-700">
+                {uploadError}
+              </div>
+            ) : null}
+
             <div>
               <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-[0.07em] mb-1.5">Assignment Title</label>
               <input
@@ -177,10 +190,14 @@ export default function AssignmentUpload() {
               <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-[0.07em] mb-1.5">File</label>
               <input
                 type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.webp"
                 required
                 onChange={(e) => setSelectedFile(e.target.files[0])}
                 className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
               />
+              <p className="mt-1.5 text-[11px] text-slate-400">
+                PDF, JPEG, PNG, or WEBP files are checked for educational content and relevance to the selected subject.
+              </p>
             </div>
 
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
@@ -193,15 +210,18 @@ export default function AssignmentUpload() {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-md transition-all duration-200 flex items-center gap-1.5"
+                disabled={loading}
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-md transition-all duration-200 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Upload className="h-3.5 w-3.5" />
-                Publish Assignment
+                {loading ? 'Verifying and publishing...' : 'Publish Assignment'}
               </button>
             </div>
           </form>
         </div>
       </div>
     </div>
+    {loading && <ContentCheckLoader title="Checking assignment" />}
+    </>
   );
 }

@@ -180,6 +180,19 @@ html {
   overscroll-behavior-x: contain;
 }
 
+/* Keep custom toast copy readable even when the library's light theme resets it. */
+.Toastify__toast-body,
+.Toastify__toast-body > div {
+  color: #334155 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.Toastify__toast-body {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 /* ===== SCROLL REVEAL ===== */
 /* Elements start slightly lowered and fade/lift in once they scroll into view. */
 .reveal {
@@ -212,3 +225,55 @@ html {
     transform: none !important;
   }
 }
+
+/* ===== FLAT & SMOOTH DESIGN OVERRIDES ===== */
+:root {
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --shadow-elevated: none;
+  --glass-shadow: none;
+}
+
+.surface-card,
+.glass-card {
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.hover-lift:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.shadow-sm,
+.shadow,
+.shadow-md,
+.shadow-lg,
+.shadow-xl,
+.shadow-2xl {
+  box-shadow: none !important;
+}
+
+/* Smooth, consistent transitions across interactive elements */
+button,
+a,
+input,
+select,
+textarea,
+[role='button'] {
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, opacity 0.18s ease, transform 0.18s ease;
+}
+
+
+/* ===== FLAT STYLE ENFORCEMENT (home page polish) ===== */
+* {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+*:hover,
+*:active,
+*:focus {
+  transform: none !important;
+}
+

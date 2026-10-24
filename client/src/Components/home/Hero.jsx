@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   BookOpen,
@@ -46,32 +46,25 @@ export default function Hero() {
 
   return (
     <section id="home" className="relative scroll-mt-20 overflow-hidden bg-[#f8fafc] border-b border-slate-200/80">
-      {/* Crisp flat grid pattern in background */}
+      {/* Flat grid pattern */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.4]"
+        className="pointer-events-none absolute inset-0 opacity-[0.2]"
         style={{
-          backgroundImage:
-            'radial-gradient(#cbd5e1 1px, transparent 1px), radial-gradient(#e2e8f0 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-          backgroundPosition: '0 0, 20px 20px',
+          backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
         }}
       />
 
-      {/* Subtle top ambient glow */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-40 left-1/2 h-[340px] w-[700px] -translate-x-1/2 rounded-full bg-blue-100/60 blur-[100px]"
-      />
 
       <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
         <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
           {/* Left Column: Headline & Controls */}
           <div className="lg:col-span-7 space-y-6 text-left">
             {/* Pill Banner */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/80 px-3.5 py-1.5 text-xs font-semibold text-blue-700 shadow-sm">
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/80 px-3.5 py-1.5 text-xs font-semibold text-blue-700 ">
               <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
-              <span>CampusConnect 2.0</span>
+              <span>UniMate 2.0</span>
               <span className="text-slate-300">|</span>
               <span className="text-slate-600 font-medium">All-in-one Student Portal</span>
             </div>
@@ -91,7 +84,7 @@ export default function Hero() {
             {/* Flat Search Form */}
             <form
               onSubmit={handleSearch}
-              className="mt-6 flex flex-col sm:flex-row items-stretch gap-2 rounded-2xl border border-slate-300 bg-white p-2 shadow-sm transition hover:border-slate-400 focus-within:border-blue-600 focus-within:ring-4 focus-within:ring-blue-100"
+              className="mt-6 flex flex-col sm:flex-row items-stretch gap-2 rounded-2xl border border-slate-300 bg-white p-2  transition hover:border-slate-400 focus-within:border-blue-600 focus-within:ring-4 focus-within:ring-blue-100"
             >
               <div className="flex flex-1 items-center gap-2.5 px-3">
                 <Search className="h-5 w-5 shrink-0 text-slate-400" />
@@ -107,7 +100,7 @@ export default function Hero() {
 
               <button
                 type="submit"
-                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95 shrink-0"
+                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-semibold text-white  transition hover:bg-blue-700  shrink-0"
               >
                 <span>Find Resources</span>
                 <ArrowRight className="h-4 w-4" />
@@ -124,7 +117,7 @@ export default function Hero() {
                     key={item.label}
                     type="button"
                     onClick={() => handleShortcutClick(item.to)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 transition hover:border-blue-300 hover:bg-blue-50/50 hover:text-blue-700 active:scale-95 shadow-sm"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 transition hover:border-blue-300 hover:bg-blue-50/50 hover:text-blue-700  "
                   >
                     <Icon className="h-3.5 w-3.5 text-blue-600" />
                     <span>{item.label}</span>
@@ -143,7 +136,7 @@ export default function Hero() {
               <button
                 type="button"
                 onClick={() => navigate(user ? '/student/dashboard' : '/auth/signUp')}
-                className="inline-flex h-11 items-center gap-2 rounded-xl bg-slate-900 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 active:scale-95"
+                className="inline-flex h-11 items-center gap-2 rounded-xl bg-slate-900 px-6 text-sm font-semibold text-white  transition hover:bg-slate-800 "
               >
                 <span>{user ? 'Open Dashboard' : 'Join Community Free'}</span>
                 <ChevronRight className="h-4 w-4" />
@@ -152,7 +145,7 @@ export default function Hero() {
               <button
                 type="button"
                 onClick={() => navigate('/student/create-timetable')}
-                className="inline-flex h-11 items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 active:scale-95"
+                className="inline-flex h-11 items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 "
               >
                 <Calendar className="h-4 w-4" />
                 <span>Create Timetable</span>
@@ -178,7 +171,7 @@ export default function Hero() {
 
           {/* Right Column: Flat Interactive Preview Card */}
           <div className="lg:col-span-5 relative">
-            <div className="relative rounded-2xl border border-slate-200 bg-white p-5 shadow-lg space-y-4">
+            <div className="relative rounded-2xl border border-slate-200 bg-white p-5  space-y-4">
               {/* Card Header Bar */}
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
@@ -186,7 +179,7 @@ export default function Hero() {
                   <span className="h-3 w-3 rounded-full bg-amber-400" />
                   <span className="h-3 w-3 rounded-full bg-emerald-400" />
                   <span className="ml-2 text-xs font-semibold text-slate-600">
-                    CampusConnect · Academic Workspace
+                    UniMate · Academic Workspace
                   </span>
                 </div>
                 <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
@@ -247,7 +240,7 @@ export default function Hero() {
                       </span>
                       <div className="min-w-0">
                         <p className="text-xs font-semibold text-slate-800 truncate">
-                          Campus Connect MERN Project & Report
+                          UniMate MERN Project & Report
                         </p>
                         <p className="text-[10px] text-slate-400">Software Eng · Final Year</p>
                       </div>

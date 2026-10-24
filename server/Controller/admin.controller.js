@@ -10,6 +10,8 @@ import {
   setUserBlockService,
 } from "../Service/admin.service.js";
 import User from "../Model/auth.model.js";
+import fs from "fs";
+import { verifyEducationalContent } from "../Service/verifyEducationalContent.service.js";
 import {
   AdminUserCreateZod,
   AdminUserUpdateZod,
@@ -36,8 +38,63 @@ export const listRecords = (collection) => async (req, res) => {
 
 /** POST /admin/:collection — create from the admin's record form. */
 export const createRecord = (collection) => async (req, res) => {
+  const file = req.file;
+  let verifyingContent = false;
+
   try {
-    const record = await createRecordService(collection, req.body, req.user?.id);
+    const body = { ...(req.body ?? {}) };
+    const needsVerifiedFile = collection === "assignments" || collection === "papers";
+
+    if (collection === "papers") {
+      body.year = body.year ? Number.parseInt(body.year, 10) : undefined;
+      body.hasSolution = body.hasSolution === true || body.hasSolution === "true";
+    }
+
+    if (needsVerifiedFile && !file) {
+      return res.status(400).json({
+        success: false,
+        message: "Upload the actual assignment or paper file.",
+      });
+    }
+
+    if (needsVerifiedFile) {
+      verifyingContent = true;
+      const verification = await verifyEducationalContent(
+        await fs.promises.readFile(file.path),
+        {
+          mimeType: file.mimetype,
+          subject: body.subject,
+          resourceType: collection === "papers" ? "past examination paper" : "assignment",
+          metadata: {
+            title: body.title,
+            description: body.description,
+            course: body.course,
+            exam: body.exam,
+            semester: body.semester,
+            year: body.year,
+            department: body.department,
+          },
+        }
+      );
+      verifyingContent = false;
+
+      if (verification.status !== "approved") {
+        await fs.promises.unlink(file.path).catch(() => {});
+        return res.status(422).json({
+          success: false,
+          message: `Upload rejected: ${verification.reason || "the file is not verified as educational content related to the selected subject."}`,
+        });
+      }
+
+      Object.assign(body, {
+        fileUrl: `/uploads/${collection === "papers" ? "papers" : "assignments"}/${file.filename}`,
+        fileName: file.filename,
+        originalName: file.originalname,
+        fileSize: file.size,
+      });
+    }
+
+    const record = await createRecordService(collection, body, req.user?.id);
 
     res.status(201).json({
       success: true,
@@ -45,6 +102,13 @@ export const createRecord = (collection) => async (req, res) => {
       data: record,
     });
   } catch (error) {
+    if (file?.path) await fs.promises.unlink(file.path).catch(() => {});
+    if (verifyingContent) {
+      return res.status(503).json({
+        success: false,
+        message: "Educational content verification is unavailable. Please try again later.",
+      });
+    }
     sendError(res, error);
   }
 };

@@ -35,15 +35,9 @@ export default function Sidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
       <Link to="/overview" className="flex h-[72px] shrink-0 items-center gap-3 px-5">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white">
-          <GraduationCap size={22} strokeWidth={2} />
-        </span>
+        <img src="/uniMat.png" alt="UniMate" className="h-14 w-14 shrink-0 object-contain" />
 
         <span className="min-w-0 leading-tight">
-          <span className="block truncate text-[14.5px] font-bold tracking-tight text-slate-900">
-            CampusConnect
-          </span>
-
           <span className="block text-[11.5px] text-slate-500">Admin Panel</span>
         </span>
       </Link>

@@ -92,7 +92,7 @@ const FIELDS = [
     label: "Title",
     required: true,
     wide: true,
-    placeholder: "e.g. Campus Connect Portal",
+    placeholder: "e.g. UniMate Student Portal",
     check: (value) =>
       value.length < 3
         ? "Title must be at least 3 characters"

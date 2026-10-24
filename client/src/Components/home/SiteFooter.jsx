@@ -1,20 +1,11 @@
-import { GraduationCap, Heart, Shield, CheckCircle2 } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const ACADEMIC_LINKS = [
-  { label: 'Past Papers Vault', to: '/resources?type=past-papers' },
-  { label: 'Timetable Generator', to: '/student/create-timetable' },
-  { label: 'Project Showcase', to: '/resources?type=projects' },
-  { label: 'Assignment Guidelines', to: '/resources?type=assignments' },
-  { label: 'Teacher Reviews', to: '/student/teachers-review' },
-];
+import uniMateLogo from '../../assets/uniMat.png';
 
 const PLATFORM_LINKS = [
-  { label: 'Home', to: '/#home' },
-  { label: 'Explore Resources', to: '/resources' },
-  { label: 'Core Features', to: '/#features' },
-  { label: 'How It Works', to: '/#how' },
-  { label: 'FAQ', to: '/#faq' },
+  { label: 'Home', to: '/' },
+  { label: 'About', to: '/about' },
+  { label: 'Services', to: '/services' },
 ];
 
 const ACCOUNT_LINKS = [
@@ -28,18 +19,13 @@ export default function SiteFooter() {
   return (
     <footer className="border-t border-slate-200 bg-white">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand Info Column */}
           <div className="space-y-4 lg:col-span-2">
             <Link to="/" className="flex items-center gap-2.5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
-                <GraduationCap className="h-5 w-5" />
-              </span>
+              <img src={uniMateLogo} alt="UniMate" className="h-16 w-16 shrink-0 object-contain" />
 
               <span className="text-left">
-                <span className="block text-[18px] font-bold leading-none tracking-tight text-slate-900">
-                  Campus<span className="text-blue-600">Connect</span>
-                </span>
                 <span className="block text-[11px] font-medium leading-tight text-slate-400">
                   Student portal
                 </span>
@@ -47,7 +33,7 @@ export default function SiteFooter() {
             </Link>
 
             <p className="max-w-sm text-xs sm:text-sm leading-relaxed text-slate-500">
-              CampusConnect brings past papers, semester projects, assignments, and smart timetable
+              UniMate brings past papers, semester projects, assignments, and smart timetable
               tools together so university students can excel throughout their academic degree.
             </p>
 
@@ -61,25 +47,6 @@ export default function SiteFooter() {
                 SSL Verified
               </span>
             </div>
-          </div>
-
-          {/* Academic Modules Column */}
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
-              Academic Modules
-            </h4>
-            <ul className="mt-4 space-y-2.5 text-xs sm:text-sm text-slate-600">
-              {ACADEMIC_LINKS.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    to={link.to}
-                    className="transition hover:text-blue-600 hover:underline"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
           </div>
 
           {/* Platform Column */}
@@ -123,15 +90,15 @@ export default function SiteFooter() {
 
         {/* Bottom Strip */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-200 pt-6 sm:flex-row text-xs text-slate-500">
-          <p>© 2026 CampusConnect. Built with pride for university students.</p>
+          <p>© 2026 UniMate. Built with pride for university students.</p>
 
           <div className="flex items-center gap-4">
             <Link to="/#about" className="hover:text-slate-800 transition">
               About
             </Link>
             <span>·</span>
-            <Link to="/#faq" className="hover:text-slate-800 transition">
-              FAQ
+            <Link to="/#features" className="hover:text-slate-800 transition">
+              Features
             </Link>
             <span>·</span>
             <span className="text-slate-400">Campus Collaboration Platform</span>

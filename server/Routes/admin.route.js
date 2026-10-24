@@ -7,6 +7,8 @@ import {ShowTotalReviewsController,ShowReviews} from '../Controller/review.contr
 import { createRecord, updateRecord, deleteRecord, listUsers, countUsers, createUser, updateUser, deleteUser, verifyUserEmail, blockUser } from '../Controller/admin.controller.js'
 import { getProfileController, updateProfileController } from '../Controller/profile.controller.js'
 import { uploadAvatar } from '../middleware/profileUpload.middleware.js'
+import { assignmentUploadMiddleware } from '../middleware/assignUpload.middleware.js'
+import { PaperUploadMiddleware } from '../middleware/PaperUpload.middleware.js'
 import { AdminRoute } from '../middleware/verifyAdmin.js'
 
 const Adminrouter = express.Router()
@@ -28,6 +30,20 @@ Adminrouter.get('/projects/all',ShowProjects)
 
 Adminrouter.get('/reviews',ShowTotalReviewsController)
 Adminrouter.get('/reviews/all',ShowReviews)
+
+const withUpload = (middleware) => (req, res, next) => {
+    middleware.single('file')(req, res, (error) => {
+        if (!error) return next()
+
+        return res.status(400).json({
+            success: false,
+            message: error.message || 'File upload failed',
+        })
+    })
+}
+
+const uploadAssignmentFile = withUpload(assignmentUploadMiddleware)
+const uploadPaperFile = withUpload(PaperUploadMiddleware)
 
 // Registered accounts: list + counter plus full CRUD — passwords are hashed by
 // the service, responses never carry secret fields, and deleting your own
@@ -51,7 +67,17 @@ Adminrouter.put('/users/:id/block', blockUser)
 const COLLECTIONS = ['assignments', 'papers', 'projects', 'reviews']
 
 for (const collection of COLLECTIONS) {
-    Adminrouter.post(`/${collection}`, createRecord(collection))
+    const upload = collection === 'assignments'
+        ? uploadAssignmentFile
+        : collection === 'papers'
+            ? uploadPaperFile
+            : null
+
+    if (upload) {
+        Adminrouter.post(`/${collection}`, upload, createRecord(collection))
+    } else {
+        Adminrouter.post(`/${collection}`, createRecord(collection))
+    }
     Adminrouter.put(`/${collection}/:id`, updateRecord(collection))
     Adminrouter.delete(`/${collection}/:id`, deleteRecord(collection))
 }

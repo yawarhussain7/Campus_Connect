@@ -48,7 +48,7 @@ export const sendEmailVerification = async (userId) => {
     // sendEmail expects a single options object.
     await sendEmail({
         email: user.email,
-        subject: 'Verify your CampusConnect email',
+        subject: 'Verify your UniMate email',
         html
     })
 

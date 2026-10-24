@@ -3,7 +3,8 @@
 
 import { readSession } from "./session";
 
-const STORAGE_KEY = "campus-connect-admin:settings:v1";
+const STORAGE_KEY = "unimate-admin:settings:v1";
+const LEGACY_STORAGE_KEY = "campus-connect-admin:settings:v1";
 
 export const DEFAULT_PROFILE = {
   name: "Yawar Hussain",
@@ -20,7 +21,16 @@ export function displayRole(role) {
 /** Current profile, falling back to the signed-in session, then the seed. */
 export function readProfile() {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    let raw = window.localStorage.getItem(STORAGE_KEY);
+
+    if (raw === null) {
+      raw = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+
+      if (raw !== null) {
+        window.localStorage.setItem(STORAGE_KEY, raw);
+        window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+      }
+    }
 
     if (!raw) {
       // Fresh sign-in, Settings never opened: show the account Login saved.
