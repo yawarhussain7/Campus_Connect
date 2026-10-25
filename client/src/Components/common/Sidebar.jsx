@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   LogOut,
   Settings,
+  Star,
   X,
 } from 'lucide-react';
 
@@ -31,6 +32,7 @@ const NAV_GROUPS = [
       { path: '/student/past-papers', name: 'Past papers', icon: FileText },
       { path: '/student/assignments', name: 'Assignments', icon: ClipboardList },
       { path: '/student/create-timetable', name: 'Create Timetable', icon: Calendar },
+      { path: '/student/teachers-review', name: 'Review a Teacher', icon: Star },
     ],
   },
 ];

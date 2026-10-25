@@ -6,12 +6,13 @@ import Projects from '../Pages/students/Projects'
 import ProjectUpload from '../Pages/students/ProjectUpload'
 import PastPapers from '../Pages/students/PastPapers'
 import PastPaperUpload from '../Pages/students/PastPaperUpload'
-import TeacherReview from '../Pages/students/TeacherReview'
+import TeacherReview from '../Pages/students/TeacherReviewPage'
 import Assignments from '../Pages/students/Assignments'
 import AssignmentUpload from '../Pages/students/AssignmentUpload'
 import Settings from '../Pages/students/Settings'
 import About from '../Pages/students/About'
 import ComingSoon from '../Pages/students/ComingSoon'
+import NotFoundPage from '../Pages/common/NotFoundPage'
 
 const StudentRoute = () => {
   return (
@@ -59,10 +60,9 @@ const StudentRoute = () => {
             }
           />
           <Route path="about" element={<About />} />
-
-          <Route path="*" element={<h1>404 Not found</h1>} />
         </Route>
       </Route>
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
 }

@@ -4,83 +4,90 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-const COMSATS_URL = process.env.TEACHER_DATA_URL
+const COMSATS_URL = process.env.TEACHER_DATA_URL?.trim()
+const REQUEST_TIMEOUT_MS = 30_000
 
-/** Every faculty card links here, and the uid is what identifies the teacher. */
-const FACULTY_LINK = /FacultyDetails\.aspx\?Uid=(\d+)/i;
+const normaliseText = (value = '') => value.replace(/\s+/g, ' ').trim()
 
-/** Collapses a card's text into its non-empty, whitespace-normalised lines. */
-const cardLines = ($, card) =>
-    $(card)
-        .text()
-        .split("\n")
-        .map((line) => line.replace(/\s+/g, " ").trim())
-        .filter(Boolean);
+const valueFromLabel = ($, card, labelId) =>
+    normaliseText($(card).find(`[id$="${labelId}"]`).first().text())
 
-const parseFacultyCard = ($, card) => {
-    const link = $(card).find("a[href*=FacultyDetails]").first()
-    const href = link.attr("href")
-    const match = String(href || "").match(FACULTY_LINK)
+const parseFacultyCard = ($, card, sourceUrl) => {
+    const link = $(card).find(`a[href*="FacultyDetails.aspx"]`).first()
+    const href = link.attr('href')
 
-    const name = link.text().replace(/\s+/g, " ").trim()
+    if (!href) return null
 
-    if (!match || !name) {
-        return null;
+    let profileUrl
+    try {
+        profileUrl = new URL(href, sourceUrl)
+    } catch {
+        return null
     }
 
-    const lines = cardLines($, card)
-    const departmentIndex = lines.indexOf("Department,")
-    const campusIndex = lines.indexOf("Campus")
+    const uid = profileUrl.searchParams.get('Uid')
+    const name = normaliseText(link.text())
+
+    if (!uid || !name) return null
+
+    const designation = valueFromLabel($, card, 'Label3')
+    const department = valueFromLabel($, card, 'Label5')
+    const campus = valueFromLabel($, card, 'Label6')
 
     return {
-        uid: match[1],
+        uid,
         name,
-        designation:
-            departmentIndex > 0
-                ? lines.slice(1, departmentIndex - 1).join(" ")
-                : lines[1] || "",
-        department: departmentIndex > 0 ? lines[departmentIndex - 1] : "",
-        campus: campusIndex > 0 ? lines[campusIndex - 1] : "",
-        profileUrl: new URL(href, COMSATS_URL).href,
+        designation,
+        department,
+        campus,
+        profileUrl: profileUrl.href,
     }
 }
 
 export const scrapeComsatsTeachers = async () => {
-    try {
-        const response = await axios.get(COMSATS_URL, {
-            timeout: 30000,
-            responseType: "text",
-
-            headers: {
-                "User-Agent":
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/142.0 Safari/537.36",
-            }
-        })
-
-        const $ = load(response.data)
-
-        // Reading the cards (instead of every anchor) keeps navigation links such
-        // as "Forgot Password" out of the list, and the uid de-duplicates the
-        // teachers the A-Z page repeats across rows.
-        const teachersByUid = new Map()
-
-        $("table td").each((index, card) => {
-            const teacher = parseFacultyCard($, card)
-
-            if (teacher && !teachersByUid.has(teacher.uid)) {
-                teachersByUid.set(teacher.uid, teacher)
-            }
-        })
-
-        return [...teachersByUid.values()]
-
-    } catch (error) {
-        console.error(
-            "COMSATS scraping error:",
-            error.message
-        );
-
-        throw new Error("Unable to scrape COMSATS faculty data");
+    if (!COMSATS_URL) {
+        throw new Error('TEACHER_DATA_URL is not configured')
     }
-}
 
+    let response
+    try {
+        response = await axios.get(COMSATS_URL, {
+            timeout: REQUEST_TIMEOUT_MS,
+            responseType: 'text',
+            headers: {
+                'User-Agent':
+                    'Mozilla/5.0 (compatible; CampusConnectFacultyDirectory/1.0)',
+            },
+        })
+    } catch (error) {
+        console.error('COMSATS directory request failed:', error.message)
+        throw new Error(
+            `Unable to fetch COMSATS faculty directory${error.response?.status ? ` (HTTP ${error.response.status})` : ''}`
+        )
+    }
+
+    const $ = load(response.data)
+    const teachersByUid = new Map()
+
+    // The source is an ASP.NET DataList rendered as table cells. Scanning the
+    // faculty links directly avoids relying on a particular table nesting.
+    $('a[href*="FacultyDetails.aspx"]').each((_, link) => {
+        const anchor = $(link)
+        const card = anchor.closest('td').length
+            ? anchor.closest('td')
+            : anchor.parent()
+        const teacher = parseFacultyCard($, card, COMSATS_URL)
+
+        if (teacher && !teachersByUid.has(teacher.uid)) {
+            teachersByUid.set(teacher.uid, teacher)
+        }
+    })
+
+    if (!teachersByUid.size) {
+        throw new Error(
+            'No faculty profiles were found in the COMSATS directory response; the website markup may have changed'
+        )
+    }
+
+    return [...teachersByUid.values()]
+}

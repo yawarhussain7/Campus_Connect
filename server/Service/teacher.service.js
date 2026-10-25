@@ -16,11 +16,10 @@ export const getTeacherById = async (id) => {
 }
 
 export const scrapeAndSaveTeachers = async () => {
-
     const teachers = await scrapeComsatsTeachers()
 
     if (!teachers.length) {
-        return { total: 0, created: 0, updated: 0 }
+        throw new Error('COMSATS faculty scrape returned no teachers; no records were changed')
     }
 
     const scrapedAt = new Date()
@@ -47,5 +46,4 @@ export const scrapeAndSaveTeachers = async () => {
         created: result.upsertedCount,
         updated: result.matchedCount,
     }
-
 }

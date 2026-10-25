@@ -3,6 +3,8 @@ import dotenv from 'dotenv'
 import fs from 'fs'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
+import { apiLimiter } from './middleware/ratelimiter.middleware.js'
+import helmet from 'helmet'
 
 dotenv.config()
 // routes
@@ -29,6 +31,8 @@ app.use(cors({
     credentials:true
 }))
 app.use(cookieParser())
+app.use(apiLimiter)
+app.use(helmet())
 
 // Multer writes into these folders (paths are relative to the process cwd) and
 // Express serves them statically, so they have to exist on a fresh clone.

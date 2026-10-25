@@ -52,7 +52,6 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [rememberMe, setRememberMe] = useState(() => Boolean(readRememberedEmail()));
-
   const [formData, setFormData] = useState(() => ({
     name: '',
     email: readRememberedEmail(),
@@ -353,4 +352,3 @@ export default function AuthPage() {
     </AuthShell>
   );
 }
-

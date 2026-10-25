@@ -91,6 +91,14 @@ body {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
+@keyframes not-found-float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-12px) rotate(2deg); }
+}
+@keyframes not-found-orbit {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(18deg); }
+}
 
 .animate-fadeIn { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 .animate-fadeInUp { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -168,6 +176,22 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  min-height: 100dvh;
+  overscroll-behavior-y: contain;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+[role='button'] {
+  touch-action: manipulation;
 }
 
 /*
@@ -271,9 +295,74 @@ textarea,
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
-*:hover,
-*:active,
-*:focus {
-  transform: none !important;
+/* React Toastify uses transforms for its slide transition and needs its own
+   visible surface; keep toast overrides scoped instead of disabling transforms
+   and shadows on every element in the app. */
+.Toastify__toast-container {
+  z-index: 10000 !important;
+  width: min(420px, calc(100vw - 24px)) !important;
+  padding: 0 !important;
 }
 
+.Toastify__toast {
+  min-height: 60px;
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  overflow-wrap: anywhere;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  color: #334155;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14) !important;
+}
+
+.Toastify__toast-body {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.Toastify__toast-body > div {
+  color: inherit !important;
+}
+
+.Toastify__toast-icon {
+  width: auto;
+  margin-inline-end: 10px;
+}
+
+.Toastify__close-button {
+  align-self: center;
+  color: #64748b;
+  opacity: 0.75;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1;
+}
+
+.Toastify__progress-bar {
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #4f46e5);
+}
+
+@media (max-width: 480px) {
+  .Toastify__toast-container {
+    right: 12px !important;
+    left: 12px !important;
+    width: auto !important;
+  }
+}
+
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}

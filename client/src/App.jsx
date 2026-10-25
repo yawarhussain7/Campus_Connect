@@ -2,7 +2,8 @@ import AuthPage from './Pages/common/AuthPage'
 import ForgotPasswordPage from './Pages/common/ForgotPasswordPage'
 import ResetPasswordPage from './Pages/common/ResetPasswordPage'
 import VerifyEmailPage from './Pages/common/VerifyEmailPage'
-import {Routes,Route,Navigate} from 'react-router-dom'
+import NotFoundPage from './Pages/common/NotFoundPage'
+import {Routes,Route} from 'react-router-dom'
 import { ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { CheckCircle2, Info, TriangleAlert, XCircle } from "lucide-react";
@@ -26,20 +27,20 @@ const App = () => {
     <AppProvider>
      <ToastContainer
        position="top-right"
-       autoClose={3500}
+       autoClose={5000}
+       limit={4}
        hideProgressBar={false}
        newestOnTop
        closeOnClick
        pauseOnHover
+       pauseOnFocusLoss
        draggable
        theme="light"
        transition={Slide}
        icon={({ type }) => TOAST_ICONS[type] || TOAST_ICONS.info}
-       toastClassName={() =>
-         "relative flex items-start gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-slate-700 shadow-xl shadow-slate-900/10 backdrop-blur"
-       }
-       bodyClassName="min-w-0 flex-1 p-0 m-0 text-sm font-medium !text-slate-700"
-       progressClassName={() => "bg-gradient-to-r from-blue-500 to-indigo-500"}
+       toastClassName="unimate-toast"
+       bodyClassName="unimate-toast-body"
+       progressClassName="unimate-toast-progress"
      />
     <Routes>
       <Route path="/" element={<LandingPage/>} />
@@ -54,9 +55,7 @@ const App = () => {
           hands the token to the API and reports the outcome. */}
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/student/*" element={<StudentRoute />} />
-      {/* Unmatched URLs used to render an empty page (plus a console warning)
-          instead of taking the visitor somewhere useful. */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
     </AppProvider>
   )
